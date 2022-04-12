@@ -1,0 +1,9 @@
+{% extends 'main/template.html'%}
+{% load crispy_forms_tags %}
+{% block content %}
+    <form action='' method="POST">
+        {% csrf_token %}
+        {{form|crispy}}
+        <button type="submit" value="mudar" class="btn btn-success" >mudar</button>
+    </form>
+{% endblock %}
