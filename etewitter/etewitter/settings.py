@@ -41,10 +41,11 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     'change.apps.ChangeConfig',
     'check.apps.CheckConfig',
-    'emailconfirmation.apps.EmailconfirmationConfig',
+    'validations.apps.ValidationsConfig',
     'login.apps.LoginConfig',
     'logout.apps.LogoutConfig',
     'register.apps.RegisterConfig',
+    'editprofile.apps.EditprofileConfig',
     'etewitter',
 ]
 
@@ -88,7 +89,7 @@ WSGI_APPLICATION = 'etewitter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'testing5',
+        'NAME': 'testing8',
         'USER': 'danilo',
         'PASSWORD': 'a1s2d3f4',
         'HOST': '127.0.0.1',
@@ -155,3 +156,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'redesocialdaete@gmail.com'
 EMAIL_HOST_PASSWORD = 'Etewitter@2022'
 EMAIL_PORT = 587
+
+
+MEDIA_URL = '/uploads/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')

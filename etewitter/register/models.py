@@ -1,17 +1,55 @@
 from django.db import models
-from django.contrib.auth.models import User, AbstractUser
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
+from django.core.exceptions import ValidationError
+from datetime import datetime
+import random
+import os
+
+def image_path(instance, filename):
+    basefilename, file_extension = os.path.splitext(filename)
+    chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890'
+    randomstr = ''.join((random.choice(chars)) for x in range(10))
+    randomstr2 = ''.join((random.choice(chars)) for x in range(20))
+    _now = datetime.now()
+
+    return '{instance.id}/{day}{month}{year}/{randomstring}/{randomstring2}{ext}'.format(
+        instance = instance, basename=basefilename, randomstring=randomstr, randomstring2=randomstr2,ext=file_extension,
+        day=_now.strftime('%d'), month=_now.strftime('%m'), year=_now.strftime('%Y'))
+
 
 class MyPBKDF2PasswordHasher(PBKDF2PasswordHasher):
     iterations = PBKDF2PasswordHasher.iterations * 1
 
 class Usuario(AbstractUser):
-    template_name = "login/login.html"
+    def validate_profilepic_size(value):
+        filesize= value.size
+        if filesize > 4110000:
+            raise ValidationError("The maximum profilepic size that can be uploaded is 4MB")
+        else:
+            return value
+
+
+    def validate_banner_size(value):
+        filesize= value.size
+        if filesize > 10485760:
+            raise ValidationError("The maximum banner size that can be uploaded is 10MB")
+        else:
+            return value
+
     validateName = RegexValidator(regex='^.{4,25}$', message='O tamanho do nome tem que ser entre 4 e 25')
-    username = models.CharField(validators=[validateName], max_length=25, unique=True)
+    username = models.CharField(validators=[validateName], max_length=25, unique=True, verbose_name="Nome de usuário")
     email = models.EmailField(unique=True)
-    name = models.CharField(validators=[validateName], max_length=25)
+    name = models.CharField(validators=[validateName], max_length=25, verbose_name="Nome")
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'password']
+    date_of_birth = models.DateTimeField(null=True,blank=True, verbose_name='Data de aniversário')
+    profilepic = models.ImageField(default="default/default_profile_400x400.png", blank=True, upload_to =image_path, verbose_name="Foto de perfil", validators=[validate_profilepic_size])
+    bannerpic = models.ImageField(default="default/default.banner.jpg",blank=True, upload_to =image_path, verbose_name="Foto de capa", validators=[validate_banner_size])
+    bio = models.CharField(blank=True, max_length=50, verbose_name="Sobre")
     is_authenticated = False
+
+
+
+

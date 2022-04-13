@@ -4,14 +4,13 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from register.models import Usuario
 from django.contrib.auth import login as authLogin, authenticate
-from register.forms import LoginForm
+from .forms import LoginForm
 from django.contrib.auth.hashers import check_password
 from check.views import checkIfUsernameExists, checkIfEmailExists
 from django.contrib.auth.decorators import user_passes_test
 
 @user_passes_test(lambda u: not Usuario.is_authenticated, login_url='/')
 def login(request):
-    print("test")
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -20,12 +19,9 @@ def login(request):
             check = checkIfUsernameExists(request, username)
             if check is True:
                 u = Usuario.objects.filter(username__iexact=username).first()
-                print(u.password)
                 checkpa = check_password(password, u.password)
-                print (checkpa)
                 if checkpa:
                     user=authenticate(username=username, password=password)
-                    print(user)
                     if u.is_active:  
                         Usuario.is_authenticated = True
                         authLogin(request, user)
@@ -34,10 +30,13 @@ def login(request):
                         return HttpResponseNotFound('<h1>Usuario nao ativo.</h1>')
                 else:
                     messages.error(request, 'Nome de usuário e/ou senha invalidos.')
+                    return redirect("/login")
             else:
                 messages.error(request, 'Nome de usuário e/ou senha invalidos.')
+                return redirect("/login")
         else:
             messages.error(request, 'Digite informações validas.')
+            return redirect("/login")
     else: 
         form = LoginForm()
         return render(request, 'login/login.html', {"form":form})

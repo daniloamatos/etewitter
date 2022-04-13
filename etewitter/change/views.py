@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from register.models import Usuario
 from django.contrib.auth.decorators import login_required
-from register.forms import ChangeName, ChangePass
+from .forms import ChangeName, ChangePass
 from django.contrib.auth.hashers import make_password
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string

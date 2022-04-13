@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from register.models import Usuario
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login as authLogin
-from register.forms import  ChangePass
+from change.forms import  ChangePass
 from django.utils.http import  urlsafe_base64_decode
 from django.utils.encoding import force_str
 from register.tokens import account_activation_token
+from register.models import Usuario
+
 
 
 def activate(request, uidb64, token):
