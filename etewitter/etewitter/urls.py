@@ -14,24 +14,26 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.http import request
 from django.urls import path, include
 from register import views as vr
-from django.contrib.auth import logout
-from django.conf import settings
+from logout import views as vlogout
+from login import views as vlogin
+from emailconfirmation import views as vemailconf
+from change import views as vchange
+from register.forms import LoginForm
+from django.contrib.auth import views as auth_views
 
 app_name='main'
 
 urlpatterns = [
     path('', include("main.urls")),
-    path('register/', vr.register, name='register'),
-    path('changename/', vr.changeName, name="changeName"),
-    path('changeusername/', vr.changeUsername, name="changeUsername"),
-    path('login/', vr.login, name="login"),
-    path('logout/', vr.logout, name='logout'),
+    path('register/', vr.register, name="register"),
+    path('changename/', vchange.changeName, name="changeName"),
+    path('changeusername/', vchange.changeUsername, name="changeUsername"),
+    path('login/', vlogin.login, name='login'),
+    path('logout/', vlogout.logout, name='logout'),
     path('admin/', admin.site.urls),
-    path('', include("django.contrib.auth.urls")),
-    path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', vr.activate, name='activate'),
-    path('changepassword/', vr.changePass, name="changePass"),
-    path('confirmChange/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', vr.confirmChange, name="confirmChange")
+    path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', vemailconf.activate, name='activate'),
+    path('changepassword/', vchange.changePass, name="changePass"),
+    path('confirmChange/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', vemailconf.confirmChange, name="confirmChange"),
 ]

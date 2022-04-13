@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
 {% block content%}
-<form method="POST" class="form-group">
+<form method="POST" class="form-group" action="">
     {% csrf_token %}
     {{form|crispy}}
     {% if messages %}
@@ -13,7 +13,7 @@
     </div>
     {% endfor %}
     {% endif %}
-    <p>Don't have an account? Create one <a href="/register">here</a></p>
+    <p>Não tem uma conta? Faça uma <a href="/register">aqui</a></p>
     <button type="submit" class="btn btn-success">Login</button>
 </form>
 {% endblock %}

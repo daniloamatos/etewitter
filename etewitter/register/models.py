@@ -7,6 +7,7 @@ class MyPBKDF2PasswordHasher(PBKDF2PasswordHasher):
     iterations = PBKDF2PasswordHasher.iterations * 1
 
 class Usuario(AbstractUser):
+    template_name = "login/login.html"
     validateName = RegexValidator(regex='^.{4,25}$', message='O tamanho do nome tem que ser entre 4 e 25')
     username = models.CharField(validators=[validateName], max_length=25, unique=True)
     email = models.EmailField(unique=True)

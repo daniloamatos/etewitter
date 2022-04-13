@@ -2,6 +2,7 @@ from tabnanny import verbose
 from django import forms, template
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import Usuario
+from django.contrib.auth.views import LoginView
 from django.db import models
 
 class RegisterForm(UserCreationForm):
