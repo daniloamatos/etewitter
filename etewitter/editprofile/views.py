@@ -1,11 +1,16 @@
+from email.mime import image
 from getpass import getuser
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from .forms import userForm
 import os
+from PIL import Image
+from register.models import Usuario
 from django.contrib.auth.decorators import login_required
-  
+from django.shortcuts import render, redirect
 # Create your views here.
+from django.db import connection
+
 @login_required(login_url="/login")
 def editprofile(request):
     defaultProfile = "default/default_profile_400x400.png"
@@ -20,8 +25,16 @@ def editprofile(request):
             user.bannerpic.delete(save=True)
         if form.is_valid():
             form.save()
-            deleteFolders()
-            return redirect("/editprofile")
+            if 'profilepic' in request.FILES:
+                test = compressImg(user)
+                user.profilepic.delete(save=True)
+                user.profilepic = test
+                form.save()
+                deleteFolders()
+                return redirect("/editprofile")
+            else:
+                setDefaultPictures(user, defaultProfile, defaultBanner)
+                return redirect("/editprofile")
     else:
         form = userForm(instance=user)
     return render(request, 'upload/upload.html', {'form' : form})
@@ -43,3 +56,24 @@ def deleteFolders():
             os.rmdir(folder[0])
         except OSError as error: 
             pass
+
+def compressImg(user):
+    im = Image.open(user.profilepic)
+    rgb_im = im.convert('RGB')
+    path = str(user.profilepic.path).split('/')
+    test = path.pop()
+    path = '/'.join(path)
+    test = test.split('.')
+    del test[-1]
+    #width, height = rgb_im.size
+    #rgb_im = rgb_im.resize((round(width / 8.5), round(height / 8.5 )), Image.ANTIALIAS)
+    #rgb_im.thumbnail((400, 400))
+    #rgb_im = rgb_im.crop((100, 100, 500, 500))
+    rgb_im.save(f"{path}/{test[0]}.jpeg", 'jpeg', quality=85, optimize=True)
+    url = str(user.profilepic.url).split('/')
+    del url[0]
+    del url[0]
+    url = '/'.join(url)
+    url = url.split('.')
+    del url[-1]
+    return (f"{url[0]}.jpeg")

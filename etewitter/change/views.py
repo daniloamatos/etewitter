@@ -52,9 +52,12 @@ def changePass(request):
         current_user = request.user
         form = ChangePass(request.POST)
         if form.is_valid():
-            current_user.password = make_password(request.POST['senha'])
-            current_user.save()
-            return logout(request)
+            if request.POST['senha'] == request.POST['confirme_sua_senha']:
+                current_user.password = make_password(request.POST['senha'])
+                current_user.save()
+                return logout(request)
+            else:
+                messages.error(request, 'As senhas não são identicas.')
     else:
         form = ChangePass()
         current_user = request.user

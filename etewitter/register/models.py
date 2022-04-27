@@ -7,16 +7,18 @@ from datetime import datetime
 import random
 import os
 
+
 def image_path(instance, filename):
-    basefilename, file_extension = os.path.splitext(filename)
+    file_extension = os.path.splitext(filename)
     chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890'
     randomstr = ''.join((random.choice(chars)) for x in range(10))
     randomstr2 = ''.join((random.choice(chars)) for x in range(20))
     _now = datetime.now()
 
-    return '{instance.id}/{day}{month}{year}/{randomstring}/{randomstring2}{ext}'.format(
-        instance = instance, basename=basefilename, randomstring=randomstr, randomstring2=randomstr2,ext=file_extension,
+    return '{instance.id}/{day}/{month}/{year}/{randomstring}/{randomstring2}{ext}'.format(
+        instance = instance, randomstring=randomstr, randomstring2=randomstr2,ext=file_extension[1],
         day=_now.strftime('%d'), month=_now.strftime('%m'), year=_now.strftime('%Y'))
+
 
 
 class MyPBKDF2PasswordHasher(PBKDF2PasswordHasher):
@@ -25,7 +27,7 @@ class MyPBKDF2PasswordHasher(PBKDF2PasswordHasher):
 class Usuario(AbstractUser):
     def validate_profilepic_size(value):
         filesize= value.size
-        if filesize > 4110000:
+        if filesize > 4290312567534000:
             raise ValidationError("The maximum profilepic size that can be uploaded is 4MB")
         else:
             return value
@@ -45,10 +47,19 @@ class Usuario(AbstractUser):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'password']
     date_of_birth = models.DateTimeField(null=True,blank=True, verbose_name='Data de aniversário')
-    profilepic = models.ImageField(default="default/default_profile_400x400.png", blank=True, upload_to =image_path, verbose_name="Foto de perfil", validators=[validate_profilepic_size])
+    date_of_creation = models.DateTimeField(default=datetime.now, blank=True)
+    profilepic = models.ImageField(default="default/default_profile_400x400.png", blank=True, upload_to =image_path, verbose_name="Foto de perfil")
     bannerpic = models.ImageField(default="default/default.banner.jpg",blank=True, upload_to =image_path, verbose_name="Foto de capa", validators=[validate_banner_size])
     bio = models.CharField(blank=True, max_length=50, verbose_name="Sobre")
+    followersN = models.IntegerField(default=0)
+    #followers = models.ForeignKey()
+    #following = models.ForeignKey()
+    followingN = models.IntegerField(default=0)
     is_authenticated = False
+
+
+           
+
 
 
 

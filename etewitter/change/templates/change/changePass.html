@@ -4,6 +4,13 @@
     <form action='/changepassword/' method="POST">
         {% csrf_token %}
         {{form|crispy}}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
         <button type="submit" value="mudar" class="btn btn-success" >mudar</button>
     </form>
 {% endblock %}

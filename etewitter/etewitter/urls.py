@@ -23,12 +23,13 @@ from change import views as vchange
 from django.conf import settings
 from django.conf.urls.static import static
 from editprofile import views as veditprofile
-
+from userprofile import views as vuserprofile
 
 app_name='main'
 
 urlpatterns = [
     path('', include("main.urls")),
+    #path('tweet/',include("main.urls")),
     path("editprofile/", veditprofile.editprofile, name="editprofile"),
     path('register/', vr.register, name="register"),
     path('changename/', vchange.changeName, name="changeName"),
@@ -39,4 +40,6 @@ urlpatterns = [
     path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', vemailconf.activate, name='activate'),
     path('changepassword/', vchange.changePass, name="changePass"),
     path('confirmChange/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', vemailconf.confirmChange, name="confirmChange"),
+    path('<str:username>/',vuserprofile.userprofile, name="userprofile"),
+    path('<str:username>/like/', vuserprofile.like, name="like"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,6 +1,6 @@
 
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render,  redirect
 from django.contrib import messages
 from .models import Usuario
 from .forms import RegisterForm
@@ -45,7 +45,8 @@ def register(request):
             else:
                 messages.error(request, 'usuário ja existe')
         else:
-            messages.error(request, 'Digite informações validas.')     
+            messages.error(request, 'Digite informações validas.')
     else:
         form = RegisterForm()
         return render(request, "register/register.html", {"form":form})
+    return redirect("/register")    

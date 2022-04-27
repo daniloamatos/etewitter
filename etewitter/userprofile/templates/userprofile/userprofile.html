@@ -1,0 +1,25 @@
+{% extends "main/template.html" %}
+{% load crispy_forms_tags %}
+{% block title %}
+{{jname}} (@{{jusername}})
+{% endblock %}
+{% block content %}
+{{user.bio}}<br>
+{{user.name}}
+@{{user.username}}<br>
+<img src="{{user.profilepic.url}}" class="img-thumbnail"></img><br>
+<img src="{{user.bannerpic.url}}" class="img-fluid"></img><br>
+
+    {% for Tweet in tweets|dictsortreversed:"publishDate" %}
+    <p>{{Tweet.tweet}}
+        {{Tweet.likes}}
+        {{Tweet.publishDate}}
+    <form method="post" action="like/">
+        {% csrf_token %}
+        <input type="hidden"value="{{Tweet.id}}" name="tweetid">
+        <button type="submit">like</button>
+    </form>
+    </p>
+    {% endfor %}
+
+{% endblock %}

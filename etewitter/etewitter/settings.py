@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'logout.apps.LogoutConfig',
     'register.apps.RegisterConfig',
     'editprofile.apps.EditprofileConfig',
+    'userprofile.apps.UserprofileConfig',
     'etewitter',
 ]
 
@@ -89,7 +90,7 @@ WSGI_APPLICATION = 'etewitter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'testing8',
+        'NAME': 'testing9',
         'USER': 'danilo',
         'PASSWORD': 'a1s2d3f4',
         'HOST': '127.0.0.1',
@@ -133,6 +134,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
