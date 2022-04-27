@@ -4,5 +4,5 @@ from register.models import Usuario
 
 def logout(request):
     Usuario.is_authenticated = False
-    return redirect('/')
+    return redirect('/index')
     
