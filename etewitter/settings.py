@@ -91,11 +91,11 @@ WSGI_APPLICATION = 'etewitter.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgresql-concave-32781',
-        'USER': 'zzzppuxuaqtzvk',
-        'PASSWORD': '0433e5ee610b646eecac0e9277c28bb649c5125715890befad2d5be926ae4418',
-        'HOST': 'ec2-52-73-155-171.compute-1.amazonaws.com',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'deg92ofv8t0i8c',
+        'USER': 'ivgxdrkfsfccdy',
+        'PASSWORD': '7881a1119eb9032dfd90c14f32dcc7931b9d662ae60ab50e5cb473f028363588',
+        'HOST': 'ec2-52-86-56-90.compute-1.amazonaws.com',
         'PORT': '5432',
     }
 }
