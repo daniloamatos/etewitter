@@ -27,16 +27,16 @@ class MyPBKDF2PasswordHasher(PBKDF2PasswordHasher):
 class Usuario(AbstractUser):
     def validate_profilepic_size(value):
         filesize= value.size
-        if filesize > 4290312567534000:
-            raise ValidationError("The maximum profilepic size that can be uploaded is 4MB")
+        if filesize > 6342880:
+            raise ValidationError("O tamanho máximo da foto de perfil é 50MB")
         else:
             return value
 
 
     def validate_banner_size(value):
         filesize= value.size
-        if filesize > 10485760:
-            raise ValidationError("The maximum banner size that can be uploaded is 10MB")
+        if filesize > 6342880:
+            raise ValidationError("O tamanho máximo da foto de capa é 50MB")
         else:
             return value
 
@@ -48,7 +48,7 @@ class Usuario(AbstractUser):
     REQUIRED_FIELDS = ['email', 'password']
     date_of_birth = models.DateTimeField(null=True,blank=True, verbose_name='Data de aniversário')
     date_of_creation = models.DateTimeField(default=datetime.now, blank=True)
-    profilepic = models.ImageField(default="default/default_profile_400x400.png", blank=True, upload_to =image_path, verbose_name="Foto de perfil")
+    profilepic = models.ImageField(default="default/default_profile_400x400.png", blank=True, upload_to =image_path, verbose_name="Foto de perfil", validators=[validate_profilepic_size])
     bannerpic = models.ImageField(default="default/default.banner.jpg",blank=True, upload_to =image_path, verbose_name="Foto de capa", validators=[validate_banner_size])
     bio = models.CharField(blank=True, max_length=50, verbose_name="Sobre")
     followersN = models.IntegerField(default=0)
