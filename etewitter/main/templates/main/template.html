@@ -1,60 +1,55 @@
 {% load static %}
 <html>
     <head>
-        
-        <style type="text/css">
-            .sidenav{
-                height:100%;
-                width:160px;
-                position:fixed;
-                z-index:1;
-                top:0;
-                left:0;
-                background-color:#111;
-                overflow-x: hidden;
-                padding-top:20px;
-            }
-
-            .sidenav a{
-                padding:6px 8px 6px 16px;
-                text-decoration: none;
-                color: #818181;
-                font-size:25px;
-                display:block;
-            }
-            .sidenav a:hover{
-                color:#f1f1f1;
-            }
-
-            .main{
-                margin-left:160px;
-                padding: 0px 10px;
-            }
-        </style>
-
+        {% load static %}
+        {% block head %}
+        {% endblock %}
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500&display=swap" rel="stylesheet">
+        <link href="{% static 'css/styles.css'%}" rel="stylesheet">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-        <link href="{% static 'css/cropper.min.css' %}" rel="stylesheet">
         <title>{% block title %} {% endblock %}</title>
     </head>
     <body>
-        <div class="sidenav">
-            <a href="/">Home</a>
-            <a href="/login">Login</a>
-            <a href="/register">Register</a>
-            <a href="/logout">Logout</a>
-            <a href="/changename">Change name</a>
-            <a href="/changeusername">Change username</a>
-            <a href="/changepassword">Change password</a>
-        </div>
+        <header class="left">
+            <p>
+                <button id="twitterLogo" class="hidebutton"><img src="{% static 'logo.jpg' %}" style="width:50px;height:50px;"></button>
+            </p>
+            <p>
+                <a class="hidebutton" href="/"><img src="https://i.ibb.co/BP0CKLT/hastag.png">Página Inicial</button>
+            </p>
+            <p>
+                <button class="hidebutton" onclick=""><img src="https://i.ibb.co/z6KVrqw/home.png"/>Explore</button>
+            </p>
+            <p>
+                <button class="hidebutton"  onclick=""><img src="https://i.ibb.co/YcbhGX3/sino.png">Notifications</button>
+            </p>
+            <p>
+                <button class="hidebutton" onclick=""><img src="https://i.ibb.co/GphkvzT/messages.png"/>Messages</button>
+            </p>
+            <p>
+                <button class="hidebutton" onclick=""><img src="https://i.ibb.co/3z0gRWD/saved-Itens.png">Saved Items</button>
+            </p>
+            <p>
+                <button class="hidebutton" onclick=""><img src="https://i.ibb.co/vVjJS2q/lists.png">Lists</button>
+            </p>
+            <p>
+                <a class="hidebutton" type="button" style="text-decoration: none; " href="/{{user.username}}/" value="profile"><img src="https://i.ibb.co/6XyTvTb/perfil.png">Profile</a>
+            </p>
+            <p>
+                <button class="hidebutton" style="text-decoration: none; "><img src="https://i.ibb.co/X3W09pF/more.png">More</button>
+            </p>
+        </header>
+        <header class="right">
+            <img id="lupa"src="https://i.ibb.co/C729Pw0/lupa.png" style="width:20px; height: 20px; position: absolute; right: 237px; top:33px;">
+            <input id="searchBox" placeholder="        Procurar no twitter" type="text" name="search"></input>
+        </header>
 
         <div id="content", name="content" class="main">
             <div class="row justify-content-center">
                 <div class="col-8">
-                    <h1 class="mt-2">My Site</h1>
                     <hr class="mt-0 mb-4">
                     {% block content %}
                     {% endblock %}

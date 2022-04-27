@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% extends "main/template.html" %}
+        {% load static %}
+        {% load crispy_forms_tags %}
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+        <link href="{% static 'css/styles.css'%}" rel="stylesheet">
+        <meta name="viewport" content="width=device-wid22th, initial-scale=1">
+        {% block title %}Página Inicial{% endblock %}
+    </head>
+    <body>
+        {% block content %}
+            {% if user.is_authenticated %}
+                <form method="POST" class="form-group">
+                    {% csrf_token %}
+                    <div class="row justify-content-center" style="margin-bottom:30px;">
+                    {{form}}
+                    <input style="position:absolute; right:654px; " type="submit" class="tweetBtn" value="Tweet"></input>
+                    </div>
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </form>
+                    {% for Tweet in tweets|dictsortreversed:"publishDate" %}   
+                    <div class="row justify-content-center">          
+                        <div class="card" style="width: 18rem;">      
+                            <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
+                                <li class="list-group-item">{{Tweet.tweet}}</li>
+                                <form method="post" action="like/">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <input type="hidden"value="{{Tweet.id}}" name="tweetid">
+                                    <li class="list-group-item">{{Tweet.likes}} <button style="border:none; background:transparent; margin:none;"type="submit"><img src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
+                                    <li class="list-group-item">{{Tweet.publishDate}}</li>
+                                </form>
+                            </ul>
+                        </div>
+                    </div>
+                    {% endfor %}
+            {% endif %}
+        {% endblock %}
+        {% block javascript %}
+       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+        {% endblock %}
+    </body>
+</html>

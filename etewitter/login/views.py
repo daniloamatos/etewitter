@@ -30,13 +30,11 @@ def login(request):
                         return HttpResponseNotFound('<h1>Usuario nao ativo.</h1>')
                 else:
                     messages.error(request, 'Nome de usuário e/ou senha invalidos.')
-                    return redirect("/login")
             else:
                 messages.error(request, 'Nome de usuário e/ou senha invalidos.')
-                return redirect("/login")
         else:
             messages.error(request, 'Digite informações validas.')
-            return redirect("/login")
     else: 
         form = LoginForm()
         return render(request, 'login/login.html', {"form":form})
+    return redirect("/login") 

@@ -6,4 +6,10 @@ class tweetForm(forms.ModelForm):
     class Meta:
         model = Tweet
         fields = ['tweet',]
+        labels = {
+            'tweet':'',
+        }
+        widgets = {
+            'tweet': forms.TextInput(attrs={'placeholder': '    O que está acontecendo?', 'id': 'tweetBox', 'name': 'tweet', 'type':'text'}),
+        }
 

@@ -29,7 +29,7 @@ app_name='main'
 
 urlpatterns = [
     path('', include("main.urls")),
-    #path('tweet/',include("main.urls")),
+    path('like/',include("main.urls")),
     path("editprofile/", veditprofile.editprofile, name="editprofile"),
     path('register/', vr.register, name="register"),
     path('changename/', vchange.changeName, name="changeName"),

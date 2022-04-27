@@ -17,12 +17,13 @@ def userprofile(request,username):
     else:
         return HttpResponse("essa conta não existe, tente procurar por outra coisa")
 
-def like (request, username):
+def like (request, **username):
     if request.method == 'POST':
         print(request.POST['tweetid'])
         person = get_object_or_404(Tweet, id=request.POST['tweetid'])
         person.likes += 1
         person.save()
-        return redirect('/')
+        next = request.POST.get('next', '/')
+        return redirect(next)
 
 

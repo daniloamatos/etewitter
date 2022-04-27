@@ -1,0 +1,165 @@
+a
+{
+    margin: 5px;
+    text-decoration:none;
+    color:cornflowerblue;
+}
+a:hover
+{
+    color:cornflowerblue;
+    text-decoration-color: cornflowerblue;
+    text-decoration: underline;
+}
+
+body
+{
+    color: white;
+    background-color: #000000;
+}
+#searchBox, #tweetBox
+{
+    border: none;
+    margin: 20px;
+    border-radius: 30px;
+    width: 250px;
+    height: 42px;
+    color:white;
+    background-color: rgb(41, 40, 40);
+    margin:auto;
+}
+#tweetLogo
+{
+    position:absolute;
+}
+.tweetBtn
+{
+    color:white;
+    border: none;
+    border-radius: 30px;
+    width: 150px;
+    height: 50px;
+    margin-bottom: 20px;
+    background: rgba(9,188,200, 1);
+}
+.tweetBtn:hover
+{
+    background: rgba(9,188,200, 0.9);
+}
+header:hover
+{
+    color: blue;
+}
+.hidebutton{
+    color:white;
+    width: fit-content;
+    height: fit-content;
+    border:none;
+    background-color: Transparent;
+}
+.hidebutton:hover, .donthide{
+    color:white;
+    border-radius: 30px;
+    background: rgba(9,188,200, 1);
+}
+.hidebutton:hover{
+    background: rgba(9,188,200, 0.2);
+}
+.centered
+{
+    text-align: center;
+}
+.right
+{
+    position:absolute;
+    right:30px;
+}
+.left
+{
+    position: absolute;
+    left: 30px;
+    margin: 15px;
+}
+.bottom
+{
+    position: absolute;
+    bottom: 50px;
+    left: 800px
+}
+#loginTxt
+{
+
+    color:white;
+    font-family: 'Kanit', sans-serif;
+}
+.form-controlss
+{
+    margin: 5px;
+    width:100%;
+    padding:.375rem .75rem;
+    font-size:1rem;
+    font-weight:400;
+    line-height:1.5;
+    color:white;
+    background-color: Transparent;
+    border:1px solid gray;
+    border-radius:.25rem;
+    transition:border-color .15s ease-in-out,box-shadow .15s ease-in-out
+}
+.form-controlss:focus
+{
+    border-color:cornflowerblue;
+    box-shadow:0 0 255 .25rem rgba(13,110,253,.25)
+}
+
+@media screen and (max-width: 1054px)
+{
+    #searchBox
+    {
+        border: none;
+        margin: 20px;
+        border-radius: 30px;
+        width: 250px;
+        height: 42px;
+        color:white;
+        background-color: rgb(41, 40, 40);
+        position: absolute;
+        left: -500px;
+        bottom: 0px;
+    }
+    #lupa
+    {
+        position: absolute;
+        left: -40000px;
+        bottom: 0px;
+    }
+}
+
+@media screen and (max-width: 834px)
+{
+    #searchBox
+    {
+        visibility: hidden;
+    }
+    #lupa
+    {
+        position: absolute;
+        left: -40000px;
+        bottom: 0px;
+    }
+
+    #topBtn
+    {
+        position: relative;
+        top: 100px;
+        right: 220px;
+    }
+}
+
+@media screen and (max-width: 800px)
+{
+    .left
+    {
+        visibility: hidden;
+    }
+}
+

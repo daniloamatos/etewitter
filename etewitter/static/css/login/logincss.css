@@ -1,0 +1,89 @@
+a, label
+{
+    margin: 5px;
+    text-decoration:none;
+    border:none;
+    background-color: Transparent;
+}
+a{
+    color:cornflowerblue;
+}
+
+label{
+    color:white;
+}
+
+h3:hover, a:hover
+{
+    color:cornflowerblue;
+    text-decoration-color: cornflowerblue;
+    text-decoration: underline;
+}
+
+body
+{
+    background-color: #000000;
+}
+
+.tweetBtn
+{
+    color:white;
+    border: none;
+    border-radius: 30px;
+    width: 150px;
+    height: 50px;
+    margin-bottom: 20px;
+    background: rgba(25, 149, 244, 1);
+}
+
+.hidebutton{
+    color:white;
+    width: fit-content;
+    height: fit-content;
+    border:none;
+    background-color: Transparent;
+}
+.centered
+{
+    text-align: center;
+    padding-top: 180px;
+}
+
+#loginTxt
+{
+    color:white;
+    font-family: 'Kanit', sans-serif;
+}
+
+#divLogin{
+    border-style: solid;
+    margin-right: 300px;
+    margin-left: 300px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.form-controlss
+{
+    margin: 5px;
+    width:100%;
+    padding:.375rem .75rem;
+    font-size:1rem;
+    font-weight:400;
+    line-height:1.5;
+    color:white;
+    background-color: Transparent;
+    border:1px solid gray;
+    border-radius:.25rem;
+    transition:border-color .15s ease-in-out,box-shadow .15s ease-in-out
+}
+
+.form-controlss:focus
+{
+    border-color:cornflowerblue;
+    box-shadow:0 0 255 .25rem rgba(13,110,253,.25)
+}
+
+input[type=name], [type=password]{
+    margin: auto;
+}
