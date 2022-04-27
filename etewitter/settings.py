@@ -159,12 +159,10 @@ AUTH_USER_MODEL = 'register.Usuario'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'apikey'
-DEFAULT_FROM_EMAIL = 'redesocialdaete@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'redesocialdaete@gmail.com'
 EMAIL_HOST_PASSWORD = 'Etewitter@2022'
-EMAIL_PORT = 465
-
+EMAIL_PORT = 587
 
 MEDIA_URL = '/uploads/'
 
