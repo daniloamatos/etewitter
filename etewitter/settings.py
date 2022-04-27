@@ -163,7 +163,7 @@ EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'apikey'
 DEFAULT_FROM_EMAIL = 'redesocialdaete@gmail.com'
 EMAIL_HOST_PASSWORD = 'Etewitter@2022'
-EMAIL_PORT = 587
+EMAIL_PORT = 465
 
 
 MEDIA_URL = '/uploads/'
