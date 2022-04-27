@@ -6,7 +6,7 @@ from register.models import Usuario
 from django.contrib.auth import login as authLogin, authenticate
 from .forms import LoginForm
 from django.contrib.auth.hashers import check_password
-from check.views import checkIfUsernameExists, checkIfEmailExists
+from check.views import checkIfUsernameExists
 from django.contrib.auth.decorators import user_passes_test
 
 @user_passes_test(lambda u: not Usuario.is_authenticated, login_url='/')
