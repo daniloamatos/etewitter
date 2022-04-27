@@ -20,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-n$y&+(ih(416&ug%=55=$x(rrmrshp$)_+1ld@gl!e#(wmgczv'
+SECRET_KEY = '+V6n5vkJ+rcexLZWhPQPgkXdpEZ1HRhqHP7czUOC16c='
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0']
 
 
 # Application definition
@@ -91,10 +91,10 @@ WSGI_APPLICATION = 'etewitter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'testing9',
-        'USER': 'danilo',
-        'PASSWORD': 'a1s2d3f4',
-        'HOST': '127.0.0.1',
+        'NAME': 'etewitter',
+        'USER': 'zzzppuxuaqtzvk',
+        'PASSWORD': '0433e5ee610b646eecac0e9277c28bb649c5125715890befad2d5be926ae4418',
+        'HOST': 'ec2-52-73-155-171.compute-1.amazonaws.com',
         'PORT': '5432',
     }
 }
