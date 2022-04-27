@@ -37,4 +37,4 @@ def login(request):
     else: 
         form = LoginForm()
         return render(request, 'login/login.html', {"form":form})
-    return redirect("/login") 
+    return render(request, 'login/login.html')
