@@ -1,0 +1,9 @@
+from django.urls import path, include
+from . import views
+from userprofile import views as vu
+
+urlpatterns = [
+    path('', views.tweet, name='tweet'),
+    path('index/', views.index, name="index"),
+    path("like/", vu.like, name="like"),
+]

@@ -1,0 +1,251 @@
+body
+{
+    background-color: #000000;
+}
+.tweetBtn
+{
+
+    color:white;
+    border: none;
+    border-radius: 30px;
+    width: 150px;
+    height: 50px;
+    margin-bottom: 20px;
+    background: rgba(9,188,200, 1);
+}
+.tweetBtn:hover
+{
+    background: rgba(9,188,200, 0.9);
+}
+.right
+{
+    text-align: right;
+    position: relative;
+    top: -750px;
+    right: 400px;
+    margin-right: -100px;
+}
+#loginTxt
+{
+    margin-right: -45px;
+    color:white;
+    font-family: 'Kanit', sans-serif;
+}
+.form-controlss
+{
+    margin: 5px;
+    width:100%;
+    padding:.375rem .75rem;
+    font-size:1rem;
+    font-weight:400;
+    line-height:1.5;
+    color:white;
+    background-color: Transparent;
+    border:1px solid gray;
+    border-radius:.25rem;
+    transition:border-color .15s ease-in-out,box-shadow .15s ease-in-out
+}
+.form-controlss:focus
+{
+    border-color:cornflowerblue;
+    box-shadow:0 0 255 .25rem rgba(13,110,253,.25)
+}
+#tweetBird
+{
+    position: relative;
+    left: -335px;
+    top: 68px;
+}
+
+#loginBtn
+{
+    color:rgba(9,188,200, 1);
+    border-radius: 30px;
+    border-color: rgba(9,188,200, 1);
+    width: 150px;
+    height: 50px;
+    margin-bottom: 20px;
+    background: transparent;
+}
+#loginBtn:hover
+{
+    background: rgba(015, 015, 015, 1);
+}
+#bigTweetBird
+{
+    position: relative;
+    right: 700px;
+    width: 350px;
+    height: 350px;
+}
+#signUpTxt
+{
+    color:white;
+    font-family: 'Kanit', sans-serif;
+}
+
+#fundo
+{
+    max-width: 1000px;
+    height: 980px;
+}
+
+@media screen and (max-width: 1800px)
+{
+    #fundo
+    {
+        width: 920px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1750px)
+{
+    #fundo
+    {
+        width: 900px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1700px)
+{
+    #fundo
+    {
+        width: 870px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1650px)
+{
+    #fundo
+    {
+        width: 850px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1600px)
+{
+    #fundo
+    {
+        width: 820px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1550px)
+{
+    #fundo
+    {
+        width: 800px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1500px)
+{
+    #fundo
+    {
+        width: 750px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1450px)
+{
+    #fundo
+    {
+        width: 720px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1430px)
+{
+    #fundo
+    {
+        width: 670px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1400px)
+{
+    #fundo
+    {
+        width: 640px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1350px)
+{
+    #fundo
+    {
+        width: 600px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1320px)
+{
+    #fundo
+    {
+        width: 550px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1250px)
+{
+    #fundo
+    {
+        width: 500px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1220px)
+{
+    #fundo
+    {
+        width: 450px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1150px)
+{
+    #fundo
+    {
+        width: 400px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1120px)
+{
+    #fundo
+    {
+        width: 400px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1100px)
+{
+    #fundo
+    {
+        width: 350px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1050px)
+{    #fundo
+    {
+        width: 300px;
+        height: 980px;
+    }
+}
+@media screen and (max-width: 1000px)
+{
+    #fundo
+    {
+        width: 1000px;
+        height: 500px;
+    }
+    .right
+    {
+        text-align: right;
+        position: relative;
+        top: -400px;
+        right: 400px;
+        margin-right: -100px;
+    }
+}

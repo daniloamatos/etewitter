@@ -1,0 +1,31 @@
+{% extends "main/template.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="position-relative">
+        <div class="position-absolute top-0 end-100">
+            <button type="submit">Upload</button>
+        </div>
+    </div>
+</form>
+<div class="position-relative">
+    <div class="position-absolute top-0 end-0">
+        <form action="/changepassword/">
+            <button type="submit">Mudar Senha</button>
+        </form>
+    </div>
+</div>
+<div class="position-relative">
+    <div class="position-absolute top-0 end-50">
+        <form action="/changeusername/">
+            <button type="submit">Mudar Username</button>
+        </form>
+    </div>
+</div>
+{% if img_obj %}
+<h3>Succesfully uploaded : {{img_obj.title}}</h3>
+<img src="{{ img_obj.image.url}}" alt="connect" style="max-height:300px">
+{% endif %}
+{% endblock %}
