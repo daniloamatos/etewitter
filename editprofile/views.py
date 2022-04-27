@@ -19,9 +19,6 @@ def editprofile(request):
         if 'profilepic' in request.FILES and user.profilepic != defaultProfile or "profilepic-clear" in request.POST and user.profilepic != defaultProfile:
             user.profilepic.delete(save=True)
         if 'bannerpic' in request.FILES and user.bannerpic !=  defaultBanner or "bannerpic-clear" in request.POST and user.bannerpic != defaultBanner:
-            t = os.stat(request.FILES['bannerpic']).st_size
-            if t > 50*1024*1024:
-                user.bannerpic = "default/default.banner.jpg"
             user.bannerpic.delete(save=True)
         if form.is_valid():
             form.save()
