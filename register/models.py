@@ -27,7 +27,7 @@ class MyPBKDF2PasswordHasher(PBKDF2PasswordHasher):
 class Usuario(AbstractUser):
     def validate_profilepic_size(value):
         filesize= value.size
-        if filesize > 6342880:
+        if filesize > 50*1024*1024:
             raise ValidationError("O tamanho máximo da foto de perfil é 50MB")
         else:
             return value
@@ -35,7 +35,7 @@ class Usuario(AbstractUser):
 
     def validate_banner_size(value):
         filesize= value.size
-        if filesize > 6342880:
+        if filesize > 50*1024*1024:
             raise ValidationError("O tamanho máximo da foto de capa é 50MB")
         else:
             return value
