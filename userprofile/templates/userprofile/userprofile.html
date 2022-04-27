@@ -10,6 +10,7 @@
 <div class="position-absolute top-20 start-20">
 {{user.name}}
 </div>
+{% if checkUser.username == jusername %}
 <form action="/editprofile/">
     <div class="position-relative">
         <div class="position-absolute top-0 end-0">
@@ -17,6 +18,7 @@
         </div>
     </div>
 </form>
+{% endif %}
 <br>
 @{{user.username}}<br>
 <br>

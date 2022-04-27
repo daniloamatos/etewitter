@@ -12,8 +12,9 @@ def userprofile(request,username):
     if  checkIfUsernameExists(request, username):
         jname = Usuario.objects.filter(username=username).values_list('name').first()
         user = Usuario.objects.get(username=username)
+        checkUser = request.user
         tweets = Tweet.objects.filter(tweetAuthor=user.id)
-        return render(request, "userprofile/userprofile.html", {"jusername":username, "jname":jname[0], "user":user, "tweets":tweets})
+        return render(request, "userprofile/userprofile.html", {"jusername":username, "jname":jname[0], "user":user, "tweets":tweets, 'checkUser':checkUser})
     else:
         return HttpResponse("essa conta não existe, tente procurar por outra coisa")
 
