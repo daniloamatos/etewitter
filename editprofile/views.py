@@ -8,7 +8,6 @@ from django.shortcuts import render, redirect
 # Create your views here.
 from django.db import connection
 
-@login_required(login_url="/login")
 def editprofile(request):
     defaultProfile = "default/default_profile_400x400.png"
     defaultBanner = "default/default.banner.jpg"

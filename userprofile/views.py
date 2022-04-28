@@ -10,8 +10,8 @@ from django.forms.models import model_to_dict
 def userprofile(request,username):
     username = username
     if  checkIfUsernameExists(request, username):
-        jname = Usuario.objects.filter(username=username).values_list('name').first()
-        user = Usuario.objects.get(username=username)
+        jname = Usuario.objects.filter(username__iexact=username).values_list('name').first()
+        user = Usuario.objects.get(username__iexact=username)
         checkUser = request.user
         tweets = Tweet.objects.filter(tweetAuthor=user.id)
         return render(request, "userprofile/userprofile.html", {"jusername":username, "jname":jname[0], "user":user, "tweets":tweets, 'checkUser':checkUser})
