@@ -9,7 +9,6 @@ from django.contrib.auth.hashers import check_password
 from check.views import checkIfUsernameExists
 from django.contrib.auth.decorators import user_passes_test
 
-@user_passes_test(lambda u: not Usuario.is_authenticated, login_url='/')
 def login(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -23,7 +22,6 @@ def login(request):
                 if checkpa:
                     user=authenticate(username=username, password=password)
                     if u.is_active:  
-                        Usuario.is_authenticated = True
                         authLogin(request, user)
                         return redirect("/")
                     else:
