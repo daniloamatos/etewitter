@@ -12,7 +12,7 @@ def userprofile(request,username):
         user = Usuario.objects.get(username__iexact=username)
         checkUser = request.user
         tweets = Tweet.objects.filter(tweetAuthor=user.id)
-        return render(request, "userprofile/userprofile.html", {"jusername":username, "jname":jname[0], "user":user, "tweets":tweets, 'checkUser':checkUser})
+        return render(request, "userprofile/userprofile.html", {"jusername":username, "jname":jname[0], "user":user, "tweets":tweets, 'checkUser':checkUser, 'usuario':checkUser})
     else:
         return HttpResponse("essa conta não existe, tente procurar por outra coisa")
 
@@ -39,7 +39,13 @@ def like (request, **username):
             tweet_obj.save()
             like.save()
 
-        next = request.POST.get('next', '/')
-        return redirect(next)
+        data = {
+            'value': like.value,
+            'likes': tweet_obj.likes.all().count()
+        }
+
+        return JsonResponse(data, safe=False)
+        #next = request.POST.get('next', '/')
+        #return redirect(next)
 
 

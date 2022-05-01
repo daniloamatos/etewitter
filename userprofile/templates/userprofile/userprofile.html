@@ -6,6 +6,54 @@
 {% endblock %}
 
 {% block javascript %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script>  
+            $('.like-form').submit(function(e){
+                e.preventDefault();
+                
+                const tweet_id = $(this).attr('id')
+                
+                const likeText = $(`.like-input${tweet_id}`).attr('value')
+                console.log(likeText)
+                const trim = $.trim(likeText)
+
+                const url = $(this).attr('action')
+                
+                let res;
+
+                const likes = $(`.like-count${tweet_id}`).text()
+
+                const trimCount = parseInt(likes)
+                
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: {
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                        'tweetid':tweet_id,
+                    },
+                    success: function(response){
+                        if (trim === 'Unlike'){
+                            $(`.like-input${tweet_id}`).attr('value', "Like")
+                            $(`.like-img${tweet_id}`).attr('src', '/static/heart2.jpg')
+                            res = trimCount - 1
+
+                        } else{
+                            $(`.like-input${tweet_id}`).attr('value', "Unlike")
+                            $(`.like-img${tweet_id}`).attr('src', '/static/Symbolic_Love_Heart.png')
+                            res = trimCount + 1
+                        }
+
+                        $(`.like-count${tweet_id}`).text(res)
+                    },
+                    error: function(response){
+                        console.log('error', response)
+                    }
+                })
+            })
+        </script>
+       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+        
 {% endblock %}
 
 {% block content %}
@@ -36,16 +84,31 @@ Followers {{user.followersN}}
 Tweets {{user.get_posts_no}}
 <br>
 
-    {% for Tweet in tweets|dictsortreversed:"publishDate" %}     
+{% for Tweet in tweets|dictsortreversed:"publishDate" %}   
+<div class="row justify-content-center">          
     <div class="card" style="width: 18rem;">      
         <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
             <li class="list-group-item">{{Tweet.tweet}}</li>
-            <input type="hidden" name="next" value="{{ request.path }}">
-            <input type="hidden"value="{{Tweet.id}}" name="tweetid">
-            <li class="list-group-item">{{Tweet.likes}} <a onclick="" href="#" style="border:none; background:transparent; margin:none;"><img src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></a></li>
-            <li class="list-group-item">{{Tweet.publishDate}}</li>
+            <form method="post" action="like/" class="like-form" id="{{Tweet.id}}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="hidden" value="{{Tweet.id}}" name="tweetid">
+                <div style="flex: 1; margin:5px;" class="like-count{{Tweet.id}}">
+                    {{Tweet.num_likes}}
+                </div>
+                    {% if usuario in Tweet.likes.all %}
+                    <input type="hidden" class="like-input{{Tweet.id}}"value="Unlike"></input>
+                    <button style="border:none; background:transparent; margin:none; display:flex; "type="submit" class="unlike-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}" src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
+                    {% else %}
+                    <input type="hidden" class="like-input{{Tweet.id}}" value="Like"></input>
+                    <button style="border:none; background:transparent; margin:none;display:flex;"type="submit" class="like-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
+                    {% endif %}
+                <li class="list-group-item">{{Tweet.publishDate}}</li>
+            </form>
         </ul>
     </div>
-    {% endfor %}
+</div>
+{% endfor %}
 
 {% endblock %}
+
