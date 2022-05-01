@@ -84,11 +84,32 @@ Followers {{user.followersN}}
 Tweets {{user.get_posts_no}}
 <br>
 
+<form method="POST" class="form-group" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row justify-content-center" style="margin-bottom:30px;">
+    {{form|crispy}}
+    <input style="position:absolute; right:654px; " type="submit" class="tweetBtn" value="Tweet"></input>
+    </div>
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-danger" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+</form>
+
 {% for Tweet in tweets|dictsortreversed:"publishDate" %}   
 <div class="row justify-content-center">          
     <div class="card" style="width: 18rem;">      
         <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
-            <li class="list-group-item">{{Tweet.tweet}}</li>
+            <li class="list-group-item">
+                {% if Tweet.image %}
+                    <img src="/uploads/{{Tweet.image}}" style="width:50%">
+                {% endif %}
+                {{Tweet.tweet}}
+
+            </li>
             <form method="post" action="like/" class="like-form" id="{{Tweet.id}}">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">

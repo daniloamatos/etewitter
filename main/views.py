@@ -1,9 +1,11 @@
-from django.http import HttpResponse
+
+
 from django.shortcuts import render
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
 from .models import Tweet
 from register.models import Usuario
+from django.contrib import messages
 
 # Create your views here.
 
@@ -14,11 +16,19 @@ def home(request):
         tweets = Tweet.objects.filter(tweetAuthor=request.user)
         if request.method == "POST":
             form = tweetForm(request.POST)
-            if form.is_valid():
+            if 'image' in request.FILES:
+                simpanIp = form.save(commit=False)
+                simpanIp.image = request.FILES['image']
+                simpanIp.tweetAuthor = request.user
+                simpanIp.save()
+                form.save()
+            elif form.data['tweet']:
                 simpanIp = form.save(commit=False)
                 simpanIp.tweetAuthor = request.user
                 simpanIp.save()
                 form.save()
+            else:
+                messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
         else:
             usuario = Usuario.objects.get(username=request.user.username)
             form = tweetForm()

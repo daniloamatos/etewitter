@@ -13,14 +13,14 @@ def image_path(instance, filename):
     randomstr2 = ''.join((random.choice(chars)) for x in range(20))
     _now = datetime.now()
 
-    return '{instance.id}/{day}/{month}/{year}/{randomstring}/{randomstring2}{ext}'.format(
+    return '{instance.tweetAuthor.id}/{day}/{month}/{year}/{randomstring}/{randomstring2}{ext}'.format(
         instance = instance, randomstring=randomstr, randomstring2=randomstr2,ext=file_extension[1],
         day=_now.strftime('%d'), month=_now.strftime('%m'), year=_now.strftime('%Y'))
 
 class Tweet(models.Model):
-    tweet = models.CharField(blank=False, max_length=280)
+    tweet = models.CharField(blank=True, max_length=280)
     tweetAuthor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="posts")
-    image = models.ImageField(upload_to=image_path, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank = True)
+    image = models.ImageField(upload_to=image_path, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank=True)
     likes = models.ManyToManyField(Usuario, blank=True, related_name="likes")
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
 
