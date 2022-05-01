@@ -4,6 +4,10 @@
 {% load static %}
 {{jname}} (@{{jusername}})
 {% endblock %}
+
+{% block javascript %}
+{% endblock %}
+
 {% block content %}
 <img style="width:1500px; height:200px;"src="{{user.bannerpic.url}}" class="img-fluid">
 <img style="position:absolute; top:70px; left:340px;border-radius: 50%; width:100px; height:100px;"src="{{user.profilepic.url}}" class="img-thumbnail">
@@ -29,19 +33,17 @@ Joined {{user.date_joined}}
 Following {{user.followingN}}
 Followers {{user.followersN}}
 <br>
+Tweets {{user.get_posts_no}}
 <br>
 
     {% for Tweet in tweets|dictsortreversed:"publishDate" %}     
     <div class="card" style="width: 18rem;">      
         <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
             <li class="list-group-item">{{Tweet.tweet}}</li>
-            <form method="post" action="like/">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.path }}">
-                <input type="hidden"value="{{Tweet.id}}" name="tweetid">
-                <li class="list-group-item">{{Tweet.likes}} <button style="border:none; background:transparent; margin:none;"type="submit"><img src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
-                <li class="list-group-item">{{Tweet.publishDate}}</li>
-            </form>
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <input type="hidden"value="{{Tweet.id}}" name="tweetid">
+            <li class="list-group-item">{{Tweet.likes}} <a onclick="" href="#" style="border:none; background:transparent; margin:none;"><img src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></a></li>
+            <li class="list-group-item">{{Tweet.publishDate}}</li>
         </ul>
     </div>
     {% endfor %}

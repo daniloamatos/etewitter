@@ -33,8 +33,14 @@
                             <form method="post" action="like/">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.path }}">
-                                <input type="hidden"value="{{Tweet.id}}" name="tweetid">
-                                <li class="list-group-item">{{Tweet.likes}} <button style="border:none; background:transparent; margin:none;"type="submit"><img src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
+                                <input type="hidden" value="{{Tweet.id}}" name="tweetid">
+                                <li class="list-group-item">{{Tweet.num_likes}} 
+                                    
+                                    {% if usuario in Tweet.likes.all %}
+                                    <button style="border:none; background:transparent; margin:none;"type="submit"><img src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
+                                    {% else %}
+                                    <button style="border:none; background:transparent; margin:none;"type="submit"><img src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
+                                    {% endif %}
                                 <li class="list-group-item">{{Tweet.publishDate}}</li>
                             </form>
                         </ul>

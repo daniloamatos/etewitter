@@ -20,18 +20,21 @@ def changeName(request, *args):
     if request.method == "POST":
         current_user = request.user
         form = ChangeName(request.POST)
-        if form.is_valid():
+        if len(form.data['name']) < 4 or len(form.data['name']) > 25:
+                messages.error(request, 'O tamanho do nome tem que ser entre 4 e 25.')
+        else:
             t = Usuario.objects.get(id=current_user.id)
             if not args:
                 t.name = request.POST.get('name')
                 t.save()
                 return redirect("/")
             else:
-                t.username = request.POST.get('name')
-                t.save()
-                logout(request)
-        else:
-            messages.error(request, 'Digite um nome valido.')
+                if form.is_valid():
+                    t.username = request.POST.get('name')
+                    t.save()
+                    logout(request)
+                else:
+                    messages.error(request, 'Somente caracteres alfanuméricos são permitidos no nome de usuario.')
     else:
         form = ChangeName()
     return render(request, "change/changeName.html", {"form":form})
@@ -51,13 +54,14 @@ def changePass(request):
     if request.method == "POST":
         current_user = request.user
         form = ChangePass(request.POST)
-        if form.is_valid():
-            if request.POST['senha'] == request.POST['confirme_sua_senha']:
-                current_user.password = make_password(request.POST['senha'])
-                current_user.save()
-                return logout(request)
-            else:
-                messages.error(request, 'As senhas não são identicas.')
+        if request.POST['senha'] != request.POST['confirme_sua_senha']:
+            messages.error(request, 'As senhas não são identicas.')
+        elif len(form.data['senha']) <8:
+            messages.error(request, 'A senha precisa ter no minimo 8 caracteres.')
+        else:
+            current_user.password = make_password(request.POST['senha'])
+            current_user.save()
+            return logout(request) 
     else:
         form = ChangePass()
         current_user = request.user

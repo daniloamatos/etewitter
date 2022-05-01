@@ -1,6 +1,4 @@
 
-
-from django.forms import ValidationError
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from register.models import Usuario

@@ -53,11 +53,23 @@ class Usuario(AbstractUser):
     profilepic = models.ImageField(default="default/default_profile_400x400.png", blank=True, upload_to =image_path, verbose_name="Foto de perfil", validators=[validate_profilepic_size])
     bannerpic = models.ImageField(default="default/default.banner.jpg",blank=True, upload_to =image_path, verbose_name="Foto de capa", validators=[validate_banner_size])
     bio = models.CharField(blank=True, max_length=50, verbose_name="Sobre")
-    followersN = models.IntegerField(default=0)
-    #followers = models.ForeignKey()
-    #following = models.ForeignKey()
-    followingN = models.IntegerField(default=0)
+    followers = models.IntegerField(default=0)
+    following = models.IntegerField(default=0)
+    tweetsNumber = models.IntegerField(default=0)
     isAuthenticated = models.BooleanField(default=False)
+
+    def get_posts_no(self):
+        return self.posts.all().count()
+
+    def get_all_authors_posts(self):
+        return self.posts.all()
+
+    """def get_likes_received(self):
+        posts = self.posts.all()
+        total_liked = 0
+        for item in posts:
+            total_liked += item.likes.all().count()
+        return total_liked"""
 
 
            

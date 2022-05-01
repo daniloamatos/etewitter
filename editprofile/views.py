@@ -61,10 +61,6 @@ def compressImg(user):
     path = '/'.join(path)
     test = test.split('.')
     del test[-1]
-    #width, height = rgb_im.size
-    #rgb_im = rgb_im.resize((round(width / 8.5), round(height / 8.5 )), Image.ANTIALIAS)
-    #rgb_im.thumbnail((400, 400))
-    #rgb_im = rgb_im.crop((100, 100, 500, 500))
     rgb_im.save(f"{path}/{test[0]}.jpeg", 'jpeg', quality=85, optimize=True)
     url = str(user.profilepic.url).split('/')
     del url[0]

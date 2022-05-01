@@ -1,11 +1,9 @@
-from unicodedata import name
+
 from django.shortcuts import render,  redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
-from main.models import Tweet
-from main.forms import tweetForm
-from django.forms.models import model_to_dict
+from main.models import Tweet,Like
 
 def userprofile(request,username):
     username = username
@@ -20,10 +18,27 @@ def userprofile(request,username):
 
 def like (request, **username):
     if request.method == 'POST':
-        print(request.POST['tweetid'])
-        person = get_object_or_404(Tweet, id=request.POST['tweetid'])
-        person.likes += 1
-        person.save()
+        user = request.user
+        tweet_id = request.POST['tweetid']
+        tweet_obj = Tweet.objects.get(id = tweet_id)
+        usuario = Usuario.objects.get(username = user)
+
+        if usuario in tweet_obj.likes.all():
+            tweet_obj.likes.remove(usuario)
+        else:
+            tweet_obj.likes.add(usuario)
+            
+        like, created = Like.objects.get_or_create(user=usuario, tweet_id=tweet_id)
+
+        if not created:
+            if like.value=='Like':
+                like.value='Unlike'
+            else:
+                like.value='Like'
+
+            tweet_obj.save()
+            like.save()
+
         next = request.POST.get('next', '/')
         return redirect(next)
 
