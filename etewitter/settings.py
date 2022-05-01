@@ -92,10 +92,10 @@ WSGI_APPLICATION = 'etewitter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'd5mdpimqdnn7jm',
-        'USER': 'ywsxcxdsvchtqu',
-        'PASSWORD': 'e91d4e86e9d2a732095b5343cd70733ac6986d8a28b3f946076134bc921ba7f7',
-        'HOST': 'ec2-52-5-110-35.compute-1.amazonaws.com',
+        'NAME': 'daqijb9d1ekr64',
+        'USER': 'ebsvujrcvqdcib',
+        'PASSWORD': '45d85aa88321434de7bdec7ea482cbd6eadad06dafaf766850fc31adc6c09cd5',
+        'HOST': 'ec2-3-211-6-217.compute-1.amazonaws.com',
         'PORT': '5432',
     }
 }
