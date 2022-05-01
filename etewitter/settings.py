@@ -92,13 +92,16 @@ WSGI_APPLICATION = 'etewitter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'daqijb9d1ekr64',
-        'USER': 'ebsvujrcvqdcib',
-        'PASSWORD': '45d85aa88321434de7bdec7ea482cbd6eadad06dafaf766850fc31adc6c09cd5',
-        'HOST': 'ec2-3-211-6-217.compute-1.amazonaws.com',
+        'NAME': 'testing10',
+        'USER': 'danilo',
+        'PASSWORD': 'a1s2d3f4',
+        'HOST': '127.0.0.1',
         'PORT': '5432',
     }
 }
+
+
+
 
 
 # Password validation
@@ -106,16 +109,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 

@@ -1,4 +1,6 @@
 
+
+from django.forms import ValidationError
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from register.models import Usuario
@@ -7,6 +9,7 @@ from .forms import LoginForm
 from django.contrib.auth.hashers import check_password
 from check.views import checkIfUsernameExists
 from .authenticate import authentication
+
 
 def login(request):
     if str(request.user) != 'AnonymousUser':
@@ -38,6 +41,6 @@ def login(request):
         else: 
             form = LoginForm()
             return render(request, 'login/login.html', {"form":form})
-        return render(request, 'login/login.html')
+        return render(request, 'login/login.html', {"form":form})
 
 

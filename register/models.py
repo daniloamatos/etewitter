@@ -40,9 +40,9 @@ class Usuario(AbstractUser):
         else:
             return value
 
-    validateSize = RegexValidator(regex='^.{4,25}$', message='O tamanho do nome tem que ser entre 4 e 25')
-    validateCharacters = RegexValidator(regex='^[a-zA-Z0-9]*$', message='Somente caracteres alfanuméricos são permitidos.')
-    username = models.CharField(validators=[validateSize, validateSize], max_length=25, unique=True, verbose_name="Nome de usuário")
+    validateSize = RegexValidator(regex='^.{4,25}$', message='O tamanho do nome tem que ser entre 4 e 25',  code='invalid_size')
+    validateCharacters = RegexValidator(regex='^[a-zA-Z0-9]*$', message='Somente caracteres alfanuméricos são permitidos.', code='invalid_characters')
+    username = models.CharField(validators=[validateSize, validateCharacters], max_length=25, unique=True, verbose_name="Nome de usuário")
     usernameinsensitive = models.CharField(max_length=25, unique=True, verbose_name="Nome de usuário")
     email = models.EmailField(unique=True)
     name = models.CharField(validators=[validateSize], max_length=25, verbose_name="Nome")
