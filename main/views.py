@@ -1,11 +1,12 @@
 
 
-from django.shortcuts import render
+import random
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
 from .models import Tweet
 from register.models import Usuario
 from django.contrib import messages
+from datetime import datetime
 
 # Create your views here.
 
@@ -20,11 +21,13 @@ def home(request):
                 simpanIp = form.save(commit=False)
                 simpanIp.image = request.FILES['image']
                 simpanIp.tweetAuthor = request.user
+                simpanIp.tweetLink = generateLink(request)
                 simpanIp.save()
                 form.save()
             elif form.data['tweet']:
                 simpanIp = form.save(commit=False)
                 simpanIp.tweetAuthor = request.user
+                simpanIp.tweetLink = generateLink(request)
                 simpanIp.save()
                 form.save()
             else:
@@ -40,3 +43,13 @@ def index(request):
         return redirect('/')
     else:
         return render(request, "main/index.html", {})
+
+def generateLink(request):
+    chars = '1234567890'
+    randomstr = ''.join((random.choice(chars)) for x in range(10))
+    _now = datetime.now()
+    day=_now.strftime('%d')
+    month=_now.strftime('%m')
+    year=_now.strftime('%Y')
+    link = str(f'{request.user.username}/status/{randomstr}{day}{month}{year}')
+    return link

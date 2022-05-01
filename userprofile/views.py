@@ -6,6 +6,7 @@ from register.models import Usuario
 from check.views import checkIfUsernameExists
 from main.models import Tweet,Like
 from main.forms import tweetForm
+from main.views import generateLink
 
 def userprofile(request,username):
     username = username
@@ -16,11 +17,13 @@ def userprofile(request,username):
                 simpanIp = form.save(commit=False)
                 simpanIp.image = request.FILES['image']
                 simpanIp.tweetAuthor = request.user
+                simpanIp.tweetLink = generateLink(request)
                 simpanIp.save()
                 form.save()
             elif form.data['tweet']:
                 simpanIp = form.save(commit=False)
                 simpanIp.tweetAuthor = request.user
+                simpanIp.tweetLink = generateLink(request)
                 simpanIp.save()
                 form.save()
             else:
@@ -64,7 +67,8 @@ def like (request, **username):
         }
 
         return JsonResponse(data, safe=False)
-        #next = request.POST.get('next', '/')
-        #return redirect(next)
 
-
+def requesttweet (request, username, random):
+    checkUser = request.user
+    tweet = Tweet.objects.filter(tweetLink=f'{username}/status/{random}')
+    return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser})

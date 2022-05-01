@@ -23,6 +23,7 @@ class Tweet(models.Model):
     image = models.ImageField(upload_to=image_path, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank=True)
     likes = models.ManyToManyField(Usuario, blank=True, related_name="likes")
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
+    tweetLink = models.CharField(blank=True, max_length=999)
 
     def __str__(self):
         return str(self.tweet[:20])

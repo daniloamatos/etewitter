@@ -28,6 +28,5 @@ urlpatterns = [
     path('changepassword/', vchange.changePass, name="changePass"),
     path('confirmChange/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', vemailconf.confirmChange, name="confirmChange"),
     path('search/', include('search.urls')),
-    path('<str:username>/',vuserprofile.userprofile, name="userprofile"),
-    path('<str:username>/like/', vuserprofile.like, name="like"),
+    path('<str:username>/',include('userprofile.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
