@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'register.apps.RegisterConfig',
     'editprofile.apps.EditprofileConfig',
     'userprofile.apps.UserprofileConfig',
+    'search.apps.SearchConfig',
     'etewitter',
 ]
 

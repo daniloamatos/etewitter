@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
@@ -29,4 +30,3 @@ def index(request):
         return redirect('/')
     else:
         return render(request, "main/index.html", {})
-    
