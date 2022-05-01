@@ -42,6 +42,7 @@ class Usuario(AbstractUser):
 
     validateName = RegexValidator(regex='^.{4,25}$', message='O tamanho do nome tem que ser entre 4 e 25')
     username = models.CharField(validators=[validateName], max_length=25, unique=True, verbose_name="Nome de usuário")
+    usernameinsensitive = models.CharField(validators=[validateName], max_length=25, unique=True, verbose_name="Nome de usuário")
     email = models.EmailField(unique=True)
     name = models.CharField(validators=[validateName], max_length=25, verbose_name="Nome")
     USERNAME_FIELD = 'username'
@@ -55,7 +56,7 @@ class Usuario(AbstractUser):
     #followers = models.ForeignKey()
     #following = models.ForeignKey()
     followingN = models.IntegerField(default=0)
-    is_authenticated = False
+    isAuthenticated = models.BooleanField(default=False)
 
 
            
