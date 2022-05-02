@@ -108,5 +108,5 @@ def requesttweet (request, username, random):
     else:
         notReply = False
         reply = Replys.objects.filter(replyLink=f'{username}/status/{random}') 
-        return render(request, "userprofile/tweet.html", {'tweet':reply, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply})
+        return render(request, "userprofile/tweet.html", {'tweet':reply, 'usuario':checkUser, 'form':form, 'notReply':notReply})
     
