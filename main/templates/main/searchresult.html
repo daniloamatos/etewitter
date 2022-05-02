@@ -40,9 +40,12 @@
                         <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
                             <li class="list-group-item">
                                 <a href="/{{items.tweetLink}}" style="text-decoration:none; color:black;">
+                                    {% if items.image %}
+                                        <img src="/uploads/{{items.image}}" style="width:50%">
+                                    {% endif %}
                                     {{items.tweet}}<br>
                                     @{{items.tweetAuthor}}
-                                    <img src="{{items.tweetAuthor.profilepic.url}}"style="width:20%;height:60%;position:absolute;left:-45px;"><br>
+                                    <img src="{{items.tweetAuthor.profilepic.url}}"style="width:20%;height:20%;position:absolute;top:100px;left:-45px;"><br>
                                     {{items.publishDate}}
                                 </a>
                             </li>
