@@ -6,5 +6,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('index/', views.index, name="index"),
     path("like/", vu.like, name="like"),
+    path('likereply/', vu.likereply, name="likereply"),
     
 ]

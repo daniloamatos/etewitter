@@ -38,6 +38,36 @@ def userprofile(request,username):
     else:
         return HttpResponse("essa conta não existe, tente procurar por outra coisa")
 
+
+
+def likereply(request,**username):
+    if request.method == 'POST':
+        user = request.user
+        reply_id = request.POST['replyid']
+        reply_obj = Replys.objects.get(id = reply_id)
+        usuario = Usuario.objects.get(username = user)
+        if usuario in reply_obj.likes.all():
+            reply_obj.likes.remove(usuario)
+        else:
+            reply_obj.likes.add(usuario)
+        
+        like, created = Like.objects.get_or_create(user=usuario, tweet_id=reply_id)
+
+        if not created:
+            if like.value=='Like':
+                like.value='Unlike'
+            else:
+                like.value='Like'
+
+            reply_obj.save()
+            like.save()
+        data = {
+            'value': like.value,
+            'likes': reply_obj.likes.all().count()
+        }
+
+        return JsonResponse(data, safe=False)
+
 def like (request, **username):
     if request.method == 'POST':
         user = request.user
@@ -45,12 +75,10 @@ def like (request, **username):
         tweet_obj = Tweet.objects.get(id = tweet_id)
         usuario = Usuario.objects.get(username = user)
 
-
         if usuario in tweet_obj.likes.all():
             tweet_obj.likes.remove(usuario)
         else:
             tweet_obj.likes.add(usuario)
-            
         like, created = Like.objects.get_or_create(user=usuario, tweet_id=tweet_id)
 
         if not created:
@@ -61,7 +89,6 @@ def like (request, **username):
 
             tweet_obj.save()
             like.save()
-
         data = {
             'value': like.value,
             'likes': tweet_obj.likes.all().count()

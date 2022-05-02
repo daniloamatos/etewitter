@@ -10,13 +10,14 @@
         <script>  
             $('.like-form').submit(function(e){
                 e.preventDefault();
-                
                 const tweet_id = $(this).attr('id')
                 
                 const likeText = $(`.like-input${tweet_id}`).attr('value')
                 const trim = $.trim(likeText)
 
                 const url = $(this).attr('action')
+
+                const reply_id = JSON.parse(document.getElementById('replyid').textContent);
                 
                 let res;
 
@@ -24,12 +25,14 @@
 
                 const trimCount = parseInt(likes)
                 
+                
                 $.ajax({
                     type: 'POST',
                     url: url,
                     data: {
                         'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
                         'tweetid':tweet_id,
+                        'replyid':reply_id,
                     },
                     success: function(response){
                         if (trim === 'Unlike'){
@@ -111,8 +114,8 @@
         </div>
     </div>
             {% else %}
-            
-            <form method="" action="#" class="like-form" id="{{Tweet.id}}">
+            {{Tweet.id|json_script:'replyid'}}
+            <form method="post" action="/like/" class="like-form" id="{{Tweet.tweet.id}}">
                 <a href="/{{Tweet.tweet.tweetLink}}" style="text-decoration: none; color:black;" >
                     {% if Tweet.tweet.image %}
                         <img src="/uploads/{{Tweet.tweet.image}}" style="width:50%">
@@ -120,21 +123,21 @@
                     {{Tweet.tweet.tweet}}<br><br>
                 </a>
                 <input type="hidden" name="next" value="{{ request.path }}">
-                <input type="hidden" value="{{Tweet.id}}" name="tweetid">
-                <div style="flex: 1; margin:5px;" class="like-count{{Tweet.id}}">
-                    {{Tweet.num_likes}}
+                <input type="hidden" value="{{Tweet.tweet.id}}" name="tweetid">
+                <div style="flex: 1; margin:5px;" class="like-count{{Tweet.tweet.id}}">
+                    {{Tweet.tweet.num_likes}}
                 </div>
-                    {% if usuario in Tweet.likes.all %}
-                    <input type="hidden" class="like-input{{Tweet.id}}"value="Unlike"></input>
-                    <button style="border:none; background:transparent; margin:none; display:flex; "type="submit" class="unlike-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}" src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
+                    {% if usuario in Tweet.tweet.likes.all %}
+                    <input type="hidden" class="like-input{{Tweet.tweet.id}}"value="Unlike"></input>
+                    <button style="border:none; background:transparent; margin:none; display:flex; "type="submit" class="unlike-btn{{Tweet.tweet.id}}"><img class="like-img{{Tweet.tweet.id}}" src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
                     {% else %}
-                    <input type="hidden" class="like-input{{Tweet.id}}" value="Like"></input>
-                    <button style="border:none; background:transparent; margin:none;display:flex;"type="submit" class="like-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
+                    <input type="hidden" class="like-input{{Tweet.tweet.id}}" value="Like"></input>
+                    <button style="border:none; background:transparent; margin:none;display:flex;"type="submit" class="like-btn{{Tweet.tweet.id}}"><img class="like-img{{Tweet.tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
                     {% endif %}
-                <li class="list-group-item">{{Tweet.publishDate}}</li>
+                <li class="list-group-item">{{Tweet.tweet.publishDate}}</li>
             </form>
             
-            <form method="post" action="/like/" class="like-form" id="{{Tweet.id}}">
+            <form method="post" action="/likereply/" class="like-form" id="{{Tweet.id}}">
                 <a href="/{{Tweet.replyLink}}" style="text-decoration: none; color:black;" >
                 {{Tweet.body}}
                 {% if Tweet.image %}
@@ -149,10 +152,10 @@
                 </div>
                     {% if usuario in Tweet.likes.all %}
                     <input type="hidden" class="like-input{{Tweet.id}}"value="Unlike"></input>
-                    <button style="border:none; background:transparent; margin:none; display:flex; "type="submit" class="unlike-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}" src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
+                    <button style="border:none; background:transparent; margin:none; display:flex; "type="submit" class="replyunlike-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}" src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
                     {% else %}
                     <input type="hidden" class="like-input{{Tweet.id}}" value="Like"></input>
-                    <button style="border:none; background:transparent; margin:none;display:flex;"type="submit" class="like-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
+                    <button style="border:none; background:transparent; margin:none;display:flex;"type="submit" onclick=""class="replylike-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
                     {% endif %}
                 <li class="list-group-item">{{Tweet.publishDate}}</li>
             </form>
