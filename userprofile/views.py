@@ -50,8 +50,7 @@ def likereply(request,**username):
             reply_obj.likes.remove(usuario)
         else:
             reply_obj.likes.add(usuario)
-        
-        like, created = Like.objects.get_or_create(user=usuario, id=reply_id)
+        like, created = Like.objects.get_or_create(user=usuario, tweet_id=reply_obj.tweet_id)
 
         if not created:
             if like.value=='Like':
@@ -72,6 +71,7 @@ def like (request, **username):
     if request.method == 'POST':
         user = request.user
         tweet_id = request.POST['tweetid']
+        print(tweet_id)
         tweet_obj = Tweet.objects.get(id = tweet_id)
         usuario = Usuario.objects.get(username = user)
 
