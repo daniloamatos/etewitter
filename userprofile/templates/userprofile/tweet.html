@@ -130,10 +130,12 @@
                 <li class="list-group-item">{{Tweet.publishDate}}</li>
             </form>
             
-            
             <form method="post" action="/like/" class="like-form" id="{{Tweet.id}}">
                 <a href="/{{Tweet.replyLink}}" style="text-decoration: none; color:black;" >
                 {{Tweet.body}}
+                {% if Tweet.image %}
+                    <img src="/uploads/{{Tweet.image}}" style="width:50%">
+                {% endif %}
                 </a>
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">
