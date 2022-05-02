@@ -14,44 +14,79 @@
                 
                 const likeText = $(`.like-input${tweet_id}`).attr('value')
                 const trim = $.trim(likeText)
-
+                const notreply = JSON.parse(document.getElementById('notreply').textContent);
                 const url = $(this).attr('action')
-
-                const reply_id = JSON.parse(document.getElementById('replyid').textContent);
+                if(!notreply)
+                {
+                    const reply_id = JSON.parse(document.getElementById('replyid').textContent);
                 
-                let res;
+                    let res;
 
-                const likes = $(`.like-count${tweet_id}`).text()
+                    const likes = $(`.like-count${tweet_id}`).text()
 
-                const trimCount = parseInt(likes)
-                
-                
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: {
-                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
-                        'tweetid':tweet_id,
-                        'replyid':reply_id,
-                    },
-                    success: function(response){
-                        if (trim === 'Unlike'){
-                            $(`.like-input${tweet_id}`).attr('value', "Like")
-                            $(`.like-img${tweet_id}`).attr('src', '/static/heart2.jpg')
-                            res = trimCount - 1
+                    const trimCount = parseInt(likes)
+                    
+                    $.ajax({
+                        type: 'POST',
+                        url: url,
+                        data: {
+                            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                            'tweetid':tweet_id,
+                            'replyid':reply_id,
+                        },
+                        success: function(response){
+                            if (trim === 'Unlike'){
+                                $(`.like-input${tweet_id}`).attr('value', "Like")
+                                $(`.like-img${tweet_id}`).attr('src', '/static/heart2.jpg')
+                                res = trimCount - 1
 
-                        } else{
-                            $(`.like-input${tweet_id}`).attr('value', "Unlike")
-                            $(`.like-img${tweet_id}`).attr('src', '/static/Symbolic_Love_Heart.png')
-                            res = trimCount + 1
+                            } else{
+                                $(`.like-input${tweet_id}`).attr('value', "Unlike")
+                                $(`.like-img${tweet_id}`).attr('src', '/static/Symbolic_Love_Heart.png')
+                                res = trimCount + 1
+                            }
+
+                            $(`.like-count${tweet_id}`).text(res)
+                        },
+                        error: function(response){
+                            console.log('error', response)
                         }
+                    })
+                }
+                else
+                {
+                    let res;
 
-                        $(`.like-count${tweet_id}`).text(res)
-                    },
-                    error: function(response){
-                        console.log('error', response)
-                    }
-                })
+                    const likes = $(`.like-count${tweet_id}`).text()
+
+                    const trimCount = parseInt(likes)
+
+                    $.ajax({
+                        type: 'POST',
+                        url: url,
+                        data: {
+                            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+                            'tweetid':tweet_id,
+                        },
+                        success: function(response){
+                            if (trim === 'Unlike'){
+                                $(`.like-input${tweet_id}`).attr('value', "Like")
+                                $(`.like-img${tweet_id}`).attr('src', '/static/heart2.jpg')
+                                res = trimCount - 1
+
+                            } else{
+                                $(`.like-input${tweet_id}`).attr('value', "Unlike")
+                                $(`.like-img${tweet_id}`).attr('src', '/static/Symbolic_Love_Heart.png')
+                                res = trimCount + 1
+                            }
+
+                            $(`.like-count${tweet_id}`).text(res)
+                        },
+                        error: function(response){
+                            console.log('error', response)
+                        }
+                    })
+                }
             })
         </script>
        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
@@ -59,6 +94,7 @@
 {% endblock %}
 
 {% block content %}
+{{notReply|json_script:'notreply'}}
 {% if messages %}
     {% for message in messages %}
         <div class="alert alert-danger" role="alert">
