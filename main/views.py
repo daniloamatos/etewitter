@@ -46,7 +46,7 @@ def index(request):
 
 def generateLink(request):
     chars = '1234567890'
-    randomstr = ''.join((random.choice(chars)) for x in range(10))
+    randomstr = ''.join((random.choice(chars)) for x in range(30))
     _now = datetime.now()
     day=_now.strftime('%d')
     month=_now.strftime('%m')

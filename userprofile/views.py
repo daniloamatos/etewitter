@@ -1,11 +1,11 @@
 
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
-from main.models import Tweet,Like
-from main.forms import tweetForm
+from main.models import Tweet,Like,Replys
+from main.forms import replyForm,tweetForm
 from main.views import generateLink
 
 def userprofile(request,username):
@@ -45,6 +45,7 @@ def like (request, **username):
         tweet_obj = Tweet.objects.get(id = tweet_id)
         usuario = Usuario.objects.get(username = user)
 
+
         if usuario in tweet_obj.likes.all():
             tweet_obj.likes.remove(usuario)
         else:
@@ -68,7 +69,44 @@ def like (request, **username):
 
         return JsonResponse(data, safe=False)
 
+def reply (request, **username):
+    if request.method == 'POST':
+        user = request.user
+        tweet_id = request.POST['tweetid']
+        tweet_obj = Tweet.objects.get(id = tweet_id)
+        form = replyForm(request.POST)
+        if 'image' in request.FILES:
+            instance = form.save(commit=False)
+            instance.image = request.FILES['image']
+            instance.user = user
+            instance.tweet = tweet_obj
+            instance.body = request.POST['body']
+            instance.replyLink = generateLink(request)
+            instance.save()
+            form.save()
+        elif form.data['body']:
+            instance = form.save(commit=False)
+            instance.user = user
+            instance.tweet = tweet_obj
+            instance.body = request.POST['body']
+            instance.replyLink = generateLink(request)
+            instance.save()
+            form.save()
+        else:
+            messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
+    return redirect(request.POST['next'])
+
+
 def requesttweet (request, username, random):
     checkUser = request.user
-    tweet = Tweet.objects.filter(tweetLink=f'{username}/status/{random}')
-    return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser})
+    qs = Replys.objects.all()
+    form = replyForm()
+    if Tweet.objects.filter(tweetLink=f'{username}/status/{random}'):
+        tweet = Tweet.objects.filter(tweetLink=f'{username}/status/{random}') 
+        notReply = True
+        return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply})
+    else:
+        notReply = False
+        reply = Replys.objects.filter(replyLink=f'{username}/status/{random}') 
+        return render(request, "userprofile/tweet.html", {'tweet':reply, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply})
+    
