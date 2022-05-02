@@ -51,7 +51,7 @@ def likereply(request,**username):
         else:
             reply_obj.likes.add(usuario)
         
-        like, created = Like.objects.get_or_create(user=usuario, tweet_id=reply_id)
+        like, created = Like.objects.get_or_create(user=usuario, id=reply_id)
 
         if not created:
             if like.value=='Like':
