@@ -105,11 +105,14 @@ Tweets {{user.get_posts_no}}
         <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
             <a href="/{{Tweet.tweetLink}}" style="text-decoration: none; color:black;">
                 <li class="list-group-item">
+                    <img src="{{Tweet.tweetAuthor.profilepic.url}}" style="width:20%;height:100%;position:absolute;top:70px;left:-45px;">
+                    {{Tweet.tweetAuthor.name}} @{{Tweet.tweetAuthor.username}}
                     {% if Tweet.image %}
                         <img src="/uploads/{{Tweet.image}}" style="width:50%">
                     {% endif %}
-                    {{Tweet.tweet}}
                 </li>
+                {{Tweet.tweet}}<br><br>
+                Comments {{Tweet.replysC}}
                 <form method="post" action="like/" class="like-form" id="{{Tweet.id}}">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.path }}">

@@ -35,15 +35,13 @@ class Tweet(models.Model):
     likes = models.ManyToManyField(Usuario, blank=True, related_name="likes")
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
     tweetLink = models.CharField(blank=True, max_length=999)
+    replysC = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.tweet[:20])
 
     def num_likes(self):
         return self.likes.all().count()
-
-    def num_comments(self):
-        return self.Replys_set.all.count()
 
 class Replys(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
@@ -53,6 +51,7 @@ class Replys(models.Model):
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
     likes = models.ManyToManyField(Usuario, blank=True, related_name="replyLikes")
     replyLink = models.CharField(blank=True, max_length=999)
+    replysC = models.IntegerField(default=0)
 
 
     def __str__(self):

@@ -1,7 +1,7 @@
 
 from django.shortcuts import redirect, render
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
 from main.models import Tweet,Like,Replys
@@ -71,7 +71,6 @@ def like (request, **username):
     if request.method == 'POST':
         user = request.user
         tweet_id = request.POST['tweetid']
-        print(tweet_id)
         tweet_obj = Tweet.objects.get(id = tweet_id)
         usuario = Usuario.objects.get(username = user)
 
@@ -109,6 +108,8 @@ def reply (request, **username):
             instance.tweet = tweet_obj
             instance.body = request.POST['body']
             instance.replyLink = generateLink(request)
+            print((tweet_obj.replysC + 1))
+            tweet_obj.replysC += 1
             instance.save()
             form.save()
         elif form.data['body']:
@@ -117,6 +118,8 @@ def reply (request, **username):
             instance.tweet = tweet_obj
             instance.body = request.POST['body']
             instance.replyLink = generateLink(request)
+            tweet_obj.replysC += 1
+            tweet_obj.save()
             instance.save()
             form.save()
         else:
