@@ -32,7 +32,7 @@ def register(request):
                 id = Usuario.objects.last().id + 1
                 form.save()
                 t = Usuario.objects.get(id=id)
-                t.is_active = False
+                t.is_active = True
                 t.name = request.POST.get('username')
                 t.usernameinsensitive = request.POST.get('username').upper()
                 t.save()
