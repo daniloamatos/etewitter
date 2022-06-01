@@ -11,18 +11,21 @@ from django.conf.urls.static import static
 from editprofile import views as veditprofile
 from userprofile import views as vuserprofile
 from search import views
-
+from main import views as viewsmain
 app_name='main'
 
 urlpatterns = [
     path('', include("main.urls")),
     path('like/',include("main.urls")),
+    path('save/',include("main.urls")),
     path('likereply/',include("main.urls")),
+    path('saveditems/', viewsmain.saveditems, name="saveditems"),
     path("editprofile/", veditprofile.editprofile, name="editprofile"),
     path('register/', vr.register, name="register"),
     path('changename/', vchange.changeName, name="changeName"),
     path('changeusername/', vchange.changeUsername, name="changeUsername"),
     path('login/', vlogin.login, name='login'),
+    path('forgotpass/', vlogin.forgotpass, name='forgotpass'),
     path('logout/', vlogout.logout, name='logout'),
     path('admin/', admin.site.urls),
     path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', vemailconf.activate, name='activate'),

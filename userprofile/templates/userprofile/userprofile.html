@@ -63,6 +63,21 @@
 {{user.name}}
 </div>
 {% if checkUser.username|upper == jusername|upper %}
+<form method="POST" class="form-group" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row justify-content-center" style="margin-bottom:30px;">
+    {{form|crispy}}
+    <input style="position:absolute; right:654px; " type="submit" class="tweetBtn" value="Tweet"></input>
+    </div>
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-danger" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+</form>
+
 <form action="/editprofile/">
     <div class="position-relative">
         <div class="position-absolute top-0 end-0">
@@ -84,20 +99,7 @@ Followers {{user.followersN}}
 Tweets {{user.get_posts_no}}
 <br>
 
-<form method="POST" class="form-group" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="row justify-content-center" style="margin-bottom:30px;">
-    {{form|crispy}}
-    <input style="position:absolute; right:654px; " type="submit" class="tweetBtn" value="Tweet"></input>
-    </div>
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-danger" role="alert">
-        {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-</form>
+
 
 {% for Tweet in tweets|dictsortreversed:"publishDate" %}   
 <div class="row justify-content-center">          

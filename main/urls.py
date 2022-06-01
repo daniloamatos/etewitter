@@ -7,5 +7,5 @@ urlpatterns = [
     path('index/', views.index, name="index"),
     path("like/", vu.like, name="like"),
     path('likereply/', vu.likereply, name="likereply"),
-    
+    path('save/', vu.save, name="save")
 ]

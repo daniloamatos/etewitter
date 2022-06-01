@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
-from main.models import Tweet,Like,Replys
+from main.models import Tweet,Like,Replys,SavedItems
 from main.forms import replyForm,tweetForm
 from main.views import generateLink
 
@@ -104,12 +104,12 @@ def reply (request, **username):
         if 'image' in request.FILES:
             instance = form.save(commit=False)
             instance.image = request.FILES['image']
+            tweet_obj.replysC += 1
+            tweet_obj.save()
             instance.user = user
             instance.tweet = tweet_obj
             instance.body = request.POST['body']
             instance.replyLink = generateLink(request)
-            print((tweet_obj.replysC + 1))
-            tweet_obj.replysC += 1
             instance.save()
             form.save()
         elif form.data['body']:
@@ -132,11 +132,22 @@ def requesttweet (request, username, random):
     form = replyForm()
     if Tweet.objects.filter(tweetLink=f'{username}/status/{random}'):
         tweet = Tweet.objects.filter(tweetLink=f'{username}/status/{random}') 
+        tweetObj = Tweet.objects.get(tweetLink=f'{username}/status/{random}')
         qs = Replys.objects.filter(tweet=tweet[0])
         notReply = True
-        return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply})
+        return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply, 'tweetObj':tweetObj})
     else:
         notReply = False
         reply = Replys.objects.filter(replyLink=f'{username}/status/{random}') 
         return render(request, "userprofile/tweet.html", {'tweet':reply, 'usuario':checkUser, 'form':form, 'notReply':notReply})
     
+def save(request):
+    if request.method == 'POST':
+        user = request.user
+        tweet_id = request.POST['tweetid']
+        tweet = Tweet.objects.get(id = tweet_id)
+        saveditems = SavedItems()
+        saveditems.user = user
+        saveditems.tweet = tweet
+        saveditems.save()
+        return redirect(request.POST['next'])

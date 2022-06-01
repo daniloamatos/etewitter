@@ -31,6 +31,7 @@ def changeName(request, *args):
             else:
                 if form.is_valid():
                     t.username = request.POST.get('name')
+                    t.usernameinsensitive = request.POST.get('name').upper()
                     t.save()
                     logout(request)
                 else:
@@ -51,7 +52,9 @@ def changeUsername(request):
 
 @login_required(login_url='/login')
 def changePass(request):
-    if request.method == "POST":
+    if request.method == 'GET':
+        email(request)
+    else:
         current_user = request.user
         form = ChangePass(request.POST)
         if request.POST['senha'] != request.POST['confirme_sua_senha']:
@@ -62,23 +65,33 @@ def changePass(request):
             current_user.password = make_password(request.POST['senha'])
             current_user.save()
             return logout(request) 
-    else:
-        form = ChangePass()
-        current_user = request.user
-        t = Usuario.objects.get(id=current_user.id)
-        current_site = get_current_site(request)
-        mail_subject = 'Trocar senha do ETEWITTER.'
-        message = render_to_string('emailconfirmation/changepassword.html', {
-            'user': t,
-            'domain': current_site.domain,
-            'uid':urlsafe_base64_encode(force_bytes(t.pk)),
-            'token':account_activation_token.make_token(t),
-        })
-        to_email = Usuario.objects.values_list("email").filter(email=current_user.email).first()
-        print(to_email[0])
-        email = EmailMessage(
-                    mail_subject, message, to=[to_email[0]]
-        )
-        email.send()
-        return HttpResponse('Por favor, clique no link enviado em seu email para mudar de senha')
+    
+        
     return render(request, "change/changePass.html",{'form':form})
+
+
+def email (request, *args):
+    form = ChangePass()
+    try:
+        if not args:
+            current_user = request.user
+            t = Usuario.objects.get(id=current_user.id)
+        else:
+            t = Usuario.objects.get(email = args[0])
+    except:
+        return
+    current_site = get_current_site(request)
+    mail_subject = 'Trocar senha do ETEWITTER.'
+    message = render_to_string('emailconfirmation/changepassword.html', {
+        'user': t,
+        'domain': current_site.domain,
+        'uid':urlsafe_base64_encode(force_bytes(t.id)),
+        'token':account_activation_token.make_token(t),
+    })
+    to_email = Usuario.objects.values_list("email").filter(email=t.email).first()
+    print(to_email[0])
+    email = EmailMessage(
+                mail_subject, message, to=[to_email[0]]
+    )
+    email.send()
+    return HttpResponse('Por favor, clique no link enviado em seu email para mudar de senha')

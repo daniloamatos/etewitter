@@ -57,6 +57,13 @@
                                             </div>
                                             <img class="like-img{{Tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
                                         {% endif %}
+                                        </form>
+                                        <form method="POST" action="save/">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.path }}">
+                                            <input type="hidden" value="{{Tweet.id}}" name="tweetid">
+                                            <button type="submit">Salvar</button>
+                                        </form>
                                     <li class="list-group-item">{{Tweet.publishDate}}</li>
                                 </a>
                             </form>

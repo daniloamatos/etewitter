@@ -1,4 +1,5 @@
 
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from register.models import Usuario
@@ -6,8 +7,8 @@ from django.contrib.auth import login as authLogin
 from .forms import LoginForm
 from django.contrib.auth.hashers import check_password
 from check.views import checkIfUsernameExists
+from change.views import email
 from .authenticate import authentication
-
 
 def login(request):
     if str(request.user) != 'AnonymousUser':
@@ -42,3 +43,10 @@ def login(request):
         return render(request, 'login/login.html', {"form":form})
 
 
+def forgotpass(request):
+    if request.method == 'POST':
+        emailS = request.POST['email']
+        email(request, emailS)
+        return HttpResponse('Um email foi enviado para continuar a recuperação de conta.')
+    return render (request, 'login/forgotpass.html')
+    

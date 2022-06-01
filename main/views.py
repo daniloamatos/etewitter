@@ -1,9 +1,10 @@
 
 
 import random
+from django.http import HttpResponse
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
-from .models import Tweet
+from .models import Tweet, SavedItems
 from register.models import Usuario
 from django.contrib import messages
 from datetime import datetime
@@ -53,3 +54,8 @@ def generateLink(request):
     year=_now.strftime('%Y')
     link = str(f'{request.user.username}/status/{randomstr}{day}{month}{year}')
     return link
+
+def saveditems(request):
+    user = request.user    
+    tweet = Tweet.objects.get(tweetLink = request.POST['tweetid'])
+    return render(request, 'main/saveditems.html', {'user':user, 'tweet':tweet})

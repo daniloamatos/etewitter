@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 {% block title %}
 {% load static %}
-{{jname}} (@{{jusername}})
+{{tweetObj.tweetAuthor.name}} (@{{tweetObj.tweetAuthor.username}})
 {% endblock %}
 
 {% block javascript %}

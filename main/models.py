@@ -43,6 +43,11 @@ class Tweet(models.Model):
     def num_likes(self):
         return self.likes.all().count()
 
+class SavedItems(models.Model):
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
+
+
 class Replys(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
