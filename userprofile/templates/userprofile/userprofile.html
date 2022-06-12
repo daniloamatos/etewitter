@@ -57,10 +57,10 @@
 {% endblock %}
 
 {% block content %}
-<img style="width:1500px; height:200px;"src="{{user.bannerpic.url}}" class="img-fluid">
-<img style="position:absolute; top:70px; left:340px;border-radius: 50%; width:100px; height:100px;"src="{{user.profilepic.url}}" class="img-thumbnail">
+<img style="width:1500px; height:200px;"src="{{userP.bannerpic.url}}" class="img-fluid">
+<img style="position:absolute; top:70px; left:340px;border-radius: 50%; width:100px; height:100px;"src="{{userP.profilepic.url}}" class="img-thumbnail">
 <div class="position-absolute top-20 start-20">
-{{user.name}}
+{{userP.name}}
 </div>
 {% if checkUser.username|upper == jusername|upper %}
 <form method="POST" class="form-group" enctype="multipart/form-data">
@@ -85,18 +85,29 @@
         </div>
     </div>
 </form>
+{% else %}
+<form method="POST" action="/follow/">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    <input type="hidden" value="{{userP.id}}" name="userP">
+    <div class="position-relative">
+        <div class="position-absolute top-0 end-0">
+            <button type="submit">Seguir</button>
+        </div>
+    </div>
+</form>
 {% endif %}
 <br>
-@{{user.username}}<br>
+@{{userP.username}}<br>
 <br>
-{{user.bio}}<br>
+{{userP.bio}}<br>
 <br>
-Joined {{user.date_joined}}
+Joined {{userP.date_joined}}
 <br>
-Following {{user.followingN}}
-Followers {{user.followersN}}
+Following {{userP.followingC}}
+Followers {{userP.followersC}}
 <br>
-Tweets {{user.get_posts_no}}
+Tweets {{userP.get_posts_no}}
 <br>
 
 

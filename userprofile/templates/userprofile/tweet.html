@@ -2,7 +2,11 @@
 {% load crispy_forms_tags %}
 {% block title %}
 {% load static %}
-{{tweetObj.tweetAuthor.name}} (@{{tweetObj.tweetAuthor.username}})
+{% if notReply %}
+{{tweetObj.tweetAuthor.name}} on Etewitter: "{{tweetObj.tweet}}"
+{% else %}
+{{tweetObj.user.name}} on Etewitter: "{{tweetObj.body}}"
+{% endif %}
 {% endblock %}
 
 {% block javascript %}
@@ -115,6 +119,7 @@
             </li>
             
                 {{Tweet.tweet}}
+                
                 <form method="post" action="/like/" class="like-form" id="{{Tweet.id}}">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.path }}">
@@ -131,6 +136,14 @@
                         {% endif %}
                     <li class="list-group-item">{{Tweet.publishDate}}</li>
                 </form>
+                {% if tweetObj.tweetAuthor == user %}
+                <form method ="POST" action = "/delete/">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <input type="hidden" value="{{Tweet.id}}" name="tweetid">
+                    <input type="submit" value="deletar">
+                </form>
+                {% endif %}
                 <form method="post" action="reply" enctype="multipart/form-data">
                     {% csrf_token %}
                     {{form|crispy}}
@@ -156,7 +169,7 @@
                     {% if Tweet.tweet.image %}
                         <img src="/uploads/{{Tweet.tweet.image}}" style="width:50%">
                     {% endif %}
-                    {{Tweet.tweet.tweet}}<br><br>
+                    {{Tweet.tweet.reply}}<br><br>
                 </a>
                 <input type="hidden" name="next" value="{{ request.path }}">
                 <input type="hidden" value="{{Tweet.tweet.id}}" name="tweetid">
@@ -195,6 +208,22 @@
                     {% endif %}
                 <li class="list-group-item">{{Tweet.publishDate}}</li>
             </form>
+
+            <form method="post" action="reply" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{form|crispy}}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="hidden" value="{{Tweet.id}}" name="tweetid">
+                <input style="position:absolute; right:654px; " type="submit" class="tweetBtn" value="Tweet"></input>
+            </form>
+            {% for replys in qs|dictsortreversed:"publishDate"%}
+                <a href="/{{replys.replyLink}}"  style="text-decoration: none; color:black;">
+                    {% if replys.image %}
+                        <img src="/uploads/{{replys.image}}" style="width:50%">
+                    {% endif %}
+                    {{replys.body}}<br>
+                </a>
+            {%endfor%}
             {% endif %}
 {% endfor %}
 

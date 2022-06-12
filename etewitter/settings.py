@@ -93,8 +93,8 @@ WSGI_APPLICATION = 'etewitter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'postgres',
+        'NAME': 'testing11',
+        'USER': 'danilo',
         'PASSWORD': 'a1s2d3f4',
         'HOST': '127.0.0.1',
         'PORT': '5432',
@@ -156,7 +156,7 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'redesocialdaete@gmail.com'
-EMAIL_HOST_PASSWORD = 'Etewitter@2022'
+EMAIL_HOST_PASSWORD = 'hfemigvuiuuozbco'
 EMAIL_PORT = 587
 
 MEDIA_URL = '/uploads/'

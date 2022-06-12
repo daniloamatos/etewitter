@@ -4,7 +4,7 @@ import random
 from django.http import HttpResponse
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
-from .models import Tweet, SavedItems
+from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message
 from register.models import Usuario
 from django.contrib import messages
 from datetime import datetime
@@ -15,7 +15,13 @@ def home(request):
     if str(request.user) == 'AnonymousUser':
         return redirect('/index')
     else:
-        tweets = Tweet.objects.filter(tweetAuthor=request.user)
+        tweetsSelf = Tweet.objects.filter(tweetAuthor=request.user)
+        try:
+            following = Follower.objects.filter(follower_id = request.user.id).values_list("following_id").get()
+            tweetsFollowing = Tweet.objects.filter(tweetAuthor_id = following)
+            tweets = tweetsSelf | tweetsFollowing
+        except:
+            tweets = tweetsSelf
         if request.method == "POST":
             form = tweetForm(request.POST)
             if 'image' in request.FILES:
@@ -57,5 +63,40 @@ def generateLink(request):
 
 def saveditems(request):
     user = request.user    
-    tweet = Tweet.objects.get(tweetLink = request.POST['tweetid'])
+    tweet = SavedItemsclass.objects.filter(user = user)
     return render(request, 'main/saveditems.html', {'user':user, 'tweet':tweet})
+
+
+def follow(request):
+    if request.method == 'POST':
+        user = request.user
+        following = Usuario.objects.get(id = request.POST['userP'])
+        if Follower.objects.filter(following_id = following.id, follower = user.id):
+            Follower.objects.filter(follower = user, following = following).delete()
+            following.followersC -=1
+            following.save()
+            user.followingC -= 1
+            user.save()
+            return redirect(request.POST['next'])
+        else:
+            Follower.objects.create(follower = user, following = following)
+            following.followersC +=1
+            following.save()
+            user.followingC += 1
+            user.save()
+            return redirect(request.POST['next'])
+
+def sendmessage(request, sender, receiver, message, next):
+    if request.method == 'POST':
+        Message.objects.create(
+            sender = sender,
+            receiver = receiver,
+            body = message
+        )
+        return redirect(next)
+
+def delete(request):
+    if request.method == "POST":
+        Tweet.objects.get(id = request.POST['tweetid']).delete()
+        messages.success(request, 'Tweet deletado.')
+        return redirect('/')

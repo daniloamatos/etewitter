@@ -51,6 +51,7 @@ class SavedItems(models.Model):
 class Replys(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
+    reply = models.ManyToManyField('self', blank = True)
     body = models.CharField(blank=True, max_length=280)
     image = models.ImageField(upload_to=image_path2, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank=True)
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
@@ -79,3 +80,13 @@ class Like(models.Model):
 
     def __str__(self):
         return f'{self.user}--{self.tweet}--{self.value}'
+
+class Follower(models.Model):
+    follower = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="userToBeFollowed")
+    following = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="userFollowing")
+    
+class Message(models.Model):
+    sender = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="sender")
+    receiver = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="receiver")
+    body = models.CharField(blank=True, max_length=250)
+    publishDate = models.DateTimeField(auto_now_add=True, blank=True)

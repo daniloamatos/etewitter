@@ -1,12 +1,13 @@
 
+from curses.ascii import HT
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
-from main.models import Tweet,Like,Replys,SavedItems
+from main.models import Tweet,Like,Replys,SavedItems, Message
 from main.forms import replyForm,tweetForm
-from main.views import generateLink
+from main.views import generateLink, sendmessage
 
 def userprofile(request,username):
     username = username
@@ -34,7 +35,7 @@ def userprofile(request,username):
         user = Usuario.objects.get(username__iexact=username)
         checkUser = request.user
         tweets = Tweet.objects.filter(tweetAuthor=user.id)
-        return render(request, "userprofile/userprofile.html", {"form":form,"jusername":username, "jname":jname[0], "user":user, "tweets":tweets, 'checkUser':checkUser, 'usuario':checkUser})
+        return render(request, "userprofile/userprofile.html", {"form":form,"jusername":username, "jname":jname[0], "userP":user, "tweets":tweets, 'checkUser':checkUser, 'usuario':checkUser})
     else:
         return HttpResponse("essa conta não existe, tente procurar por outra coisa")
 
@@ -97,31 +98,61 @@ def like (request, **username):
 
 def reply (request, **username):
     if request.method == 'POST':
+        reply = False
         user = request.user
         tweet_id = request.POST['tweetid']
-        tweet_obj = Tweet.objects.get(id = tweet_id)
+        try:
+            tweet_obj = Tweet.objects.get(id = tweet_id)
+        except:
+            tweet_obj = Replys.objects.get(id = tweet_id)
+            reply = True
         form = replyForm(request.POST)
         if 'image' in request.FILES:
-            instance = form.save(commit=False)
-            instance.image = request.FILES['image']
-            tweet_obj.replysC += 1
-            tweet_obj.save()
-            instance.user = user
-            instance.tweet = tweet_obj
-            instance.body = request.POST['body']
-            instance.replyLink = generateLink(request)
-            instance.save()
-            form.save()
+            if reply:
+                
+                test = Replys.objects.create(
+                    user = user,
+                    tweet = tweet_obj.tweet,
+                    reply = tweet_obj,
+                    body = request.POST['body'],
+                    image = request.FILES['image'],
+                    replyLink = generateLink(request)
+                )
+                test.reply.add(tweet_obj)
+                return redirect(request.POST['next'])
+            else:
+                instance = form.save(commit=False)
+                instance.tweet = tweet_obj
+                instance.image = request.FILES['image']
+                tweet_obj.replysC += 1
+                tweet_obj.save()
+                instance.user = user
+                instance.body = request.POST['body']
+                instance.replyLink = generateLink(request)
+                instance.save()
+                form.save()
+                return redirect(request.POST['next'])
         elif form.data['body']:
-            instance = form.save(commit=False)
-            instance.user = user
-            instance.tweet = tweet_obj
-            instance.body = request.POST['body']
-            instance.replyLink = generateLink(request)
-            tweet_obj.replysC += 1
-            tweet_obj.save()
-            instance.save()
-            form.save()
+            if reply:
+                test = Replys.objects.create(
+                    user = user,
+                    tweet = tweet_obj.tweet,
+                    body = request.POST['body'],
+                    replyLink = generateLink(request)
+                )
+                test.reply.add(tweet_obj)
+                return redirect(request.POST['next'])
+            else:
+                instance = form.save(commit=False)
+                instance.tweet = tweet_obj
+                tweet_obj.replysC += 1
+                tweet_obj.save()
+                instance.user = user
+                instance.body = request.POST['body']
+                instance.replyLink = generateLink(request)
+                instance.save()
+                form.save()
+                return redirect(request.POST['next'])
         else:
             messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
     return redirect(request.POST['next'])
@@ -139,7 +170,9 @@ def requesttweet (request, username, random):
     else:
         notReply = False
         reply = Replys.objects.filter(replyLink=f'{username}/status/{random}') 
-        return render(request, "userprofile/tweet.html", {'tweet':reply, 'usuario':checkUser, 'form':form, 'notReply':notReply})
+        tweetObj = Replys.objects.get(replyLink=f'{username}/status/{random}') 
+        qs = Replys.objects.filter(reply=reply[0])
+        return render(request, "userprofile/tweet.html", {'tweet':reply, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply, 'tweetObj':tweetObj})
     
 def save(request):
     if request.method == 'POST':
@@ -147,7 +180,29 @@ def save(request):
         tweet_id = request.POST['tweetid']
         tweet = Tweet.objects.get(id = tweet_id)
         saveditems = SavedItems()
+        if SavedItems.objects.filter(user = user):
+            if SavedItems.objects.filter(tweet = tweet):
+                SavedItems.objects.filter(user = user, tweet = tweet).delete()
+                return redirect(request.POST['next'])
         saveditems.user = user
         saveditems.tweet = tweet
         saveditems.save()
         return redirect(request.POST['next'])
+
+def message(request):
+    user = request.user
+    messagesSent = Message.objects.filter(sender = user)
+    messagesReceived = Message.objects.filter(receiver = user)
+    messages = messagesSent | messagesReceived
+    test = False
+    return render(request, 'main/message.html', {'messages':messages, 'test':test})
+
+def conversation(request, senderid, receiverid):
+    user = request.user
+    if request.method == "POST":
+        receiver = Usuario.objects.get(id = receiverid)
+        sendmessage(request, user, receiver, request.POST['message'], request.POST['next'])
+    messagesSent = Message.objects.filter(sender = user, receiver = receiverid)
+    messagesReceived = Message.objects.filter(sender = receiverid, receiver = user)
+    messages = messagesSent | messagesReceived
+    return render(request, 'main/conversation.html', {'messages':messages})

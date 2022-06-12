@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 {% block title %}
 {% load static %}
-{{tweet.tweetAuthor.name}} (@{{tweet.tweetAuthor.username}})
+Items salvos / Etewitter
 {% endblock %}
 
 {% block javascript %}
@@ -171,6 +171,12 @@
                     <button style="border:none; background:transparent; margin:none;display:flex;"type="submit" class="like-btn{{Tweet.tweet.id}}"><img class="like-img{{Tweet.tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
                     {% endif %}
                 <li class="list-group-item">{{Tweet.publishDate}}</li>
+            </form>
+            <form method="POST" action="/save/">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="hidden" value="{{Tweet.tweet.id}}" name="tweetid">
+                <button type="submit">Remover</button>
             </form>
             
             <form method="post" action="/likereply/" class="like-form" id="{{Tweet.id}}">

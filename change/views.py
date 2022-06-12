@@ -17,9 +17,9 @@ from logout.views import logout
 # Create your views here.
 @login_required(login_url='/login')
 def changeName(request, *args):
+    form = ChangeName(request.POST)
     if request.method == "POST":
         current_user = request.user
-        form = ChangeName(request.POST)
         if len(form.data['name']) < 4 or len(form.data['name']) > 25:
                 messages.error(request, 'O tamanho do nome tem que ser entre 4 e 25.')
         else:
@@ -52,11 +52,11 @@ def changeUsername(request):
 
 @login_required(login_url='/login')
 def changePass(request):
+    form = ChangePass(request.POST)
     if request.method == 'GET':
         email(request)
     else:
         current_user = request.user
-        form = ChangePass(request.POST)
         if request.POST['senha'] != request.POST['confirme_sua_senha']:
             messages.error(request, 'As senhas não são identicas.')
         elif len(form.data['senha']) <8:
