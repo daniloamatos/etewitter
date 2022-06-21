@@ -17,8 +17,8 @@ def home(request):
     else:
         tweetsSelf = Tweet.objects.filter(tweetAuthor=request.user)
         try:
-            following = Follower.objects.filter(follower_id = request.user.id).values_list("following_id").get()
-            tweetsFollowing = Tweet.objects.filter(tweetAuthor_id = following)
+            following = Follower.objects.filter(follower_id = request.user.id).values_list("following_id").all()
+            tweetsFollowing = Tweet.objects.filter(tweetAuthor_id__in = following)
             tweets = tweetsSelf | tweetsFollowing
         except:
             tweets = tweetsSelf
