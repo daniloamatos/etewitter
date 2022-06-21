@@ -5,11 +5,26 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
-from main.models import Tweet,Like,Replys,SavedItems, Message
+from main.models import Tweet,Like,Replys,SavedItems, Message, Follower
 from main.forms import replyForm,tweetForm
 from main.views import generateLink, sendmessage
 
 def userprofile(request,username):
+    followers = None
+    following = None
+    try:
+        userprofileid = Usuario.objects.filter(username = username).values_list("id").all()
+
+        um = Follower.objects.filter(follower_id__in = userprofileid).values_list("following_id").all()
+
+        following = Usuario.objects.filter(id__in = um)
+        
+        dois = Follower.objects.filter(following_id__in = userprofileid).values_list("follower_id").all()
+
+        followers = Usuario.objects.filter(id__in = dois)
+
+    except:
+        pass
     username = username
     if  checkIfUsernameExists(request, username):
         if request.method == "POST":
@@ -35,7 +50,7 @@ def userprofile(request,username):
         user = Usuario.objects.get(username__iexact=username)
         checkUser = request.user
         tweets = Tweet.objects.filter(tweetAuthor=user.id)
-        return render(request, "userprofile/userprofile.html", {"form":form,"jusername":username, "jname":jname[0], "userP":user, "tweets":tweets, 'checkUser':checkUser, 'usuario':checkUser})
+        return render(request, "userprofile/userprofile.html", {"followers":followers,"following":following, "form":form,"jusername":username, "jname":jname[0], "userP":user, "tweets":tweets, 'checkUser':checkUser, 'usuario':checkUser})
     else:
         return HttpResponse("essa conta não existe, tente procurar por outra coisa")
 
