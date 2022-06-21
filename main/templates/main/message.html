@@ -11,22 +11,14 @@
     </head>
     <body>
         {% block content %}
-        {% for x in messages %}
-
-        {% endfor %}
             {% for i in messages|dictsortreversed:"publishDate" %}
-                {% ifchanged i.sender %}
-                    {% ifchanged i.receiver %}
-                        {% if i.sender != user %}
-                        
-                        <a href="/messages/{{user.id}}-{{i.sender.id}}">
-                            <h1 style="color:white;">{{i.sender}}</h1><br>
-                        {% else %}
-                        <a href="/messages/{{user.id}}-{{i.receiver.id}}">
-                            <h1 style="color:white;">{{i.receiver}}</h1><br>
-                        {% endif %}
-                    {% endifchanged %}
-                {% endifchanged %}
+                {% if i.sender != user %}
+                <a href="/messages/{{user.id}}-{{i.sender.id}}">
+                    <h1 style="color:white;">{{i.sender}}</h1><br>
+                {% else %}
+                <a href="/messages/{{user.id}}-{{i.receiver.id}}">
+                    <h1 style="color:white;">{{i.receiver}}</h1><br>
+                {% endif %}
             {% endfor %}
         {% endblock %}
    
