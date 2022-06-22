@@ -68,6 +68,16 @@
                 }
             }
         </script>
+                <script>
+                    function openForm() {
+                        document.getElementById("myForm").style.display = "block";
+                        document.getElementById("denunciar1").style.display = "none";
+                    }
+                    function closeForm() {
+                        document.getElementById("denunciar1").style.display = "block";
+                        document.getElementById("myForm").style.display = "none";
+                    }
+                </script>
        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
         
 {% endblock %}
@@ -165,6 +175,7 @@ Tweets {{userP.get_posts_no}}
                     <div style="flex: 1; margin:5px;" class="like-count{{Tweet.id}}">
                         {{Tweet.num_likes}}
                     </div>
+                    
                         {% if usuario in Tweet.likes.all %}
                         <input type="hidden" class="like-input{{Tweet.id}}"value="Unlike"></input>
                         <button style="border:none; background:transparent; margin:none; display:flex; "type="submit" class="unlike-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}" src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
@@ -172,6 +183,19 @@ Tweets {{userP.get_posts_no}}
                         <input type="hidden" class="like-input{{Tweet.id}}" value="Like"></input>
                         <button style="border:none; background:transparent; margin:none;display:flex;"type="submit" class="like-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
                         {% endif %}
+                    </form>
+                        <form method="post" action="/report/">
+                            {% csrf_token %}
+                            <button id="denunciar1" class="open-button" onclick="openForm()">denunciar</button>
+                            <div class="form-popup" id="myForm" style="display:none">
+                                <button type="button" onclick="closeForm()">Fechar</button>
+                                <label for="email"><b>Motivo da denuncia</b></label>
+                                <input type="text" placeholder="Descreva a denuncia" name="reason" required>
+                                <button type="submit">denunciar</button>
+                            </div>
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <input type="hidden" value="{{Tweet.id}}" name="tweetid">
+                        </form>
                     <li class="list-group-item">{{Tweet.publishDate}}</li>
                 </a>
             </form>

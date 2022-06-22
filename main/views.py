@@ -4,7 +4,7 @@ import random
 from django.http import HttpResponse
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
-from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message
+from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message, Report
 from register.models import Usuario
 from django.contrib import messages
 from datetime import datetime
@@ -100,3 +100,15 @@ def delete(request):
         Tweet.objects.get(id = request.POST['tweetid']).delete()
         messages.success(request, 'Tweet deletado.')
         return redirect('/')
+    
+def report(request):
+    x9 = request.user
+    tweet = Tweet.objects.get(id = request.POST['tweetid'])
+    reason = request.POST['reason']
+    Report.objects.create(
+        x9 = x9,
+        tweet = tweet,
+        reason = reason
+    )
+    messages.success(request, 'Denuncia registrada.')
+    return redirect(request.POST['next'])

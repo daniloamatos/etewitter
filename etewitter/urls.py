@@ -16,6 +16,7 @@ app_name='main'
 
 urlpatterns = [
     path('', include("main.urls")),
+    path('report/', include("main.urls")),
     path('like/',include("main.urls")),
     path('save/',include("main.urls")),
     path('likereply/',include("main.urls")),

@@ -58,11 +58,24 @@
                                             <img class="like-img{{Tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
                                         {% endif %}
                                         </form>
+                                        </a>
                                         <form method="POST" action="save/">
                                             {% csrf_token %}
                                             <input type="hidden" name="next" value="{{ request.path }}">
                                             <input type="hidden" value="{{Tweet.id}}" name="tweetid">
                                             <button type="submit">Salvar</button>
+                                        </form>
+                                        <form method="post" action="report/">
+                                            {% csrf_token %}
+                                            <button id="denunciar1" class="open-button" onclick="openForm()">denunciar</button>
+                                            <div class="form-popup" id="myForm" style="display:none">
+                                                <button type="button" onclick="closeForm()">Fechar</button>
+                                                <label for="email"><b>Motivo da denuncia</b></label>
+                                                <input type="text" placeholder="Descreva a denuncia" name="reason" required>
+                                                <button type="submit">denunciar</button>
+                                            </div>
+                                            <input type="hidden" name="next" value="{{ request.path }}">
+                                            <input type="hidden" value="{{Tweet.id}}" name="tweetid">
                                         </form>
                                     <li class="list-group-item">{{Tweet.publishDate}}</li>
                                 </a>
@@ -75,6 +88,16 @@
    
         {% block javascript %}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script>
+            function openForm() {
+                document.getElementById("myForm").style.display = "block";
+                document.getElementById("denunciar1").style.display = "none";
+            }
+            function closeForm() {
+                document.getElementById("denunciar1").style.display = "block";
+                document.getElementById("myForm").style.display = "none";
+            }
+        </script>
         <script>  
             $('.like-form').submit(function(e){
                 e.preventDefault();

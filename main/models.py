@@ -90,3 +90,8 @@ class Message(models.Model):
     receiver = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="receiver")
     body = models.CharField(blank=True, max_length=250)
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
+
+class Report(models.Model):
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
+    reason = models.CharField(blank=False, max_length=100)
+    x9 = models.ForeignKey(Usuario, on_delete=models.CASCADE)
