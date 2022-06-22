@@ -112,3 +112,8 @@ def report(request):
     )
     messages.success(request, 'Denuncia registrada.')
     return redirect(request.POST['next'])
+
+def message(request):
+    user = request.user.id
+    receiver = Usuario.objects.get(id = request.POST['userP'])
+    return redirect('/messages/%i-%i' % (user, receiver.id))

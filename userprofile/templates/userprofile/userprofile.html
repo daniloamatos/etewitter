@@ -112,7 +112,7 @@
     </div>
 </form>
 {% else %}
-<form method="POST" action="/follow/">
+<form method="" action="/follow/">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.path }}">
     <input type="hidden" value="{{userP.id}}" name="userP">
@@ -122,7 +122,14 @@
         </div>
     </div>
 </form>
+<form method="POST" action="/message/">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    <input type="hidden" value="{{userP.id}}" name="userP">
+    <button type="submit">Enviar Mensagem</button>
+</form>
 {% endif %}
+
 <br>
 @{{userP.username}}<br>
 <br>
