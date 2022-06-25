@@ -11,8 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", 'etewitter.settings')
-import django
-django.setup()
+
 
 from pathlib import Path
 import django_heroku
@@ -58,6 +57,8 @@ INSTALLED_APPS = [
     'search.apps.SearchConfig',
     'etewitter',
 ]
+import django
+django.setup()
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
