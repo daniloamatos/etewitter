@@ -59,7 +59,7 @@ INSTALLED_APPS = [
 ]
 AUTH_USER_MODEL = 'register.Usuario'
 
-DATABASES = {
+'''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'testing11',
@@ -68,8 +68,8 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
-}
-#DATABASES = { 'default': dj_database_url.config() }
+}'''
+DATABASES = { 'default': dj_database_url.config() }
 import django
 django.setup()
 
