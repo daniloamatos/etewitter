@@ -170,4 +170,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 django_heroku.settings(locals())
 
-ASGI_APPLICATION = 'mywebsite.asgi.application'
+ASGI_APPLICATION = 'etewitter.asgi.application'
