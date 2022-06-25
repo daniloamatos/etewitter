@@ -1,7 +1,3 @@
-import django
-django.setup()
-
-
 from django.db import models
 
 class Message(models.Model):
