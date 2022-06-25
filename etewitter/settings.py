@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-import os
+import dj_database_url, os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", 'etewitter.settings')
 
 
@@ -69,7 +69,7 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
+#DATABASES = { 'default': dj_database_url.config() }
 import django
 django.setup()
 
