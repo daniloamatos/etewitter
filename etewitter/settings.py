@@ -69,7 +69,7 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-django_heroku.settings(locals())
+
 import django
 django.setup()
 
@@ -176,3 +176,4 @@ MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 
+django_heroku.settings(locals())
