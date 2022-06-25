@@ -28,10 +28,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
+ASGI_APPLICATION = 'etewitter.asgi.application'
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -169,5 +170,3 @@ MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 django_heroku.settings(locals())
-
-ASGI_APPLICATION = 'etewitter.asgi.application'
