@@ -21,7 +21,6 @@ constantly==15.1.0
 cryptography==37.0.2
 daphne==3.0.2
 Deprecated==1.2.13
-dj-database-url==0.4.2
 django-clearcache==1.2.1
 hyperlink==21.0.0
 idna==3.3
