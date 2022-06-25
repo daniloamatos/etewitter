@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     'search.apps.SearchConfig',
     'etewitter',
 ]
+AUTH_USER_MODEL = 'register.Usuario'
+
 import django
 django.setup()
 
@@ -158,8 +160,6 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_URL = 'login' 
 LOGIN_REDIRECT_URL = "/"
 
-
-AUTH_USER_MODEL = 'register.Usuario'
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
