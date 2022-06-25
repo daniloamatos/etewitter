@@ -26,7 +26,7 @@ SECRET_KEY = '+V6n5vkJ+rcexLZWhPQPgkXdpEZ1HRhqHP7czUOC16c='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://etewitter.herokuapp.com/']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'crispy_forms',
     'main.apps.MainConfig',
+    'chat.apps.ChatConfig',
     'change.apps.ChangeConfig',
     'check.apps.CheckConfig',
     'validations.apps.ValidationsConfig',
@@ -102,7 +103,11 @@ DATABASES = {
 }
 
 
-
+CHANNEL_LAYERS = {
+    'default': {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    },
+}
 
 
 # Password validation
@@ -164,3 +169,5 @@ MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 django_heroku.settings(locals())
+
+ASGI_APPLICATION = 'mywebsite.asgi.application'
