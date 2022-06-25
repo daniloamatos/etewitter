@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", __file__)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", 'etewitter.settings')
 import django
 django.setup()
 
