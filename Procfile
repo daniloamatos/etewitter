@@ -1,1 +1,1 @@
-web: daphne etewitter.asgi:application --port $PORT --bind 0.0.0.0 -v2
+web: gunicorn etewitter.wsgi
