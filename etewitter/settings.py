@@ -59,6 +59,17 @@ INSTALLED_APPS = [
 ]
 AUTH_USER_MODEL = 'register.Usuario'
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'testing11',
+        'USER': 'danilo',
+        'PASSWORD': '0101oioi',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    }
+}
+
 import django
 django.setup()
 
@@ -99,16 +110,6 @@ WSGI_APPLICATION = 'etewitter.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'testing11',
-        'USER': 'danilo',
-        'PASSWORD': '0101oioi',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
-}
 
 
 CHANNEL_LAYERS = {
