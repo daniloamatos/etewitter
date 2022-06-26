@@ -20,6 +20,7 @@ urlpatterns = [
     path('like/',include("main.urls")),
     path('save/',include("main.urls")),
     path('likereply/',include("main.urls")),
+    path('notifications/', include("main.urls")),
     path('delete/', viewsmain.delete, name = 'delete'),
     path('messages/<int:senderid>-<int:receiverid>', include('chat.urls')),
     path('messages/', vuserprofile.message, name = 'message'),

@@ -100,3 +100,7 @@ class Report(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
     reason = models.CharField(blank=False, max_length=100)
     x9 = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+
+class Notification(models.Model):
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notified")
+    body = models.CharField(blank=False, max_length=250)

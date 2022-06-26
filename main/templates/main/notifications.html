@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>notifications</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+</head>
+<body>
+    {{user.username | json_script:'user'}}
+    <div id="notifications">
+        {% for i in notifications %}
+            <p>{{i.body}}</p>
+        {% endfor %}
+    </div>
+
+    <script type="text/javascript">
+       
+        let url = `ws://${window.location.host}/ws/notifications/`
+        const notificationSocket = new WebSocket(url)
+        notificationSocket.onmessage = function(e){
+        let data = JSON.parse(e.data)
+        console.log('DATA:', data)
+
+        if(data.type === 'notification'){
+            let notification = document.getElementById("notification")
+            notifications.insertAdjacentHTML('beforeend', `<div
+                                                        <p>${data.notification}</p>
+                                                    </div>`)
+            }
+        }
+
+        let form = document.getElementById('form')
+        form.addEventListener('submit', (e)=> {
+            e.preventDefault()
+            let notification = e.target.notification.value
+            let username = JSON.parse(document.getElementById('user').textContent);
+            notificationSocket.send(JSON.stringify({
+                'notification':notification,
+                'username':username,
+            }))
+            form.reset()
+        })
+    </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from main.models import Message, Chat
+from main.models import Message, Chat, Notification
 from register.models import Usuario
 from django.db.models import Q
 from datetime import datetime
@@ -55,7 +55,28 @@ class ChatConsumer(WebsocketConsumer):
             chat = Chat.objects.get(Q(sender = user)| Q(receiver=user), Q(sender = receiver)| Q(receiver = receiver))
             chat.publishDate = datetime.now()
             chat.save()
+            room_group_name = receiver.username + 'notifications'
+            async_to_sync(self.channel_layer.group_send)(
+                room_group_name,
+                {
+                    'type':'new_notification',
+                    'notification':f"{user} te mandou uma nova mensagem!",
+                    'username':receiver,
+                }
+            )
+
+            Notification.objects.create(user=receiver, body=(f"{user} te mandou uma nova mensagem!"))
         except:
             Chat.objects.update_or_create(sender = user, receiver = receiver)
+            room_group_name = receiver.username + 'notifications'
+            async_to_sync(self.channel_layer.group_send)(
+                room_group_name,
+                {
+                    'type':'new_notification',
+                    'notification':f"{user} te mandou uma nova mensagem!",
+                    'username':receiver,
+                }
+            )
+            Notification.objects.create(user=receiver, body=(f"{user} te mandou uma nova mensagem!"))
         message = list(Message.objects.filter(Q(receiver=user) | Q(sender=user), Q(receiver=receiver) | Q(sender=receiver)))
         

@@ -4,14 +4,20 @@ import random
 from django.http import HttpResponse
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
-from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message, Report, Chat
+from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message, Report, Notification
 from register.models import Usuario
 from django.contrib import messages
 from datetime import datetime
 from django.db.models import Q
 
 # Create your views here.
-
+def notifications(request):
+    user = request.user
+    try:
+        notifications = Notification.objects.filter(user=user)
+    except:
+        notifications = None
+    return render(request, 'main/notifications.html', {'user':user,'notifications':notifications})
 def home(request):
     if str(request.user) == 'AnonymousUser':
         return redirect('/index')
