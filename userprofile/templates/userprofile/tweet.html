@@ -120,11 +120,11 @@
 {% for Tweet in tweet %}   
 <div class="row justify-content-center">          
     <div class="card" style="width: 18rem;">      
-        <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
+        <ul style="color:black; margin-bottom:30px;" class="list-group list-group-flush font-family: 'Kanit', sans-serif;">
             <li class="list-group-item">
                 {% if notReply %}
                 {% if Tweet.image %}
-                    <img src="/uploads/{{Tweet.image}}" style="width:50%">
+                    <img src="{{Tweet.image.url}}" style="width:50%">
                 {% endif %}
             </li>
             
@@ -176,7 +176,7 @@
                 {% for replys in qs|dictsortreversed:"publishDate"%}
                         <a href="/{{replys.replyLink}}"  style="text-decoration: none; color:black;">
                             {% if replys.image %}
-                                <img src="/uploads/{{replys.image}}" style="width:50%">
+                                <img src="{{replys.image.url}}" style="width:50%">
                             {% endif %}
                             {{replys.body}}<br>
                         </a>
@@ -189,7 +189,7 @@
             <form method="post" action="/like/" class="like-form" id="{{Tweet.tweet.id}}">
                 <a href="/{{Tweet.tweet.tweetLink}}" style="text-decoration: none; color:black;" >
                     {% if Tweet.tweet.image %}
-                        <img src="/uploads/{{Tweet.tweet.image}}" style="width:50%">
+                        <img src="{{Tweet.tweet.image.url}}" style="width:50%">
                     {% endif %}
                     {{Tweet.tweet}}
                     {{Tweet.tweet.reply}}<br><br>
@@ -213,7 +213,7 @@
                 <a href="/{{Tweet.replyLink}}" style="text-decoration: none; color:black;" >
                 {{Tweet.body}}
                 {% if Tweet.image %}
-                    <img src="/uploads/{{Tweet.image}}" style="width:50%">
+                    <img src="{{Tweet.image.url}}" style="width:50%">
                 {% endif %}
                 </a>
                 {% csrf_token %}
@@ -242,7 +242,7 @@
             {% for replys in qs|dictsortreversed:"publishDate"%}
                 <a href="/{{replys.replyLink}}"  style="text-decoration: none; color:black;">
                     {% if replys.image %}
-                        <img src="/uploads/{{replys.image}}" style="width:50%">
+                        <img src="https://res.cloudinary.com/dkgyh1y9c/image/upload/uploads/{{replys.image.url}}" style="width:50%">
                     {% endif %}
                     {{replys.body}}<br>
                 </a>

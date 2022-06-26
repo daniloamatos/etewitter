@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import dj_database_url, os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", 'etewitter.settings')
 
+import cloudinary_storage
 
 from pathlib import Path
 import django_heroku
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
     'crispy_bootstrap5',
     'crispy_forms',
     'main.apps.MainConfig',
@@ -59,17 +61,18 @@ INSTALLED_APPS = [
 ]
 AUTH_USER_MODEL = 'register.Usuario'
 
-'''DATABASES = {
+
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'testing13',
+        'NAME': 'testing14',
         'USER': 'danilo',
         'PASSWORD': '0101oioi',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
-}'''
-DATABASES = { 'default': dj_database_url.config() }
+}
+#DATABASES = { 'default': dj_database_url.config() }
 import django
 django.setup()
 
@@ -175,5 +178,12 @@ MEDIA_URL = '/uploads/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dkgyh1y9c',
+    'API_KEY': '459791236116836',
+    'API_SECRET': 'jIOCmJHcxLVOc71jmRNIIiHNvjY'
+}
 
 django_heroku.settings(locals())

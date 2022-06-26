@@ -175,7 +175,7 @@ Tweets {{userP.get_posts_no}}
                     <img src="{{Tweet.tweetAuthor.profilepic.url}}" style="width:20%;height:100%;position:absolute;top:70px;left:-45px;">
                     {{Tweet.tweetAuthor.name}} @{{Tweet.tweetAuthor.username}}
                     {% if Tweet.image %}
-                        <img src="/uploads/{{Tweet.image}}" style="width:50%">
+                        <img src="{{Tweet.image.url}}" style="width:50%">
                     {% endif %}
                 </li>
                 {{Tweet.tweet}}<br><br>

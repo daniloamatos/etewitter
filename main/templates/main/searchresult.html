@@ -55,15 +55,15 @@
                 {% for items in result2|dictsortreversed:"publishDate" %}
                 <div class="row justify-content-center">          
                     <div class="card" style="width: 18rem;">      
-                        <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
+                        <ul style="color:black; margin-bottom:30px;" class="list-group list-group-flush font-family: 'Kanit', sans-serif;">
                             <li class="list-group-item">
-                                
+                                <a href="/{{items.tweetLink}}" style="text-decoration: none; color:black;">
                                     {% if items.image %}
-                                        <img src="/uploads/{{items.image}}" style="width:50%">
+                                        <img src="{{items.image.url}}" style="width:50%">
                                     {% endif %}
                                     <form method="post" action="like/" class="like-form" id="{{items.id}}">
                                         {% csrf_token %}
-                                        <a href="/{{items.tweetLink}}" style="text-decoration: none; color:black;">
+                                        
                                             {{items.tweet}}
                                         </a>
                                         <br>

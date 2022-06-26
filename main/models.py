@@ -12,7 +12,6 @@ def image_path(instance, filename):
     randomstr = ''.join((random.choice(chars)) for x in range(10))
     randomstr2 = ''.join((random.choice(chars)) for x in range(20))
     _now = datetime.now()
-
     return '{instance.tweetAuthor.id}/{day}/{month}/{year}/{randomstring}/{randomstring2}{ext}'.format(
         instance = instance, randomstring=randomstr, randomstring2=randomstr2,ext=file_extension[1],
         day=_now.strftime('%d'), month=_now.strftime('%m'), year=_now.strftime('%Y'))

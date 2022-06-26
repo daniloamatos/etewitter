@@ -32,7 +32,7 @@
                             <a href="{{Tweet.tweetLink}}" style="text-decoration: none; color:black;">
                                 <li class="list-group-item">{{Tweet.tweet}}</li>
                                 {% if Tweet.image %}
-                                    <img src="/uploads/{{Tweet.image}}" style="width:50%">
+                                    <img src="{{Tweet.image.url}}" style="width:50%">
                                 {% endif %}
                                 <form method="post" action="/like/" class="like-form" id="{{Tweet.id}}">
                                     {% csrf_token %}
