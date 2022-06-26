@@ -35,6 +35,7 @@ ASGI_APPLICATION = 'etewitter.asgi.application'
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'django.contrib.contenttypes',
     'channels',
     'django.contrib.admin',
@@ -62,7 +63,7 @@ AUTH_USER_MODEL = 'register.Usuario'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'testing11',
+        'NAME': 'testing13',
         'USER': 'danilo',
         'PASSWORD': '0101oioi',
         'HOST': '127.0.0.1',

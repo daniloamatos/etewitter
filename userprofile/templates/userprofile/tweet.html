@@ -191,13 +191,13 @@
                     {% if Tweet.tweet.image %}
                         <img src="/uploads/{{Tweet.tweet.image}}" style="width:50%">
                     {% endif %}
+                    {{Tweet.tweet}}
                     {{Tweet.tweet.reply}}<br><br>
                 </a>
                 <input type="hidden" name="next" value="{{ request.path }}">
                 <input type="hidden" value="{{Tweet.tweet.id}}" name="tweetid">
-            </form>
                 <div style="flex: 1; margin:5px;" class="like-count{{Tweet.tweet.id}}">
-                    {{Tweet.tweet.num_likes}}
+                    {{Tweet.tweet.likec}}
                 </div>
                     {% if usuario in Tweet.tweet.likes.all %}
                     <input type="hidden" class="like-input{{Tweet.tweet.id}}"value="Unlike"></input>
@@ -220,7 +220,7 @@
                 <input type="hidden" name="next" value="{{ request.path }}">
                 <input type="hidden" value="{{Tweet.id}}" name="tweetid">
                 <div style="flex: 1; margin:5px;" class="like-count{{Tweet.id}}">
-                    {{Tweet.num_likes}}
+                    {{Tweet.likec}}
                 </div>
                     {% if usuario in Tweet.likes.all %}
                     <input type="hidden" class="like-input{{Tweet.id}}"value="Unlike"></input>
@@ -246,7 +246,7 @@
                     {% endif %}
                     {{replys.body}}<br>
                 </a>
-            {%endfor%}
+            {% endfor%}
             {% endif %}
 {% endfor %}
 

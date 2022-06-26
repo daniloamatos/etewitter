@@ -8,6 +8,7 @@ from main.models import Tweet,Like,Replys,SavedItems, Follower, Chat
 from main.forms import replyForm,tweetForm
 from main.views import generateLink
 from django.db.models import Q
+from django.core import serializers
 
 def userprofile(request,username):
     followers = None
@@ -62,26 +63,16 @@ def likereply(request,**username):
         reply_id = request.POST['replyid']
         reply_obj = Replys.objects.get(id = reply_id)
         usuario = Usuario.objects.get(username = user)
-        if usuario in reply_obj.likes.all():
-            reply_obj.likes.remove(usuario)
-        else:
+        if usuario not in reply_obj.likes.all():
             reply_obj.likes.add(usuario)
-        like, created = Like.objects.get_or_create(user=usuario, tweet_id=reply_obj.tweet_id)
-
-        if not created:
-            if like.value=='Like':
-                like.value='Unlike'
-            else:
-                like.value='Like'
-
+            reply_obj.likec += 1
             reply_obj.save()
-            like.save()
-        data = {
-            'value': like.value,
-            'likes': reply_obj.likes.all().count()
-        }
-
-        return JsonResponse(data, safe=False)
+        else:
+            reply_obj.likes.remove(usuario)
+            reply_obj.likec -= 1
+            reply_obj.save()
+        ser_instance = serializers.serialize('json', [ reply_obj, ])
+        return JsonResponse({"instance": ser_instance}, status=200)
 
 def like (request, **username):
     if request.method == 'POST':
@@ -89,27 +80,18 @@ def like (request, **username):
         tweet_id = request.POST['tweetid']
         tweet_obj = Tweet.objects.get(id = tweet_id)
         usuario = Usuario.objects.get(username = user)
-
-        if usuario in tweet_obj.likes.all():
-            tweet_obj.likes.remove(usuario)
-        else:
+        if usuario not in tweet_obj.likes.all():
             tweet_obj.likes.add(usuario)
-        like, created = Like.objects.get_or_create(user=usuario, tweet_id=tweet_id)
-
-        if not created:
-            if like.value=='Like':
-                like.value='Unlike'
-            else:
-                like.value='Like'
-
+            tweet_obj.likec += 1
             tweet_obj.save()
-            like.save()
-        data = {
-            'value': like.value,
-            'likes': tweet_obj.likes.all().count()
-        }
+        else:
+            tweet_obj.likes.remove(usuario)
+            tweet_obj.likec -= 1
+            tweet_obj.save()
+        ser_instance = serializers.serialize('json', [ tweet_obj, ])
+        return JsonResponse({"instance": ser_instance}, status=200)
+     
 
-        return JsonResponse(data, safe=False)
 
 def reply (request, **username):
     if request.method == 'POST':

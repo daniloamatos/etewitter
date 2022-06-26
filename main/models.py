@@ -33,6 +33,7 @@ class Tweet(models.Model):
     tweetAuthor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="posts")
     image = models.ImageField(upload_to=image_path, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank=True)
     likes = models.ManyToManyField(Usuario, blank=True, related_name="likes")
+    likec = models.IntegerField(default=0)
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
     tweetLink = models.CharField(blank=True, max_length=999)
     replysC = models.IntegerField(default=0)
@@ -55,7 +56,8 @@ class Replys(models.Model):
     body = models.CharField(blank=True, max_length=280)
     image = models.ImageField(upload_to=image_path2, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank=True)
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
-    likes = models.IntegerField(default=0)
+    likes = models.ManyToManyField(Usuario, blank=True, related_name="likesr")
+    likec = models.IntegerField(default=0)
     replyLink = models.CharField(blank=True, max_length=999)
     replysC = models.IntegerField(default=0)
 
@@ -63,8 +65,6 @@ class Replys(models.Model):
     def __str__(self):
         return str(self.pk)
 
-    def num_likes(self):
-        return self.likes.all().count()
 
 
 class Like(models.Model):
