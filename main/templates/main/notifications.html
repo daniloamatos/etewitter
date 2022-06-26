@@ -1,12 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>notifications</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-
-</head>
+{% extends "main/template.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{%block content%}
 <body>
     {{user.username | json_script:'user'}}
     <div id="notifications">
@@ -14,7 +9,8 @@
             <p>{{i.body}}</p>
         {% endfor %}
     </div>
-
+{%endblock%}
+{%block javascript%}
     <script type="text/javascript">
        
         let url = `ws://${window.location.host}/ws/notifications/`
@@ -43,5 +39,4 @@
             form.reset()
         })
     </script>
-</body>
-</html>
+    {%endblock%}

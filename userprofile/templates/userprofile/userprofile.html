@@ -112,7 +112,7 @@
     </div>
 </form>
 {% else %}
-<form method="" action="/follow/">
+<form method="POST" action="/follow/">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.path }}">
     <input type="hidden" value="{{userP.id}}" name="userP">
@@ -164,7 +164,7 @@ Tweets {{userP.get_posts_no}}
 {% for Tweet in tweets|dictsortreversed:"publishDate" %}   
 <div class="row justify-content-center">          
     <div class="card" style="width: 18rem;">      
-        <ul style="color:black; margin-bottom:30px; class=list-group list-group-flush font-family: 'Kanit', sans-serif;">
+        <ul style="color:black; margin-bottom:30px;" class="list-group list-group-flush font-family: 'Kanit', sans-serif;">
             <a href="/{{Tweet.tweetLink}}" style="text-decoration: none; color:black;">
                 <li class="list-group-item">
                     <img src="{{Tweet.tweetAuthor.profilepic.url}}" style="width:20%;height:100%;position:absolute;top:70px;left:-45px;">

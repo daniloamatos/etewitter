@@ -52,7 +52,7 @@ def userprofile(request,username):
         tweets = Tweet.objects.filter(tweetAuthor=user.id)
         return render(request, "userprofile/userprofile.html", {"followers":followers,"following":following, "form":form,"jusername":username, "jname":jname[0], "userP":user, "tweets":tweets, 'checkUser':checkUser, 'usuario':checkUser})
     else:
-        return HttpResponse("essa conta não existe, tente procurar por outra coisa")
+        return render(request, "userprofile/notexist.html")
 
 
 
