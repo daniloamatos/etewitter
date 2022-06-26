@@ -61,6 +61,7 @@ INSTALLED_APPS = [
 ]
 AUTH_USER_MODEL = 'register.Usuario'
 
+CSRF_TRUSTED_ORIGINS = ["https://*.herokuapp.com", "http://*.herokuapp.com", "ws://*.herokuapp.com"]
 
 '''DATABASES = {
     'default': {
