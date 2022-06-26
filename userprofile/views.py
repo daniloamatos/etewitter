@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
-from main.models import Tweet,Like,Replys,SavedItems, Follower, Chat
+from main.models import Tweet,Replys,SavedItems, Follower, Chat
 from main.forms import replyForm,tweetForm
 from main.views import generateLink
 from django.db.models import Q
