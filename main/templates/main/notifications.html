@@ -12,8 +12,11 @@
 {%endblock%}
 {%block javascript%}
     <script type="text/javascript">
-       
-        let url = `ws://${window.location.host}/ws/notifications/`
+        var wsStart = 'ws://';
+        if (loc.protocol == 'https:') {
+            wsStart = 'wss://'
+        }
+        let url = `${wsStart}${window.location.host}/ws/notifications/`
         const notificationSocket = new WebSocket(url)
         notificationSocket.onmessage = function(e){
         let data = JSON.parse(e.data)

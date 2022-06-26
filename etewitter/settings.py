@@ -63,7 +63,7 @@ AUTH_USER_MODEL = 'register.Usuario'
 
 CSRF_TRUSTED_ORIGINS = ["https://*.herokuapp.com", "http://*.herokuapp.com", "ws://*.herokuapp.com"]
 
-'''DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'testing14',
@@ -72,8 +72,8 @@ CSRF_TRUSTED_ORIGINS = ["https://*.herokuapp.com", "http://*.herokuapp.com", "ws
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
-}'''
-DATABASES = { 'default': dj_database_url.config() }
+}
+#DATABASES = { 'default': dj_database_url.config() }
 import django
 django.setup()
 

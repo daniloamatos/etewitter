@@ -24,7 +24,13 @@
     <script type="text/javascript">
         var userid = document.getElementById("userid").textContent;
         var receiverid = document.getElementById("receiverid").textContent;
-        let url = `ws://${window.location.host}/ws/messages/${userid}-${receiverid}/`
+        var wsStart = 'ws://';
+        if (window.location.protocol == 'https:') {
+            wsStart = 'wss://'
+        }
+        
+        let url = `${wsStart}${window.location.host}/ws/messages/${userid}-${receiverid}/`
+        alert(url)
         const chatSocket = new WebSocket(url)
 
         chatSocket.onmessage = function(e){
