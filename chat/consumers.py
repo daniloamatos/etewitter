@@ -2,14 +2,21 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from django.core.cache import cache
-from .models import Message
+from main.models import Message
+from register.models import Usuario
+from django.db.models import Q
 
 class ChatConsumer(WebsocketConsumer):
 
     def connect(self):
-        self.room_group_name = 'test'
-
+        receiverid = int(self.scope["url_route"]["kwargs"]['receiverid'])
+        userid = self.scope['user'].id
+        print(userid, receiverid)
+        if(userid < receiverid):
+            self.room_group_name = str(self.scope['user'].id) + "-" + self.scope["url_route"]["kwargs"]['receiverid']
+        else:
+            self.room_group_name =  self.scope["url_route"]["kwargs"]['receiverid'] + "-" + str(self.scope['user'].id)
+        print(self.room_group_name)
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
             self.channel_name
@@ -19,28 +26,31 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
-
+        user = text_data_json['username']
+        receiver = text_data_json['receiver']
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
                 'type':'chat_message',
-                'message':message
+                'message':message,
+                'username':user,
+                'receiver':receiver
             }
         )
-
-        self.save_message(message)
+        self.save_message(message, user,receiver)
 
     def chat_message(self,event):
         message = event['message']
-
+        user = event['username']
         self.send(text_data=json.dumps({
             'type':'chat',
-            'message':message
+            'message':message,
+            'username':user
         }))
 
-    def save_message(self, message):
-        Message.objects.create(message=message)
-        messages = Message.objects.all()
-        #id = 2
-        #cache.add(id, messages)
+    def save_message(self, message, user,receiver):
+        user = Usuario.objects.get(username=user)
+        receiver = Usuario.objects.get(username=receiver)
+        Message.objects.create(sender = user, body=message, receiver=receiver)
+        message = list(Message.objects.filter(Q(receiver=user) | Q(sender=user), Q(receiver=receiver) | Q(sender=receiver)))
         

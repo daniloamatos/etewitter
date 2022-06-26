@@ -10,7 +10,10 @@
 <body>
     <h1>Conversa {{user.username}}</h1>
 
-
+    {{user.username |json_script:"user"}}
+    {{receiver.username |json_script:"receiver"}}
+    {{user.id |json_script:"userid"}}
+    {{receiver.id |json_script:"receiverid"}}
     <form id="form">
         <input type="text" name="message">
         <button type="submit" value="send"></button>
@@ -18,12 +21,13 @@
 
     <div id="messages">
         {% for message in messages %}
-            <p>{{message.message}}</p>
+            <p>{{message.sender}}: {{message.body}}</p>
         {% endfor %}
     </div>
     <script type="text/javascript">
-        let url = `ws://${window.location.host}/ws/socket-server/`
-
+        var userid = document.getElementById("userid").textContent;
+        var receiverid = document.getElementById("receiverid").textContent;
+        let url = `ws://${window.location.host}/ws/messages/${userid}-${receiverid}/`
         const chatSocket = new WebSocket(url)
 
         chatSocket.onmessage = function(e){
@@ -32,9 +36,9 @@
 
             if(data.type === 'chat'){
                 let messages = document.getElementById("messages")
-
+                let username = JSON.parse(document.getElementById('user').textContent);
                 messages.insertAdjacentHTML('beforeend', `<div
-                                                            <p>${data.message}</p>
+                                                            <p>${data.username}: ${data.message}</p>
                                                         </div>`)
             }
         }
@@ -43,8 +47,12 @@
         form.addEventListener('submit', (e)=> {
             e.preventDefault()
             let message = e.target.message.value
+            let username = JSON.parse(document.getElementById('user').textContent);
+            let receiver = JSON.parse(document.getElementById('receiver').textContent);
             chatSocket.send(JSON.stringify({
-                'message':message
+                'message':message,
+                'username':username,
+                'receiver':receiver
             }))
             form.reset()
         })
