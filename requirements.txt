@@ -1,3 +1,5 @@
+cloudinary==1.29.0
+django-cloudinary-storage==0.3.0
 asgiref==3.5.0
 crispy-bootstrap5==0.6
 dj-database-url==0.5.0
@@ -38,5 +40,3 @@ txaio==22.2.1
 typing_extensions==4.2.0
 wrapt==1.14.1
 zope.interface==5.4.0
-cloudinary_storage==0.3.0
-cloudinary==1.4.0
