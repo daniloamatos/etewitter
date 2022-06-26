@@ -67,9 +67,9 @@
                                         </form>
                                         <form method="post" action="report/">
                                             {% csrf_token %}
-                                            <button id="denunciar1" class="open-button" onclick="openForm()">denunciar</button>
-                                            <div class="form-popup" id="myForm" style="display:none">
-                                                <button type="button" onclick="closeForm()">Fechar</button>
+                                            <button id="denunciar{{Tweet.id}}" class="open-button" onclick="formHandler('{{ Tweet.id }}')">denunciar</button>
+                                            <div class="form-popup" id="myForm{{Tweet.id}}" style="display:none">
+                                                <button type="button" onclick="formHandler('{{ Tweet.id }}') ">Fechar</button>
                                                 <label for="email"><b>Motivo da denuncia</b></label>
                                                 <input type="text" placeholder="Descreva a denuncia" name="reason" required>
                                                 <button type="submit">denunciar</button>
@@ -89,13 +89,18 @@
         {% block javascript %}
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script>
-            function openForm() {
-                document.getElementById("myForm").style.display = "block";
-                document.getElementById("denunciar1").style.display = "none";
-            }
-            function closeForm() {
-                document.getElementById("denunciar1").style.display = "block";
-                document.getElementById("myForm").style.display = "none";
+            function formHandler(tweetid){
+                form = document.getElementById(`myForm${tweetid}`)
+                if (form.style.display == "none")
+                {
+                    document.getElementById(`myForm${tweetid}`).style.display = "block";
+                    document.getElementById(`denunciar${tweetid}`).style.display = "none";
+                }
+                else{
+                    document.getElementById(`myForm${tweetid}`).style.display = "none";
+                    document.getElementById(`denunciar${tweetid}`).style.display = "block";
+                }
+                
             }
         </script>
         <script>  

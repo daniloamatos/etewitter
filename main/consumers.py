@@ -11,6 +11,7 @@ class NotificationConsumer(WebsocketConsumer):
 
     def connect(self):
         user = self.scope['user']
+        print(self.channel_layer)
         self.room_group_name =  user.username + 'notifications'
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,

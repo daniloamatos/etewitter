@@ -1,14 +1,15 @@
 
 
 import random
-from django.http import HttpResponse
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
+from asgiref.sync import async_to_sync
 from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message, Report, Notification
 from register.models import Usuario
 from django.contrib import messages
 from datetime import datetime
 from django.db.models import Q
+from channels.generic.websocket import WebsocketConsumer
 
 # Create your views here.
 def notifications(request):
@@ -107,7 +108,7 @@ def delete(request):
         Tweet.objects.get(id = request.POST['tweetid']).delete()
         messages.success(request, 'Tweet deletado.')
         return redirect('/')
-    
+   
 def report(request):
     x9 = request.user
     tweet = Tweet.objects.get(id = request.POST['tweetid'])

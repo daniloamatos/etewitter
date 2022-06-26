@@ -55,7 +55,7 @@ class Replys(models.Model):
     body = models.CharField(blank=True, max_length=280)
     image = models.ImageField(upload_to=image_path2, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank=True)
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
-    likes = models.ManyToManyField(Usuario, blank=True, related_name="replyLikes")
+    likes = models.IntegerField(default=0)
     replyLink = models.CharField(blank=True, max_length=999)
     replysC = models.IntegerField(default=0)
 
@@ -67,16 +67,9 @@ class Replys(models.Model):
         return self.likes.all().count()
 
 
-
-LIKE_CHOICES = (
-    ('Like', 'Like'),
-    ('Unlike', 'Unlike'),
-)
-
 class Like(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
-    value = models.CharField(choices=LIKE_CHOICES, max_length=8)
 
     def __str__(self):
         return f'{self.user}--{self.tweet}--{self.value}'
