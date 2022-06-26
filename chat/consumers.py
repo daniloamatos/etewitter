@@ -2,21 +2,20 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from main.models import Message
+from main.models import Message, Chat
 from register.models import Usuario
 from django.db.models import Q
+from datetime import datetime
 
 class ChatConsumer(WebsocketConsumer):
 
     def connect(self):
         receiverid = int(self.scope["url_route"]["kwargs"]['receiverid'])
         userid = self.scope['user'].id
-        print(userid, receiverid)
         if(userid < receiverid):
             self.room_group_name = str(self.scope['user'].id) + "-" + self.scope["url_route"]["kwargs"]['receiverid']
         else:
             self.room_group_name =  self.scope["url_route"]["kwargs"]['receiverid'] + "-" + str(self.scope['user'].id)
-        print(self.room_group_name)
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
             self.channel_name
@@ -52,5 +51,11 @@ class ChatConsumer(WebsocketConsumer):
         user = Usuario.objects.get(username=user)
         receiver = Usuario.objects.get(username=receiver)
         Message.objects.create(sender = user, body=message, receiver=receiver)
+        try:
+            chat = Chat.objects.get(Q(sender = user)| Q(receiver=user), Q(sender = receiver)| Q(receiver = receiver))
+            chat.publishDate = datetime.now()
+            chat.save()
+        except:
+            Chat.objects.update_or_create(sender = user, receiver = receiver)
         message = list(Message.objects.filter(Q(receiver=user) | Q(sender=user), Q(receiver=receiver) | Q(sender=receiver)))
         

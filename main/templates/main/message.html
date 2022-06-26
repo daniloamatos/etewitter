@@ -11,7 +11,8 @@
     </head>
     <body>
         {% block content %}
-            {% for i in messages|dictsortreversed:"publishDate" %}
+            {% for i in chats|dictsortreversed:"publishDate" %}
+            {{i.publishDate}}
                 {% if i.sender != user %}
                 <a href="/messages/{{user.id}}-{{i.sender.id}}">
                     <h1 style="color:white;">{{i.sender}}</h1><br>

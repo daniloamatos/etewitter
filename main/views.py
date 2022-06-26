@@ -4,10 +4,11 @@ import random
 from django.http import HttpResponse
 from django.shortcuts import render,  redirect
 from .forms import tweetForm
-from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message, Report
+from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message, Report, Chat
 from register.models import Usuario
 from django.contrib import messages
 from datetime import datetime
+from django.db.models import Q
 
 # Create your views here.
 
@@ -112,8 +113,3 @@ def report(request):
     )
     messages.success(request, 'Denuncia registrada.')
     return redirect(request.POST['next'])
-
-def message(request):
-    user = request.user.id
-    receiver = Usuario.objects.get(id = request.POST['userP'])
-    return redirect('/messages/%i-%i' % (user, receiver.id))

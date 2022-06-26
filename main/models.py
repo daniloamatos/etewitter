@@ -89,7 +89,12 @@ class Message(models.Model):
     sender = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="sender")
     receiver = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="receiver")
     body = models.CharField(blank=True, max_length=250)
-    publishDate = models.DateTimeField(auto_now_add=True, blank=True)
+    publishDate = models.DateTimeField(auto_now_add=True)
+
+class Chat(models.Model):
+    sender = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="senderC")
+    receiver = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="receiverC")
+    publishDate = models.DateTimeField(auto_now_add=True)
 
 class Report(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)

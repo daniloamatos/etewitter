@@ -1,13 +1,13 @@
 
-from curses.ascii import HT
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
-from main.models import Tweet,Like,Replys,SavedItems, Message, Follower
+from main.models import Tweet,Like,Replys,SavedItems, Follower, Chat
 from main.forms import replyForm,tweetForm
-from main.views import generateLink, sendmessage
+from main.views import generateLink
+from django.db.models import Q
 
 def userprofile(request,username):
     followers = None
@@ -206,18 +206,8 @@ def save(request):
 
 def message(request):
     user = request.user
-    messagesSent = Message.objects.filter(sender = user)
-    messagesReceived = Message.objects.filter(receiver = user)
-    messages = messagesSent | messagesReceived
-    test = False
-    return render(request, 'main/message.html', {'messages':messages, 'test':test})
-
-def conversation(request, senderid, receiverid):
-    user = request.user
-    if request.method == "POST":
-        receiver = Usuario.objects.get(id = receiverid)
-        sendmessage(request, user, receiver, request.POST['message'], request.POST['next'])
-    messagesSent = Message.objects.filter(sender = user, receiver = receiverid)
-    messagesReceived = Message.objects.filter(sender = receiverid, receiver = user)
-    messages = messagesSent | messagesReceived
-    return render(request, 'main/conversation.html', {'messages':messages})
+    try:
+        conversation = Chat.objects.filter(Q(sender = user)| Q(receiver=user))
+    except:
+        conversation = None
+    return render(request, 'main/message.html', {'chats':conversation})
