@@ -17,7 +17,6 @@
             wsStart = 'wss://'
         }
         let url = `${wsStart}${window.location.host}/ws/notifications/`
-        alert(url)
         const notificationSocket = new WebSocket(url)
         notificationSocket.onmessage = function(e){
         let data = JSON.parse(e.data)

@@ -30,7 +30,6 @@
         }
         
         let url = `${wsStart}${window.location.host}/ws/messages/${userid}-${receiverid}/`
-        alert(url)
         const chatSocket = new WebSocket(url)
 
         chatSocket.onmessage = function(e){
