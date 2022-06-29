@@ -127,7 +127,7 @@
         </div>
     </div>
 </form>
-<form method="POST" action="/message/">
+<form method="POST" action="/messages/{{user.id}}-{{userP.id}}">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.path }}">
     <input type="hidden" value="{{userP.id}}" name="userP">
