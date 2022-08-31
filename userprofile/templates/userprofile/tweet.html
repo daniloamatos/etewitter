@@ -128,7 +128,11 @@
                 {% endif %}
             </li>
             
-                {{Tweet.tweet}}
+                {% if Tweet.mentionlink %}
+                <a href="/{{Tweet.mentionlink}}">{{Tweet.tweet}}</a> 
+                {% else %}
+                    {{Tweet.tweet}}
+                {% endif %}
                 
                 <form method="post" action="/like/" class="like-form" id="{{Tweet.id}}">
                     {% csrf_token %}

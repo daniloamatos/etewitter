@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, re_path
 from . import views
 from userprofile import views as vu
 
@@ -9,5 +9,5 @@ urlpatterns = [
     path('index/', views.index, name="index"),
     path("like/", vu.like, name="like"),
     path('likereply/', vu.likereply, name="likereply"),
-    path('save/', vu.save, name="save")
+    path('save/', vu.save, name="save"),
 ]

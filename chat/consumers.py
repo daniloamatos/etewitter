@@ -65,7 +65,7 @@ class ChatConsumer(WebsocketConsumer):
                 }
             )
 
-            Notification.objects.create(user=receiver, body=(f"{user} te mandou uma nova mensagem!"))
+            Notification.objects.create(user=receiver, body=(f"{user} te mandou uma nova mensagem!"), linkzaocarai=(f"messages/"))
         except:
             Chat.objects.update_or_create(sender = user, receiver = receiver)
             room_group_name = receiver.username + 'notifications'

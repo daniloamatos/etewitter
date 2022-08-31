@@ -123,7 +123,11 @@
     <input type="hidden" value="{{userP.id}}" name="userP">
     <div class="position-relative">
         <div class="position-absolute top-0 end-0">
+            {% if request.user in followers %}
+            <button type="submit">Desseguir</button>
+            {%else%}
             <button type="submit">Seguir</button>
+            {%endif%}
         </div>
     </div>
 </form>

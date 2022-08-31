@@ -36,6 +36,7 @@ class Tweet(models.Model):
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
     tweetLink = models.CharField(blank=True, max_length=999)
     replysC = models.IntegerField(default=0)
+    mentionlink = models.CharField(blank=True, max_length=999)
 
     def __str__(self):
         return str(self.tweet[:20])
@@ -96,3 +97,4 @@ class Report(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notified")
     body = models.CharField(blank=False, max_length=250)
+    linkzaocarai = models.CharField(blank=False, max_length=250)

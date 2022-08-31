@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from register import views as vr
 from logout import views as vlogout
 from login import views as vlogin

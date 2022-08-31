@@ -6,7 +6,7 @@
     {{user.username | json_script:'user'}}
     <div id="notifications">
         {% for i in notifications %}
-            <p>{{i.body}}</p>
+            <a href="/{{i.linkzaocarai}}">{{i.body}}</a><br>
         {% endfor %}
     </div>
 {%endblock%}

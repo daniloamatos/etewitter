@@ -14,7 +14,22 @@
             <form method="POST" class="form-group" enctype="multipart/form-data" class="dropzone">
                 {% csrf_token %}
                 <div class="row justify-content-center" style="margin-bottom:30px;">
-                {{form|crispy}}
+                    <form method="POST" class="form-group" enctype="multipart/form-data">
+                        <div class="row justify-content-center" style="margin-bottom:30px;">
+                        <div id="div_id_tweet" class="mb-3"> 
+                            <input autocomplete="off" type="text" list="users" name="tweet" placeholder="O que está acontecendo?" id="tweetBox" maxlength="280" class="textinput textInput form-control"> 
+                            <datalist id="users">
+                                {%for user in users %}
+                                <option value="{{user.username}}"></option>
+                                {%endfor%}
+                            </datalist>
+                            </div> 
+                            <div id="div_id_image" class="mb-3"> <div class=" mb-2"> <div> <input type="file" name="image" class="form-control" accept="image/*" id="id_image"> </div>
+                        </div> 
+                         </div>
+                        <input style="position:absolute; right:654px; " type="submit" class="tweetBtn" value="Tweet">
+                        </div>
+                    </form>
                 <input style="position:absolute; right:654px; " type="submit" class="tweetBtn" value="Tweet"></input>
                 </div>
                 {% if messages %}
@@ -142,6 +157,49 @@
                     }
                 })
             })
+        </script>
+        <script>
+            const initialOptions = document.getElementsByTagName("option");
+            let initialOptionValue = [];
+            for ( let i = 0; i < initialOptions.length; i++ ) initialOptionValue.push(initialOptions[i].value);
+            let customOptions;
+
+            document.getElementById("tweetBox").addEventListener('keyup',  event => {
+            
+                const inputValue = tweetBox.value;
+                const actualOptions = document.getElementsByTagName("option");
+                
+                if ( inputValue != '' && inputValue != 'undefined') {
+                
+                    customOptions = '';
+                    
+                    for ( let i = 0; i < actualOptions.length; i++ ) {
+                    
+                        if ( actualOptions[i].value.toLowerCase().startsWith(inputValue.toLowerCase())) {
+                        
+                            customOptions += '<option value="' + actualOptions[i].value + '" />';
+                            
+                        }
+                        
+                    }
+                    
+                    document.getElementById('users').innerHTML = customOptions;
+                    
+                } else {
+                
+                    customOptions = '';
+                    
+                    for ( let i = 0; i < initialOptionValue.length; i++ ) {
+                    
+                        customOptions += '<option value="' + initialOptionValue[i] + '" />';
+                        
+                    }
+                    
+                    document.getElementById('users').innerHTML = customOptions;
+                    
+                }
+            
+            });
         </script>
        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
         {% endblock %}

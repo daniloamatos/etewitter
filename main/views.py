@@ -12,6 +12,7 @@ from django.db.models import Q
 from channels.generic.websocket import WebsocketConsumer
 
 # Create your views here.
+
 def notifications(request):
     user = request.user
     try:
@@ -20,6 +21,9 @@ def notifications(request):
         notifications = None
     return render(request, 'main/notifications.html', {'user':user,'notifications':notifications})
 def home(request):
+    users = Usuario.objects.all()
+    for user in users:
+        user.username = '@' + user.username
     if str(request.user) == 'AnonymousUser':
         return redirect('/index')
     else:
@@ -32,7 +36,30 @@ def home(request):
             tweets = tweetsSelf
         if request.method == "POST":
             form = tweetForm(request.POST)
-            if 'image' in request.FILES:
+            if '@' in form.data['tweet']:
+                tweet = form.data['tweet'].split()
+                result =  [i for i in tweet if i.startswith('@')]
+                result = [s.replace("@", "") for s in result]
+                for i in result:
+                    url = i + "/"
+                if 'image' in request.FILES:
+                    simpanIpF = form.save(commit=False)
+                    simpanIpF.image = request.FILES['image']
+                    simpanIpF.save()
+                simpanIp = form.save(commit=False)
+                simpanIp.tweetAuthor = request.user
+                link = generateLink(request)
+                simpanIp.tweetLink = link
+                print(link)
+                simpanIp.mentionlink = url
+                Notification.objects.create(
+                    user = Usuario.objects.filter(username=result[0]).first(),
+                    body = str(request.user) + " te mencionou em um tweet",
+                    linkzaocarai = link
+                )
+                simpanIp.save()
+                form.save()
+            elif 'image' in request.FILES:
                 simpanIp = form.save(commit=False)
                 simpanIp.image = request.FILES['image']
                 simpanIp.tweetAuthor = request.user
@@ -50,7 +77,7 @@ def home(request):
         else:
             usuario = Usuario.objects.get(username=request.user.username)
             form = tweetForm()
-            return render(request, "main/homepage.html", {"form":form, "tweets":tweets, 'usuario':usuario})
+            return render(request, "main/homepage.html", {"form":form, "tweets":tweets, 'usuario':usuario, "users":users})
         return redirect("/")
 
 def index(request):

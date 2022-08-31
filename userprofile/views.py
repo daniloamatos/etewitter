@@ -163,6 +163,9 @@ def requesttweet (request, username, random):
         tweetObj = Tweet.objects.get(tweetLink=f'{username}/status/{random}')
         qs = Replys.objects.filter(tweet=tweet[0])
         notReply = True
+        if Tweet.objects.filter(tweetLink=f'{username}/status/{random}').values_list('mentionlink'): 
+            mentionLink = Tweet.objects.filter(tweetLink=f'{username}/status/{random}').values_list('mentionlink')
+            return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply, 'tweetObj':tweetObj, 'mentionlink':mentionLink})
         return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply, 'tweetObj':tweetObj})
     else:
         notReply = False
