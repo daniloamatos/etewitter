@@ -10,8 +10,9 @@ from django.contrib import messages
 from datetime import datetime
 from django.db.models import Q
 from channels.generic.websocket import WebsocketConsumer
-
 # Create your views here.
+
+
 
 def notifications(request):
     user = request.user
