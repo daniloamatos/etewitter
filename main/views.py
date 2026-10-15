@@ -1,88 +1,94 @@
 
 
 import random
-from django.shortcuts import render,  redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseForbidden
 from .forms import tweetForm
+from .targets import post_target
 from asgiref.sync import async_to_sync
-from .models import Tweet, SavedItems as SavedItemsclass, Follower, Message, Report, Notification
+from .models import Replys, Tweet, SavedItems as SavedItemsclass, Follower, Message, Report, Notification
 from register.models import Usuario
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from datetime import datetime
-from django.db.models import Q
-from channels.generic.websocket import WebsocketConsumer
+from django.db.models import OuterRef, Q, Subquery
 # Create your views here.
 
 
 
+@login_required(login_url='/login')
 def notifications(request):
     user = request.user
-    try:
-        notifications = Notification.objects.filter(user=user)
-    except:
-        notifications = None
+    notifications = Notification.objects.filter(user=user).exclude(linkzaocarai__startswith='messages/').select_related("actor").order_by("-id")
     return render(request, 'main/notifications.html', {'user':user,'notifications':notifications})
+
+@login_required(login_url='/login')
 def home(request):
     users = Usuario.objects.all()
     for user in users:
         user.username = '@' + user.username
-    if str(request.user) == 'AnonymousUser':
-        return redirect('/index')
+    tweets_self = Tweet.objects.filter(tweetAuthor=request.user)
+    following = Follower.objects.filter(
+        follower_id=request.user.id
+    ).values_list("following_id", flat=True)
+    visible_retweeters = Usuario.objects.filter(
+        retweets=OuterRef("pk"),
+        pk__in=list(following) + [request.user.id],
+    )
+    tweets = Tweet.objects.filter(
+        Q(tweetAuthor=request.user)
+        | Q(tweetAuthor_id__in=following)
+        | Q(retweets__in=list(following) + [request.user.id])
+    ).annotate(
+        retweet_by_name=Subquery(visible_retweeters.values("name")[:1]),
+        retweet_by_username=Subquery(visible_retweeters.values("username")[:1]),
+    ).distinct()
+    reply_retweeters = Usuario.objects.filter(
+        retweetsr=OuterRef("pk"), pk__in=list(following) + [request.user.id],
+    )
+    retweeted_replies = Replys.objects.filter(
+        retweets__in=list(following) + [request.user.id],
+    ).select_related("user", "tweet").annotate(
+        retweet_by_name=Subquery(reply_retweeters.values("name")[:1]),
+        retweet_by_username=Subquery(reply_retweeters.values("username")[:1]),
+    ).prefetch_related("likes", "retweets").distinct()
+    timeline = sorted(
+        [*tweets, *retweeted_replies], key=lambda post: post.publishDate, reverse=True
+    )
+    if request.method == "POST":
+        form = tweetForm(request.POST, request.FILES)
+        if form.is_valid() and (form.cleaned_data['tweet'] or form.cleaned_data['image']):
+            tweet = form.save(commit=False)
+            tweet.tweetAuthor = request.user
+            tweet.tweetLink = generateLink(request)
+            mention = next(
+                (word[1:] for word in tweet.tweet.split() if word.startswith('@')),
+                None,
+            )
+            if mention:
+                tweet.mentionlink = mention + "/"
+            tweet.save()
+            if mention:
+                mentioned_user = Usuario.objects.filter(username__iexact=mention).first()
+                if mentioned_user:
+                    Notification.objects.create(
+                        user=mentioned_user,
+                        actor=request.user,
+                        body=f"{request.user} te mencionou em um tweet",
+                        linkzaocarai=tweet.tweetLink,
+                    )
+            return redirect("/")
+        messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
     else:
-        tweetsSelf = Tweet.objects.filter(tweetAuthor=request.user)
-        try:
-            following = Follower.objects.filter(follower_id = request.user.id).values_list("following_id").all()
-            tweetsFollowing = Tweet.objects.filter(tweetAuthor_id__in = following)
-            tweets = tweetsSelf | tweetsFollowing
-        except:
-            tweets = tweetsSelf
-        if request.method == "POST":
-            form = tweetForm(request.POST)
-            if '@' in form.data['tweet']:
-                tweet = form.data['tweet'].split()
-                result =  [i for i in tweet if i.startswith('@')]
-                result = [s.replace("@", "") for s in result]
-                for i in result:
-                    url = i + "/"
-                if 'image' in request.FILES:
-                    simpanIpF = form.save(commit=False)
-                    simpanIpF.image = request.FILES['image']
-                    simpanIpF.save()
-                simpanIp = form.save(commit=False)
-                simpanIp.tweetAuthor = request.user
-                link = generateLink(request)
-                simpanIp.tweetLink = link
-                print(link)
-                simpanIp.mentionlink = url
-                Notification.objects.create(
-                    user = Usuario.objects.filter(username=result[0]).first(),
-                    body = str(request.user) + " te mencionou em um tweet",
-                    linkzaocarai = link
-                )
-                simpanIp.save()
-                form.save()
-            elif 'image' in request.FILES:
-                simpanIp = form.save(commit=False)
-                simpanIp.image = request.FILES['image']
-                simpanIp.tweetAuthor = request.user
-                simpanIp.tweetLink = generateLink(request)
-                simpanIp.save()
-                form.save()
-            elif form.data['tweet']:
-                simpanIp = form.save(commit=False)
-                simpanIp.tweetAuthor = request.user
-                simpanIp.tweetLink = generateLink(request)
-                simpanIp.save()
-                form.save()
-            else:
-                messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
-        else:
-            usuario = Usuario.objects.get(username=request.user.username)
-            form = tweetForm()
-            return render(request, "main/homepage.html", {"form":form, "tweets":tweets, 'usuario':usuario, "users":users})
-        return redirect("/")
+        form = tweetForm()
+    usuario = Usuario.objects.get(username=request.user.username)
+    return render(request, "main/homepage.html", {
+        "form": form, "tweets": tweets, "retweeted_replies": retweeted_replies, "timeline": timeline,
+        'usuario': usuario, "users": users
+    })
 
 def index(request):
-    if str(request.user) != 'AnonymousUser':
+    if request.user.is_authenticated:
         return redirect('/')
     else:
         return render(request, "main/index.html", {})
@@ -97,30 +103,36 @@ def generateLink(request):
     link = str(f'{request.user.username}/status/{randomstr}{day}{month}{year}')
     return link
 
+@login_required(login_url='/login')
 def saveditems(request):
-    user = request.user    
-    tweet = SavedItemsclass.objects.filter(user = user)
+    user = request.user
+    tweet = SavedItemsclass.objects.filter(user=user).select_related("tweet__tweetAuthor", "reply__user").order_by("-id")
     return render(request, 'main/saveditems.html', {'user':user, 'tweet':tweet})
 
 
+@login_required(login_url='/login')
 def follow(request):
     if request.method == 'POST':
         user = request.user
-        following = Usuario.objects.get(id = request.POST['userP'])
-        if Follower.objects.filter(following_id = following.id, follower = user.id):
+        following = get_object_or_404(Usuario, id=request.POST.get('userP'))
+        next_url = request.POST.get('next', '/')
+        if following == user:
+            messages.error(request, 'Você não pode seguir a si mesmo.')
+        elif Follower.objects.filter(following_id=following.id, follower=user.id).exists():
             Follower.objects.filter(follower = user, following = following).delete()
             following.followersC -=1
             following.save()
             user.followingC -= 1
             user.save()
-            return redirect(request.POST['next'])
+            return redirect(next_url)
         else:
             Follower.objects.create(follower = user, following = following)
             following.followersC +=1
             following.save()
             user.followingC += 1
             user.save()
-            return redirect(request.POST['next'])
+            return redirect(next_url)
+    return redirect('/')
 
 def sendmessage(request, sender, receiver, message, next):
     if request.method == 'POST':
@@ -131,20 +143,41 @@ def sendmessage(request, sender, receiver, message, next):
         )
         return redirect(next)
 
+@login_required(login_url='/login')
 def delete(request):
     if request.method == "POST":
-        Tweet.objects.get(id = request.POST['tweetid']).delete()
+        next_url = request.POST.get('next', '/')
+        if request.POST.get('content_type') == 'reply':
+            reply = get_object_or_404(Replys, id=request.POST.get('tweetid'))
+            if reply.user_id != request.user.id:
+                messages.error(request, 'Você não pode deletar esta resposta.')
+                return redirect(next_url)
+            for child in Replys.objects.filter(tweet=reply.tweet, reply=reply):
+                child.reply.remove(reply)
+            reply.delete()
+            messages.success(request, 'Resposta deletada.')
+            return redirect(next_url)
+
+        tweet = get_object_or_404(Tweet, id=request.POST.get('tweetid'))
+        if tweet.tweetAuthor_id != request.user.id:
+            messages.error(request, 'Você não pode deletar este tweet.')
+            return redirect(next_url)
+        tweet.delete()
         messages.success(request, 'Tweet deletado.')
-        return redirect('/')
-   
+        return redirect(next_url)
+
+@login_required(login_url='/login')
 def report(request):
-    x9 = request.user
-    tweet = Tweet.objects.get(id = request.POST['tweetid'])
-    reason = request.POST['reason']
-    Report.objects.create(
-        x9 = x9,
-        tweet = tweet,
-        reason = reason
-    )
-    messages.success(request, 'Denuncia registrada.')
-    return redirect(request.POST['next'])
+    if request.method == 'POST':
+        kind, target = post_target(request)
+        author_id = target.user_id if kind == 'reply' else target.tweetAuthor_id
+        if author_id == request.user.id:
+            return HttpResponseForbidden('Você não pode denunciar sua própria publicação.')
+        reason = request.POST.get('reason', '').strip()
+        if reason and len(reason) <= 100:
+            Report.objects.create(x9=request.user, reason=reason, **{kind: target})
+            messages.success(request, 'Denuncia registrada.')
+        else:
+            messages.error(request, 'Informe um motivo de até 100 caracteres.')
+        return redirect(request.POST.get('next', '/'))
+    return redirect('/')

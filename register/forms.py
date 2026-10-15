@@ -20,3 +20,24 @@ class RegisterForm(UserCreationForm):
             'email': forms.TextInput(attrs={'class': 'form-controlss', 'id': 'email', 'type':'name', 'style':"width:350px;height:50px;"}),
         }
 
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+        if len(username) < 4:
+            raise forms.ValidationError('O nome de usuário precisa ter pelo menos 4 caracteres.')
+        if len(username) > 25:
+            raise forms.ValidationError('O nome de usuário pode ter no máximo 25 caracteres.')
+        if not username.isalnum():
+            raise forms.ValidationError('O nome de usuário deve conter apenas letras e números.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        if Usuario.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('Este e-mail já está cadastrado.')
+        return email
+
+    def clean_password1(self):
+        password = self.cleaned_data.get('password1', '')
+        if len(password) <= 4:
+            raise forms.ValidationError('A senha precisa ter mais de 4 caracteres.')
+        return password

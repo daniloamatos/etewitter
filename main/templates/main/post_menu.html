@@ -1,0 +1,10 @@
+<details class="options-menu post-options">
+    <summary class="tweet-action" aria-label="Mais opções"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></summary>
+    <div class="options-menu-panel">
+        {% if kind == 'tweet' and post.tweetAuthor_id == request.user.id or kind == 'reply' and post.user_id == request.user.id %}
+        <button type="button" class="danger" data-delete-id="{{ post.id }}" data-delete-kind="{{ kind }}" data-delete-url="/{% if kind == 'reply' %}{{ post.replyLink }}{% else %}{{ post.tweetLink }}{% endif %}" data-parent-url="/{% if kind == 'reply' %}{{ post.tweet.tweetLink }}{% endif %}">Excluir</button>
+        {% else %}
+        <button type="button" data-report-id="{{ post.id }}" data-report-kind="{{ kind }}">Denunciar</button>
+        {% endif %}
+    </div>
+</details>

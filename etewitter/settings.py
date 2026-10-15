@@ -1,3 +1,4 @@
+import os
 """
 Django settings for etewitter project.
 
@@ -9,13 +10,9 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-import dj_database_url, os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", 'etewitter.settings')
 
-import cloudinary_storage
-
 from pathlib import Path
-import django_heroku
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,12 +22,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '+V6n5vkJ+rcexLZWhPQPgkXdpEZ1HRhqHP7czUOC16c='
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-only-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Keep local development assets (including uploaded media) available by default.
+# Production deployments can explicitly disable debug through DJANGO_DEBUG.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [host for host in os.environ.get(
+    'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver'
+).split(',') if host]
 
 ASGI_APPLICATION = 'etewitter.asgi.application'
 # Application definition
@@ -43,7 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cloudinary_storage',
     'crispy_bootstrap5',
     'crispy_forms',
     'main.apps.MainConfig',
@@ -60,25 +60,22 @@ INSTALLED_APPS = [
     'etewitter',
 ]
 AUTH_USER_MODEL = 'register.Usuario'
-
-CSRF_TRUSTED_ORIGINS = ["https://*.herokuapp.com", "http://*.herokuapp.com", "ws://*.herokuapp.com"]
-
+AUTHENTICATION_BACKENDS = [
+    'login.authenticate.authentication',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'mermaocemeapresentaessamulhertedavaateumdoce',
-        'HOST': '35.247.237.133',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-#DATABASES = { 'default': dj_database_url.config() }
-import django
-django.setup()
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -103,6 +100,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.context_processors.unread_messages',
             ],
         },
     },
@@ -126,11 +124,12 @@ CHANNEL_LAYERS = {
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-]
+# A regra de senha do cadastro fica explícita em RegisterForm.clean_password1:
+# apenas mais de 4 caracteres. Os validadores antigos ficam preservados:
+# AUTH_PASSWORD_VALIDATORS = [
+#     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+# ]
+AUTH_PASSWORD_VALIDATORS = []
 
 
 # Internationalization
@@ -148,7 +147,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
@@ -167,24 +167,16 @@ LOGIN_REDIRECT_URL = "/"
 
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend'
+)
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'redesocialdaete@gmail.com'
-EMAIL_HOST_PASSWORD = 'hfemigvuiuuozbco'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_PORT = 587
 
 MEDIA_URL = '/uploads/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dkgyh1y9c',
-    'API_KEY': '459791236116836',
-    'API_SECRET': 'jIOCmJHcxLVOc71jmRNIIiHNvjY'
-}
-
-django_heroku.settings(locals())

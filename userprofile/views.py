@@ -1,13 +1,16 @@
 
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
 from main.models import Tweet,Replys,SavedItems, Follower, Chat
 from main.forms import replyForm,tweetForm
 from main.views import generateLink
+from main.targets import post_target
 from django.db.models import Q
+from django.db.models import Exists, OuterRef, Subquery
 from django.core import serializers
 
 def userprofile(request,username):
@@ -19,7 +22,7 @@ def userprofile(request,username):
         um = Follower.objects.filter(follower_id__in = userprofileid).values_list("following_id").all()
 
         following = Usuario.objects.filter(id__in = um)
-        
+
         dois = Follower.objects.filter(following_id__in = userprofileid).values_list("follower_id").all()
 
         followers = Usuario.objects.filter(id__in = dois)
@@ -29,40 +32,57 @@ def userprofile(request,username):
     username = username
     if  checkIfUsernameExists(request, username):
         if request.method == "POST":
-            form = tweetForm(request.POST)
-            if 'image' in request.FILES:
+            if request.user.is_anonymous:
+                return redirect('/login')
+            form = tweetForm(request.POST, request.FILES)
+            if form.is_valid() and (form.cleaned_data['tweet'] or form.cleaned_data['image']):
                 simpanIp = form.save(commit=False)
-                simpanIp.image = request.FILES['image']
+                simpanIp.image = form.cleaned_data['image']
                 simpanIp.tweetAuthor = request.user
                 simpanIp.tweetLink = generateLink(request)
                 simpanIp.save()
-                form.save()
-            elif form.data['tweet']:
-                simpanIp = form.save(commit=False)
-                simpanIp.tweetAuthor = request.user
-                simpanIp.tweetLink = generateLink(request)
-                simpanIp.save()
-                form.save()
             else:
                 messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
         else:
-            form = tweetForm
+            form = tweetForm()
         jname = Usuario.objects.filter(username__iexact=username).values_list('name').first()
         user = Usuario.objects.get(username__iexact=username)
         checkUser = request.user
-        tweets = Tweet.objects.filter(tweetAuthor=user.id)
-        return render(request, "userprofile/userprofile.html", {"followers":followers,"following":following, "form":form,"jusername":username, "jname":jname[0], "userP":user, "tweets":tweets, 'checkUser':checkUser, 'usuario':checkUser})
+        retweeting_user = Usuario.objects.filter(
+            retweets=OuterRef("pk"),
+            pk=user.id,
+        )
+        tweets = Tweet.objects.filter(
+            Q(tweetAuthor=user) | Q(retweets=user)
+        ).annotate(
+            retweet_by_name=Subquery(retweeting_user.values("name")[:1]),
+            retweet_by_username=Subquery(retweeting_user.values("username")[:1]),
+        ).distinct()
+        reply_retweeters = Usuario.objects.filter(
+            retweetsr=OuterRef("pk"), pk=user.id,
+        )
+        retweeted_replies = Replys.objects.filter(
+            retweets=user,
+        ).select_related("user", "tweet").annotate(
+            retweet_by_name=Subquery(reply_retweeters.values("name")[:1]),
+            retweet_by_username=Subquery(reply_retweeters.values("username")[:1]),
+        ).prefetch_related("likes", "retweets").distinct()
+        timeline = sorted(
+            [*tweets, *retweeted_replies], key=lambda post: post.publishDate, reverse=True
+        )
+        return render(request, "userprofile/userprofile.html", {"followers":followers,"following":following, "form":form,"jusername":username, "jname":jname[0], "userP":user, "tweets":tweets, "retweeted_replies":retweeted_replies, "timeline": timeline, 'checkUser':checkUser, 'usuario':checkUser})
     else:
         return render(request, "userprofile/notexist.html")
 
 
 
+@login_required(login_url='/login')
 def likereply(request,**username):
     if request.method == 'POST':
         user = request.user
         reply_id = request.POST['replyid']
-        reply_obj = Replys.objects.get(id = reply_id)
-        usuario = Usuario.objects.get(username = user)
+        reply_obj = get_object_or_404(Replys, id=reply_id)
+        usuario = user
         if usuario not in reply_obj.likes.all():
             reply_obj.likes.add(usuario)
             reply_obj.likec += 1
@@ -71,15 +91,15 @@ def likereply(request,**username):
             reply_obj.likes.remove(usuario)
             reply_obj.likec -= 1
             reply_obj.save()
-        ser_instance = serializers.serialize('json', [ reply_obj, ])
-        return JsonResponse({"instance": ser_instance}, status=200)
+        return redirect(request.POST.get('next', '/'))
 
+@login_required(login_url='/login')
 def like (request, **username):
     if request.method == 'POST':
         user = request.user
         tweet_id = request.POST['tweetid']
-        tweet_obj = Tweet.objects.get(id = tweet_id)
-        usuario = Usuario.objects.get(username = user)
+        tweet_obj = get_object_or_404(Tweet, id=tweet_id)
+        usuario = user
         if usuario not in tweet_obj.likes.all():
             tweet_obj.likes.add(usuario)
             tweet_obj.likec += 1
@@ -88,111 +108,147 @@ def like (request, **username):
             tweet_obj.likes.remove(usuario)
             tweet_obj.likec -= 1
             tweet_obj.save()
-        ser_instance = serializers.serialize('json', [ tweet_obj, ])
-        return JsonResponse({"instance": ser_instance}, status=200)
-     
+        return redirect(request.POST.get('next', '/'))
 
 
+@login_required(login_url='/login')
+def retweet(request, **username):
+    if request.method == 'POST':
+        tweet_obj = get_object_or_404(Tweet, id=request.POST.get('tweetid'))
+        if request.user in tweet_obj.retweets.all():
+            tweet_obj.retweets.remove(request.user)
+        else:
+            tweet_obj.retweets.add(request.user)
+        return redirect(request.POST.get('next', '/'))
+
+
+@login_required(login_url='/login')
+def retweetreply(request, **username):
+    if request.method == 'POST':
+        reply_obj = get_object_or_404(Replys, id=request.POST.get('replyid'))
+        if request.user in reply_obj.retweets.all():
+            reply_obj.retweets.remove(request.user)
+        else:
+            reply_obj.retweets.add(request.user)
+        return redirect(request.POST.get('next', '/'))
+
+
+
+@login_required(login_url='/login')
 def reply (request, **username):
     if request.method == 'POST':
         reply = False
         user = request.user
         tweet_id = request.POST['tweetid']
-        try:
-            tweet_obj = Tweet.objects.get(id = tweet_id)
-        except:
-            tweet_obj = Replys.objects.get(id = tweet_id)
+        tweet_obj = (None if request.POST.get('content_type') == 'reply'
+                     else Tweet.objects.filter(id=tweet_id).first())
+        if tweet_obj is None:
+            tweet_obj = get_object_or_404(Replys, id=tweet_id)
             reply = True
-        form = replyForm(request.POST)
-        if 'image' in request.FILES:
+        form = replyForm(request.POST, request.FILES)
+        if form.is_valid() and (form.cleaned_data['body'] or form.cleaned_data['image']):
             if reply:
-                
+
                 test = Replys.objects.create(
                     user = user,
                     tweet = tweet_obj.tweet,
-                    reply = tweet_obj,
-                    body = request.POST['body'],
-                    image = request.FILES['image'],
+                    body = form.cleaned_data['body'],
+                    image = form.cleaned_data['image'],
                     replyLink = generateLink(request)
                 )
                 test.reply.add(tweet_obj)
-                return redirect(request.POST['next'])
+                tweet_obj.replysC += 1
+                tweet_obj.save(update_fields=['replysC'])
+                return redirect(request.POST.get('next', '/'))
             else:
                 instance = form.save(commit=False)
                 instance.tweet = tweet_obj
-                instance.image = request.FILES['image']
+                instance.image = form.cleaned_data['image']
                 tweet_obj.replysC += 1
                 tweet_obj.save()
                 instance.user = user
                 instance.body = request.POST['body']
                 instance.replyLink = generateLink(request)
                 instance.save()
-                form.save()
-                return redirect(request.POST['next'])
-        elif form.data['body']:
-            if reply:
-                test = Replys.objects.create(
-                    user = user,
-                    tweet = tweet_obj.tweet,
-                    body = request.POST['body'],
-                    replyLink = generateLink(request)
-                )
-                test.reply.add(tweet_obj)
-                return redirect(request.POST['next'])
-            else:
-                instance = form.save(commit=False)
-                instance.tweet = tweet_obj
-                tweet_obj.replysC += 1
-                tweet_obj.save()
-                instance.user = user
-                instance.body = request.POST['body']
-                instance.replyLink = generateLink(request)
-                instance.save()
-                form.save()
-                return redirect(request.POST['next'])
+                return redirect(request.POST.get('next', '/'))
         else:
             messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
-    return redirect(request.POST['next'])
+    return redirect(request.POST.get('next', '/'))
 
 
 def requesttweet (request, username, random):
     checkUser = request.user
     form = replyForm()
     if Tweet.objects.filter(tweetLink=f'{username}/status/{random}'):
-        tweet = Tweet.objects.filter(tweetLink=f'{username}/status/{random}') 
+        tweet = Tweet.objects.filter(tweetLink=f'{username}/status/{random}')
         tweetObj = Tweet.objects.get(tweetLink=f'{username}/status/{random}')
-        qs = Replys.objects.filter(tweet=tweet[0])
+        child_reply = Replys.objects.filter(
+            reply=OuterRef('pk'),
+            publishDate__gt=OuterRef('publishDate'),
+        )
+        qs = Replys.objects.filter(
+            tweet=tweet[0],
+            reply__isnull=True,
+        ).annotate(has_children=Exists(child_reply))
         notReply = True
-        if Tweet.objects.filter(tweetLink=f'{username}/status/{random}').values_list('mentionlink'): 
-            mentionLink = Tweet.objects.filter(tweetLink=f'{username}/status/{random}').values_list('mentionlink')
+        mentionLink = Tweet.objects.filter(
+            tweetLink=f'{username}/status/{random}'
+        ).values_list('mentionlink', flat=True).first()
+        if mentionLink:
             return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply, 'tweetObj':tweetObj, 'mentionlink':mentionLink})
         return render(request, "userprofile/tweet.html", {'tweet':tweet, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply, 'tweetObj':tweetObj})
     else:
         notReply = False
-        reply = Replys.objects.filter(replyLink=f'{username}/status/{random}') 
-        tweetObj = Replys.objects.get(replyLink=f'{username}/status/{random}') 
-        qs = Replys.objects.filter(reply=reply[0])
-        return render(request, "userprofile/tweet.html", {'tweet':reply, 'usuario':checkUser, 'form':form, 'qs':qs, 'notReply':notReply, 'tweetObj':tweetObj})
-    
+        reply = Replys.objects.filter(replyLink=f'{username}/status/{random}')
+        if not reply.exists():
+            return render(request, "userprofile/notexist.html", status=404)
+        tweetObj = reply.first()
+        parent_replies = []
+        parent = tweetObj.reply.filter(
+            publishDate__lt=tweetObj.publishDate
+        ).order_by('-publishDate').first()
+        visited = {tweetObj.pk}
+        while parent and parent.pk not in visited:
+            parent_replies.append(parent)
+            visited.add(parent.pk)
+            parent = parent.reply.filter(
+                publishDate__lt=parent.publishDate
+            ).order_by('-publishDate').first()
+        parent_replies.reverse()
+        child_reply = Replys.objects.filter(
+            reply=OuterRef('pk'),
+            publishDate__gt=OuterRef('publishDate'),
+        )
+        qs = Replys.objects.filter(
+            reply=tweetObj,
+            publishDate__gt=tweetObj.publishDate,
+        ).exclude(pk__in=visited).annotate(has_children=Exists(child_reply))
+        return render(request, "userprofile/tweet.html", {
+            'tweet': reply,
+            'usuario': checkUser,
+            'form': form,
+            'qs': qs,
+            'notReply': notReply,
+            'tweetObj': tweetObj,
+            'parent_replies': parent_replies,
+        })
+
+@login_required(login_url='/login')
 def save(request):
     if request.method == 'POST':
         user = request.user
-        tweet_id = request.POST['tweetid']
-        tweet = Tweet.objects.get(id = tweet_id)
-        saveditems = SavedItems()
-        if SavedItems.objects.filter(user = user):
-            if SavedItems.objects.filter(tweet = tweet):
-                SavedItems.objects.filter(user = user, tweet = tweet).delete()
-                return redirect(request.POST['next'])
-        saveditems.user = user
-        saveditems.tweet = tweet
-        saveditems.save()
-        return redirect(request.POST['next'])
+        kind, target = post_target(request)
+        lookup = {'user': user, kind: target}
+        saveditems = SavedItems.objects.filter(**lookup)
+        action = request.POST.get('action', 'toggle')
+        if action == 'remove' or (action == 'toggle' and saveditems.exists()):
+            saveditems.delete()
+        elif action in ('save', 'toggle'):
+            SavedItems.objects.get_or_create(**lookup)
+        return redirect(request.POST.get('next', '/'))
 
+@login_required(login_url='/login')
 def message(request):
     user = request.user
-    try:
-        conversation = Chat.objects.filter(Q(sender = user)| Q(receiver=user))
-    except:
-        conversation = None
+    conversation = Chat.objects.filter(Q(sender=user) | Q(receiver=user))
     return render(request, 'main/message.html', {'chats':conversation})

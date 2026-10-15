@@ -2,14 +2,18 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from main.models import Message, Chat, Notification
+from main.models import Message, Chat
 from register.models import Usuario
 from django.db.models import Q
-from datetime import datetime
+from django.utils import timezone
+from .unread import broadcast_unread, mark_conversation_read
 
 class ChatConsumer(WebsocketConsumer):
 
     def connect(self):
+        if self.scope['user'].is_anonymous:
+            self.close()
+            return
         receiverid = int(self.scope["url_route"]["kwargs"]['receiverid'])
         userid = self.scope['user'].id
         if(userid < receiverid):
@@ -24,59 +28,60 @@ class ChatConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        user = text_data_json['username']
-        receiver = text_data_json['receiver']
+        if text_data_json.get('type') == 'read':
+            try:
+                through_id = int(text_data_json.get('through_id', 0))
+            except (TypeError, ValueError):
+                return
+            mark_conversation_read(self.scope['user'],
+                                   self.scope['url_route']['kwargs']['receiverid'], through_id)
+            return
+        message = text_data_json.get('message', '')
+        if not isinstance(message, str) or not message.strip() or len(message) > 250:
+            return
+        user = self.scope['user']
+        receiver = Usuario.objects.filter(id=int(
+            self.scope["url_route"]["kwargs"]['receiverid']
+        )).first()
+        if receiver is None or receiver.id == user.id:
+            self.close()
+            return
+        saved_message = self.save_message(message, user, receiver)
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
                 'type':'chat_message',
                 'message':message,
-                'username':user,
-                'receiver':receiver
+                'message_id': saved_message.pk,
+                'username':user.username,
+                'receiver':receiver.username
             }
         )
-        self.save_message(message, user,receiver)
 
     def chat_message(self,event):
         message = event['message']
         user = event['username']
         self.send(text_data=json.dumps({
             'type':'chat',
+            'message_id': event['message_id'],
             'message':message,
             'username':user
         }))
 
-    def save_message(self, message, user,receiver):
-        user = Usuario.objects.get(username=user)
-        receiver = Usuario.objects.get(username=receiver)
-        Message.objects.create(sender = user, body=message, receiver=receiver)
-        try:
-            chat = Chat.objects.get(Q(sender = user)| Q(receiver=user), Q(sender = receiver)| Q(receiver = receiver))
-            chat.publishDate = datetime.now()
+    def save_message(self, message, user, receiver):
+        saved_message = Message.objects.create(sender=user, body=message, receiver=receiver)
+        chat = Chat.objects.filter(
+            Q(sender=user) | Q(receiver=user),
+            Q(sender=receiver) | Q(receiver=receiver),
+        ).first()
+        if chat:
+            chat.publishDate = timezone.now()
             chat.save()
-            room_group_name = receiver.username + 'notifications'
-            async_to_sync(self.channel_layer.group_send)(
-                room_group_name,
-                {
-                    'type':'new_notification',
-                    'notification':f"{user} te mandou uma nova mensagem!",
-                    'username':receiver,
-                }
-            )
+        else:
+            Chat.objects.create(sender=user, receiver=receiver)
+        broadcast_unread(receiver)
+        return saved_message
 
-            Notification.objects.create(user=receiver, body=(f"{user} te mandou uma nova mensagem!"), linkzaocarai=(f"messages/"))
-        except:
-            Chat.objects.update_or_create(sender = user, receiver = receiver)
-            room_group_name = receiver.username + 'notifications'
-            async_to_sync(self.channel_layer.group_send)(
-                room_group_name,
-                {
-                    'type':'new_notification',
-                    'notification':f"{user} te mandou uma nova mensagem!",
-                    'username':receiver,
-                }
-            )
-            Notification.objects.create(user=receiver, body=(f"{user} te mandou uma nova mensagem!"))
-        message = list(Message.objects.filter(Q(receiver=user) | Q(sender=user), Q(receiver=receiver) | Q(sender=receiver)))
-        
+    def disconnect(self, close_code):
+        if hasattr(self, 'room_group_name'):
+            async_to_sync(self.channel_layer.group_discard)(self.room_group_name, self.channel_name)

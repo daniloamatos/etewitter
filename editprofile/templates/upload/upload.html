@@ -1,31 +1,62 @@
 {% extends "main/template.html" %}
-{% load crispy_forms_tags %}
+{% block title %}Configurações · Etewitter{% endblock %}
+{% block header_title %}Configurações{% endblock %}
 {% block content %}
-<form method="post" enctype="multipart/form-data" class="dropzone">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <div class="position-relative">
-        <div class="position-absolute top-0 end-100">
-            <button type="submit">Upload</button>
+<section class="settings-page">
+    <h1>Editar perfil</h1>
+    <p class="settings-help">Atualize suas informações e personalize seu perfil.</p>
+    <form method="post" enctype="multipart/form-data" class="settings-form">
+        {% csrf_token %}
+        <div class="settings-field">
+            <label for="{{ form.profilepic.id_for_label }}">Foto de perfil</label>
+            <div class="image-picker">
+                <img class="profile-image-preview" id="profilepic-preview" src="{% if form.instance.profilepic and form.instance.profilepic.name != 'default/default_profile_400x400.png' %}{{ form.instance.profilepic.url }}{% else %}{{ default_profile_url }}{% endif %}" alt="Prévia da foto de perfil">
+                <div class="image-picker-controls">
+                    <label class="outline-button file-button" for="{{ form.profilepic.id_for_label }}">Escolher foto</label>
+                    <input class="visually-hidden-file" type="file" name="profilepic" id="{{ form.profilepic.id_for_label }}" accept="image/*" data-preview-target="profilepic-preview">
+                    <label class="clear-choice"><input type="checkbox" name="profilepic-clear" id="profilepic-clear"> Remover foto</label>
+                </div>
+            </div>
+            {% for error in form.profilepic.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         </div>
+        <div class="settings-field">
+            <label for="{{ form.bannerpic.id_for_label }}">Imagem de capa</label>
+            <div class="image-picker">
+                <img class="banner-image-preview" id="bannerpic-preview" src="{% if form.instance.bannerpic and form.instance.bannerpic.name != 'default/default.banner.jpg' %}{{ form.instance.bannerpic.url }}{% else %}{{ default_banner_url }}{% endif %}" alt="Prévia da imagem de capa">
+                <div class="image-picker-controls">
+                    <label class="outline-button file-button" for="{{ form.bannerpic.id_for_label }}">Escolher capa</label>
+                    <input class="visually-hidden-file" type="file" name="bannerpic" id="{{ form.bannerpic.id_for_label }}" accept="image/*" data-preview-target="bannerpic-preview">
+                    <label class="clear-choice"><input type="checkbox" name="bannerpic-clear" id="bannerpic-clear"> Remover capa</label>
+                </div>
+            </div>
+            {% for error in form.bannerpic.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="settings-field">
+            <label for="{{ form.name.id_for_label }}">Nome</label>
+            {{ form.name }}
+            {% for error in form.name.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <div class="settings-field">
+            <label for="{{ form.bio.id_for_label }}">Bio</label>
+            {{ form.bio }}
+            {% for error in form.bio.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        </div>
+        <button class="primary-button" type="submit">Salvar alterações</button>
+    </form>
+    <div class="settings-links">
+        <a href="/changepassword/">Mudar senha <span>›</span></a>
+        <a href="/changeusername/">Mudar nome de usuário <span>›</span></a>
     </div>
-</form>
-<div class="position-relative">
-    <div class="position-absolute top-0 end-0">
-        <form action="/changepassword/">
-            <button type="submit">Mudar Senha</button>
-        </form>
-    </div>
-</div>
-<div class="position-relative">
-    <div class="position-absolute top-0 end-50">
-        <form action="/changeusername/">
-            <button type="submit">Mudar Username</button>
-        </form>
-    </div>
-</div>
-{% if img_obj %}
-<h3>Succesfully uploaded : {{img_obj.title}}</h3>
-<img src="{{ img_obj.image.url}}" alt="connect" style="max-height:300px">
-{% endif %}
+</section>
+{% endblock %}
+{% block javascript %}
+<script>
+document.querySelectorAll(".visually-hidden-file[data-preview-target]").forEach((input) => {
+    input.addEventListener("change", () => {
+        const file = input.files[0];
+        const target = document.getElementById(input.dataset.previewTarget);
+        if (file && target) target.src = URL.createObjectURL(file);
+    });
+});
+</script>
 {% endblock %}

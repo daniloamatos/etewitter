@@ -1,63 +1,72 @@
 {% load static %}
-<html>
-    <head>
-        {% load static %}
-        {% block head %}
-        {% endblock %}
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
-        <link rel="preconnect" href="https://fonts.gstatic.com">
-        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500&display=swap" rel="stylesheet">
-        <link href="{% static 'css/styles.css'%}" rel="stylesheet">
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>{% block title %} {% endblock %}</title>
-    </head>
-    <body>
-        <header class="left">
-            <p>
-                <button id="twitterLogo" class="hidebutton"><img src="{% static 'logo.jpg' %}" style="width:50px;height:50px;"></button>
-            </p>
-            <p>
-                <a class="hidebutton" href="/"><img src="https://i.ibb.co/BP0CKLT/hastag.png">Página Inicial</button>
-            </p>
-            <p>
-                <a class="hidebutton"  href="/notifications/"><img src="https://i.ibb.co/YcbhGX3/sino.png">Notifications</button>
-            </p>
-            <p>
-                <a class="hidebutton" href="/messages"><img src="https://i.ibb.co/GphkvzT/messages.png"/>Messages</a>
-            </p>
-            <p>
-                <a type="button" class="hidebutton" href="/saveditems"><img src="https://i.ibb.co/3z0gRWD/saved-Itens.png">Saved Items</button>
-            </p>
-            <p>
-                <a class="hidebutton" type="button" style="text-decoration: none; " href="/{{user.username}}/" value="profile"><img src="https://i.ibb.co/6XyTvTb/perfil.png">Profile</a>
-            </p>
-            <p>
-                <button class="hidebutton" style="text-decoration: none; "><img src="https://i.ibb.co/X3W09pF/more.png">More</button>
-            </p>
-        </header>
-        <header class="right">
-            <img id="lupa"src="https://i.ibb.co/C729Pw0/lupa.png" style="width:20px; height: 20px; position: absolute; right: 237px; top:33px;">
-            <form action="/search/" method="get">
-                <input id="searchBox" placeholder="        Procurar no twitter" type="text" name="query">
-            </form>
-        </header>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Etewitter{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/styles.css' %}?v=20261041" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="/" aria-label="Página inicial">
+                <span class="brand-mark">t</span><span class="brand-name">etewitter</span>
+            </a>
+            <nav class="main-nav" aria-label="Navegação principal">
+                <a href="/" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10Z"/></svg><span>Início</span></a>
+                <a href="/search/" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><span>Explorar</span></a>
+                <a href="/notifications/" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></svg><span>Notificações</span></a>
+                <a href="/messages/" class="nav-link messages-nav" aria-label="{% if has_unread_messages %}Mensagens não lidas{% else %}Mensagens{% endif %}"><span class="messages-nav-icon"><i class="unread-dot" aria-hidden="true"{% if not has_unread_messages %} hidden{% endif %}></i><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-5 3V7a2 2 0 0 1 2-2Z"/></svg></span><span>Mensagens</span></a>
+                <a href="/saveditems/" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-4-6 4V4Z"/></svg><span>Itens salvos</span></a>
+                {% if request.user.is_authenticated %}
+                <a href="/{{ request.user.username }}/" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Perfil</span></a>
+                <a href="/editprofile/" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1a2 2 0 1 1-2.8 2.8l-.1-.1a2 2 0 0 0-3.4 1.4V19a2 2 0 1 1-4 0v-.2A2 2 0 0 0 5.8 17l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A2 2 0 0 0 1.6 11H2a2 2 0 1 1 0-4h.2A2 2 0 0 0 4 3.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A2 2 0 0 0 10.2 2H10a2 2 0 1 1 4 0h-.2a2 2 0 0 0 3.4-1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A2 2 0 0 0 21 7h.2a2 2 0 1 1 0 4H21a2 2 0 0 0-1.6 4Z"/></svg><span>Configurações</span></a>
+                {% endif %}
+            </nav>
+            {% if request.user.is_authenticated %}
+            <a class="sidebar-profile" href="/{{ request.user.username }}/">
+                <img class="avatar avatar-sm avatar-image" src="{% if request.user.profilepic and request.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ request.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ request.user.name }}">
+                <span class="sidebar-profile-text"><strong>{{ request.user.name }}</strong><small>@{{ request.user.username }}</small></span>
+                <span class="muted">•••</span>
+            </a>
+            {% endif %}
+        </aside>
 
-        <div id="content", name="content" class="main">
-            <div class="row justify-content-center">
-                <div class="col-8">
-                    <hr class="mt-0 mb-4">
-                    {% block content %}
-                    {% endblock %}
+        <main class="main-column">
+            <header class="topbar">
+                <a class="topbar-title" href="/"><strong>{% block header_title %}Página inicial{% endblock %}</strong></a>
+                <form class="search-form" action="/search/" method="get">
+                    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+                    <input id="searchBox" name="query" placeholder="Buscar no Etewitter" aria-label="Buscar">
+                </form>
+            </header>
+            {% if messages %}
+                <div class="flash-stack">
+                    {% for message in messages %}<div class="flash flash-{{ message.tags }}">{{ message }}</div>{% endfor %}
                 </div>
-            </div>
-        </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
 
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-        {% block javascript %}
-        {% endblock %}
-    
-    </body>
+        <aside class="right-rail">
+            <section class="rail-card">
+                <h2>O que está acontecendo</h2>
+                <div class="rail-item"><small>Assuntos do momento</small><strong>Comunidade Etewitter</strong><small>1.248 posts</small></div>
+                <div class="rail-item"><small>Assuntos do momento</small><strong>Desenvolvimento web</strong><small>842 posts</small></div>
+                <div class="rail-item"><small>Assuntos do momento</small><strong>Brasil</strong><small>3.601 posts</small></div>
+            </section>
+            <p class="footer-note">Termos · Privacidade · Cookies · © 2024 Etewitter</p>
+        </aside>
+    </div>
+    {% include "main/report_dialog.html" %}
+    <script src="{% static 'js/post-interactions.js' %}?v=3" defer></script>
+    {% if request.user.is_authenticated %}<script src="{% static 'js/message-badge.js' %}" defer></script>{% endif %}
+    {% block javascript %}{% endblock %}
+</body>
 </html>

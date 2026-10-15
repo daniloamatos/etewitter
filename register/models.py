@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
-from datetime import datetime
+from django.utils import timezone
 import random
 import os
 
@@ -13,7 +13,7 @@ def image_path(instance, filename):
     chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890'
     randomstr = ''.join((random.choice(chars)) for x in range(10))
     randomstr2 = ''.join((random.choice(chars)) for x in range(20))
-    _now = datetime.now()
+    _now = timezone.now()
 
     return '{instance.id}/{day}/{month}/{year}/{randomstring}/{ext}'.format(
         instance = instance, randomstring=randomstr, randomstring2=randomstr2,ext=file_extension[1],
@@ -49,9 +49,9 @@ class Usuario(AbstractUser):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'password']
     date_of_birth = models.DateTimeField(null=True,blank=True, verbose_name='Data de aniversário')
-    date_of_creation = models.DateTimeField(default=datetime.now, blank=True)
-    profilepic = models.ImageField(default="default/default_profile_400x400.png", blank=True, upload_to =image_path, verbose_name="Foto de perfil")
-    bannerpic = models.ImageField(default="default/default.banner.jpg",blank=True, upload_to =image_path, verbose_name="Foto de capa")
+    date_of_creation = models.DateTimeField(default=timezone.now, blank=True)
+    profilepic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name="Foto de perfil")
+    bannerpic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name="Foto de capa")
     bio = models.CharField(blank=True, max_length=50, verbose_name="Sobre")
     followersC = models.IntegerField(default=0)
     followingC = models.IntegerField(default=0)
@@ -65,8 +65,6 @@ class Usuario(AbstractUser):
         return self.posts.all()
 
 
-
-           
 
 
 

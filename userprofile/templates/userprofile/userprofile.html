@@ -1,230 +1,84 @@
 {% extends "main/template.html" %}
-{% load crispy_forms_tags %}
-{% block title %}
 {% load static %}
-{{jname}} (@{{jusername}})
-{% endblock %}
-
-{% block javascript %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script>  
-            $('.like-form').submit(function(e){
-                e.preventDefault();
-                
-                const tweet_id = $(this).attr('id')
-                
-                const likeText = $(`.like-input${tweet_id}`).attr('value')
-                console.log(likeText)
-                const trim = $.trim(likeText)
-
-                const url = $(this).attr('action')
-                
-                let res;
-
-                const likes = $(`.like-count${tweet_id}`).text()
-
-                const trimCount = parseInt(likes)
-                
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: {
-                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
-                        'tweetid':tweet_id,
-                    },
-                    success: function(response){
-                        if (trim === 'Unlike'){
-                            $(`.like-input${tweet_id}`).attr('value', "Like")
-                            $(`.like-img${tweet_id}`).attr('src', '/static/heart2.jpg')
-                            res = trimCount - 1
-
-                        } else{
-                            $(`.like-input${tweet_id}`).attr('value', "Unlike")
-                            $(`.like-img${tweet_id}`).attr('src', '/static/Symbolic_Love_Heart.png')
-                            res = trimCount + 1
-                        }
-
-                        $(`.like-count${tweet_id}`).text(res)
-                    },
-                    error: function(response){
-                        console.log('error', response)
-                    }
-                })
-            })
-        </script>
-        <script>
-            function test() {
-                if (document.getElementById('following').style.display !== "none") {
-                    document.getElementById('following').style.display = "none";
-                } else {
-                    document.getElementById('following').style.display = "block";
-                }
-            }
-            function test1() {
-                if (document.getElementById('followers').style.display !== "none") {
-                    document.getElementById('followers').style.display = "none";
-                } else {
-                    document.getElementById('followers').style.display = "block";
-                }
-            }
-        </script>
-               <script>
-                function formHandler(tweetid){
-                    form = document.getElementById(`myForm${tweetid}`)
-                    if (form.style.display == "none")
-                    {
-                        document.getElementById(`myForm${tweetid}`).style.display = "block";
-                        document.getElementById(`denunciar${tweetid}`).style.display = "none";
-                    }
-                    else{
-                        document.getElementById(`myForm${tweetid}`).style.display = "none";
-                        document.getElementById(`denunciar${tweetid}`).style.display = "block";
-                    }
-                    
-                }
-            </script>
-       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
-        
-{% endblock %}
-
+{% load static %}
+{% block title %}{{ userP.name }} (@{{ userP.username }}) · Etewitter{% endblock %}
+{% block header_title %}Perfil{% endblock %}
 {% block content %}
-<img style="width:1500px; height:200px;"src="{{userP.bannerpic.url}}" class="img-fluid">
-<img style="position:absolute; top:70px; left:340px;border-radius: 50%; width:100px; height:100px;"src="{{userP.profilepic.url}}" class="img-thumbnail">
-<div class="position-absolute top-20 start-20">
-{{userP.name}}
-</div>
-{% if checkUser.username|upper == jusername|upper %}
-<form method="POST" class="form-group" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="row justify-content-center" style="margin-bottom:30px;">
-    {{form|crispy}}
-    <input style="position:absolute; right:654px; " type="submit" class="tweetBtn" value="Tweet"></input>
+<section class="profile-header">
+    <div class="profile-banner" style="background-image:url('{% if userP.bannerpic and userP.bannerpic.name != "default/default.banner.jpg" %}{{ userP.bannerpic.url }}{% else %}{% static "images/default-banner.svg" %}{% endif %}')"></div>
+    <div class="profile-summary">
+        <a href="/{{ userP.username }}/"><img class="avatar profile-avatar" src="{% if userP.profilepic and userP.profilepic.name != "default/default_profile_400x400.png" %}{{ userP.profilepic.url }}{% else %}{% static "images/default-profile.svg" %}{% endif %}" alt="Foto de {{ userP.name }}"></a>
+        <div class="profile-actions">
+            {% if checkUser.username|upper == jusername|upper %}
+            <a class="outline-button profile-button" href="/editprofile/">Editar perfil</a>
+            {% else %}
+            <form method="post" action="/follow/">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="hidden" value="{{ userP.id }}" name="userP">
+                <button class="primary-button" type="submit">{% if request.user in followers %}Deixar de seguir{% else %}Seguir{% endif %}</button>
+            </form>
+            <form method="post" action="/messages/{{ user.id }}-{{ userP.id }}">
+                {% csrf_token %}
+                <button class="outline-button profile-button" type="submit">Mensagem</button>
+            </form>
+            {% endif %}
+        </div>
+        <h1><a href="/{{ userP.username }}/">{{ userP.name }}</a></h1>
+        <p class="profile-handle"><a href="/{{ userP.username }}/">@{{ userP.username }}</a></p>
+        {% if userP.bio %}<p class="profile-bio">{{ userP.bio }}</p>{% endif %}
+        <p class="profile-joined">Entrou em {{ userP.date_joined|date:"F Y" }}</p>
+        <div class="profile-stats">
+            <details><summary><strong>{{ userP.followingC }}</strong> seguindo</summary><div class="profile-list">{% for person in following %}<a href="/{{ person.username }}/">@{{ person.username }}</a>{% empty %}<span>Ninguém ainda.</span>{% endfor %}</div></details>
+            <details><summary><strong>{{ userP.followersC }}</strong> seguidores</summary><div class="profile-list">{% for person in followers %}<a href="/{{ person.username }}/">@{{ person.username }}</a>{% empty %}<span>Ninguém ainda.</span>{% endfor %}</div></details>
+            <span><strong>{{ userP.get_posts_no }}</strong> tweets</span>
+        </div>
     </div>
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-danger" role="alert">
-        {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-</form>
+</section>
 
-<form action="/editprofile/">
-    <div class="position-relative">
-        <div class="position-absolute top-0 end-0">
-            <button type="submit">Editar Perfil</button>
+{% if checkUser.username|upper == jusername|upper %}
+<section class="composer-card profile-composer">
+    <a href="/{{ request.user.username }}/"><img class="avatar avatar-image" src="{% if request.user.profilepic and request.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ request.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ request.user.name }}"></a>
+    <form method="post" enctype="multipart/form-data" class="composer-form">
+        {% csrf_token %}
+        <textarea name="tweet" id="tweetBox" maxlength="280" placeholder="O que está acontecendo?">{{ form.tweet.value|default:"" }}</textarea>
+        {% for error in form.tweet.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        <div class="composer-actions">
+            <label class="media-button" for="profile-image-input"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>Foto</span></label>
+            <input type="file" name="image" id="profile-image-input" accept="image/*">
+            <span class="character-limit">280 caracteres</span>
+            <button class="primary-button" type="submit">Tweetar</button>
         </div>
-    </div>
-</form>
-{% else %}
-<form method="POST" action="/follow/">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.path }}">
-    <input type="hidden" value="{{userP.id}}" name="userP">
-    <div class="position-relative">
-        <div class="position-absolute top-0 end-0">
-            {% if request.user in followers %}
-            <button type="submit">Desseguir</button>
-            {%else%}
-            <button type="submit">Seguir</button>
-            {%endif%}
-        </div>
-    </div>
-</form>
-<form method="POST" action="/messages/{{user.id}}-{{userP.id}}">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ request.path }}">
-    <input type="hidden" value="{{userP.id}}" name="userP">
-    <button type="submit">Enviar Mensagem</button>
-</form>
+        {% for error in form.image.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+    </form>
+</section>
 {% endif %}
 
-<br>
-@{{userP.username}}<br>
-<br>
-{{userP.bio}}<br>
-<br>
-Joined {{userP.date_joined}}
-<br>
+<section class="timeline">
+{% for tweet in timeline %}
+{% if tweet.replyLink %}
+{% include "main/reply_card.html" with reply=tweet detail=False %}
+{% else %}
+<article data-card-url="/{{ tweet.tweetLink }}" tabindex="0" role="link" class="tweet-card">
+    <a href="/{{ tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if tweet.tweetAuthor.profilepic and tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ tweet.tweetAuthor.name }}"></a>
+    <div class="tweet-body">
+        {% if tweet.retweet_by_name %}<div class="retweet-label">↻ <a href="/{{ tweet.retweet_by_username }}/">{{ tweet.retweet_by_name }}</a> retweetou</div>{% endif %}
+        <div class="tweet-meta"><a href="/{{ tweet.tweetAuthor.username }}/"><strong>{{ tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ tweet.tweetAuthor.username }}/">@{{ tweet.tweetAuthor.username }}</a><span>·</span><time>{{ tweet.publishDate|date:"d M" }}</time></div>
+        <a class="tweet-content" href="/{{ tweet.tweetLink }}">{{ tweet.tweet|linebreaksbr }}</a>
+        {% if tweet.image %}<img class="tweet-image" src="{{ tweet.image.url }}" alt="Imagem do tweet">{% endif %}
+        <div class="tweet-actions">
+{% include "main/post_actions.html" with post=tweet kind="tweet" post_url=tweet.tweetLink %}
 
-<button onclick="test()">Following {{userP.followingC}}</button>
-
-<div id="following" style="display:none">
-    {%for i in following%}
-    {{i}}<br>
-    {%endfor%}
+{% include "main/save_button.html" with saved_tweet=tweet content_type="tweet" %}
+{% include "main/post_menu.html" with post=tweet kind="tweet" %}
 </div>
 
-<button onclick="test1()">Followers{{userP.followersC}}</button>
-
-<div id="followers" style="display:none">
-    {% for i in followers %}
-    {{i}}<br>
-    {% endfor %}
-</div>
-
-
-<br>
-Tweets {{userP.get_posts_no}}
-<br>
-
-
-
-{% for Tweet in tweets|dictsortreversed:"publishDate" %}   
-<div class="row justify-content-center">          
-    <div class="card" style="width: 18rem;">      
-        <ul style="color:black; margin-bottom:30px;" class="list-group list-group-flush font-family: 'Kanit', sans-serif;">
-            <a href="/{{Tweet.tweetLink}}" style="text-decoration: none; color:black;">
-                <li class="list-group-item">
-                    <img src="{{Tweet.tweetAuthor.profilepic.url}}" style="width:20%;height:100%;position:absolute;top:70px;left:-45px;">
-                    {{Tweet.tweetAuthor.name}} @{{Tweet.tweetAuthor.username}}
-                    {% if Tweet.image %}
-                        <img src="{{Tweet.image.url}}" style="width:50%">
-                    {% endif %}
-                </li>
-                {{Tweet.tweet}}<br><br>
-                Comments {{Tweet.replysC}}
-                <form method="post" action="like/" class="like-form" id="{{Tweet.id}}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <input type="hidden" value="{{Tweet.id}}" name="tweetid">
-                    <div style="flex: 1; margin:5px;" class="like-count{{Tweet.id}}">
-                        {{Tweet.num_likes}}
-                    </div>
-                    
-                        {% if usuario in Tweet.likes.all %}
-                        <input type="hidden" class="like-input{{Tweet.id}}"value="Unlike"></input>
-                        <button style="border:none; background:transparent; margin:none; display:flex; "type="submit" class="unlike-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}" src="{% static "Symbolic_Love_Heart.png" %}" style="max-width: 10%;"></button></li>
-                        {% else %}
-                        <input type="hidden" class="like-input{{Tweet.id}}" value="Like"></input>
-                        <button style="border:none; background:transparent; margin:none;display:flex;"type="submit" class="like-btn{{Tweet.id}}"><img class="like-img{{Tweet.id}}"src="{% static "heart2.jpg" %}" style="max-width: 10%;"></button></li>
-                        {% endif %}
-                    </form>
-                    <form method="POST" action="/save/">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.path }}">
-                        <input type="hidden" value="{{Tweet.id}}" name="tweetid">
-                        <button type="submit">Salvar</button>
-                    </form>
-                    <form method="post" action="/report/">
-                        {% csrf_token %}
-                        <button id="denunciar{{Tweet.id}}" class="open-button" onclick="formHandler('{{ Tweet.id }}')">denunciar</button>
-                        <div class="form-popup" id="myForm{{Tweet.id}}" style="display:none">
-                            <button type="button" onclick="formHandler('{{ Tweet.id }}') ">Fechar</button>
-                            <label for="email"><b>Motivo da denuncia</b></label>
-                            <input type="text" placeholder="Descreva a denuncia" name="reason" required>
-                            <button type="submit">denunciar</button>
-                        </div>
-                        <input type="hidden" name="next" value="{{ request.path }}">
-                        <input type="hidden" value="{{Tweet.id}}" name="tweetid">
-                    </form>
-                    <li class="list-group-item">{{Tweet.publishDate}}</li>
-                </a>
-            </form>
-        </ul>
     </div>
-</div>
+</article>
+
+{% endif %}
+{% empty %}
+<div class="empty-state"><div class="empty-icon">t</div><h2>Nenhum tweet ainda</h2><p>Quando {{ userP.name }} publicar, aparecerá aqui.</p></div>
 {% endfor %}
-
+</section>
 {% endblock %}
-

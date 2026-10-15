@@ -1,0 +1,18 @@
+{% load static %}
+<article data-card-url="/{{ reply.replyLink }}" tabindex="0" role="link" class="tweet-card reply-tweet-card">
+    <a href="/{{ reply.user.username }}/"><img class="avatar avatar-image" src="{% if reply.user.profilepic and reply.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ reply.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ reply.user.name }}"></a>
+    <div class="tweet-body">
+        {% if reply.retweet_by_name %}<div class="retweet-label">↻ <a href="/{{ reply.retweet_by_username }}/">{{ reply.retweet_by_name }}</a> retweetou</div>{% endif %}
+        <div class="tweet-meta"><a href="/{{ reply.user.username }}/"><strong>{{ reply.user.name }}</strong></a><a class="profile-handle-link" href="/{{ reply.user.username }}/">@{{ reply.user.username }}</a><span>·</span><time>{{ reply.publishDate|date:"d M Y" }}</time></div>
+        <a class="tweet-content" href="/{{ reply.replyLink }}">{{ reply.body|linebreaksbr }}</a>
+        {% if reply.image %}<img class="tweet-image" src="{{ reply.image.url }}" alt="Imagem da resposta">{% endif %}
+        <div class="tweet-actions">
+{% include "main/post_actions.html" with post=reply kind="reply" post_url=reply.replyLink %}
+
+{% include "main/save_button.html" with saved_tweet=reply content_type="reply" %}
+{% include "main/post_menu.html" with post=reply kind="reply" %}
+</div>
+
+        {% if reply.has_children %}<a class="thread-more" href="/{{ reply.replyLink }}">Ver mais respostas</a>{% endif %}
+    </div>
+</article>

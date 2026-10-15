@@ -1,11 +1,6 @@
 {% extends "main/template.html" %}
-{% load crispy_forms_tags %}
-{% block title %}
-{% load static %}
-
-{% endblock %}
-
+{% block title %}Tweet não encontrado · Etewitter{% endblock %}
+{% block header_title %}Tweet{% endblock %}
 {% block content %}
-<p>essa conta não existe, tente procurar por outra coisa</p>
+<div class="empty-state"><div class="empty-icon">?</div><h2>Esse tweet não existe</h2><p>O link pode estar quebrado ou o tweet foi removido.</p><a class="primary-button empty-button" href="/">Voltar para o início</a></div>
 {% endblock %}
-

@@ -1,31 +1,22 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        {% extends "main/template.html" %}
-        {% load static %}
-        {% load crispy_forms_tags %}
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
-        <link href="{% static 'css/styles.css'%}" rel="stylesheet">
-        <meta name="viewport" content="width=device-wid22th, initial-scale=1">
-        {% block title %}Página Inicial{% endblock %}
-    </head>
-    <body>
-        {% block content %}
-            {% for i in chats|dictsortreversed:"publishDate" %}
-            {{i.publishDate}}
-                {% if i.sender != user %}
-                <a href="/messages/{{user.id}}-{{i.sender.id}}">
-                    <h1 style="color:white;">{{i.sender}}</h1><br>
-                {% else %}
-                <a href="/messages/{{user.id}}-{{i.receiver.id}}">
-                    <h1 style="color:white;">{{i.receiver}}</h1><br>
-                {% endif %}
-            {% endfor %}
-        {% endblock %}
-   
-        {% block javascript %}
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
-        {% endblock %}
-    </body>
-</html>
+{% extends "main/template.html" %}
+{% block title %}Mensagens · Etewitter{% endblock %}
+{% block header_title %}Mensagens{% endblock %}
+{% block content %}
+<section class="conversation-list">
+    {% for chat in chats %}
+    {% if chat.sender_id == request.user.id %}
+    <article class="conversation-item" data-card-url="/messages/{{ request.user.id }}-{{ chat.receiver.id }}" tabindex="0" role="link">
+        {% include "main/profile_avatar.html" with person=chat.receiver %}
+        <div><a href="/{{ chat.receiver.username }}/"><strong>{{ chat.receiver.name }}</strong></a><br><a href="/{{ chat.receiver.username }}/">@{{ chat.receiver.username }}</a><br><a href="/messages/{{ request.user.id }}-{{ chat.receiver.id }}">Abrir conversa</a></div>
+    </article>
+    {% else %}
+    <article class="conversation-item" data-card-url="/messages/{{ request.user.id }}-{{ chat.sender.id }}" tabindex="0" role="link">
+        {% include "main/profile_avatar.html" with person=chat.sender %}
+        <div><a href="/{{ chat.sender.username }}/"><strong>{{ chat.sender.name }}</strong></a><br><a href="/{{ chat.sender.username }}/">@{{ chat.sender.username }}</a><br><a href="/messages/{{ request.user.id }}-{{ chat.sender.id }}">Abrir conversa</a></div>
+    </article>
+    {% endif %}
+    {% empty %}
+    <div class="empty-state"><div class="empty-icon">✉</div><h2>Nenhuma conversa</h2><p>Visite um perfil para enviar uma mensagem.</p></div>
+    {% endfor %}
+</section>
+{% endblock %}

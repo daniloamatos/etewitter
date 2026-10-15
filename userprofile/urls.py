@@ -7,4 +7,6 @@ urlpatterns = [
     path('status/reply', views.reply, name="reply"),
     path('status/<str:random>',views.requesttweet, name="requesttweet"),
 
+    path('retweet/', views.retweet),
+    path('retweet-reply/', views.retweetreply),
 ]

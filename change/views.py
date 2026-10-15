@@ -1,97 +1,103 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.shortcuts import render, redirect
 from django.contrib import messages
-from register.models import Usuario
 from django.contrib.auth.decorators import login_required
-from .forms import ChangeName, ChangePass
 from django.contrib.auth.hashers import make_password
 from django.core.mail import EmailMessage
+from django.http import HttpResponse
+from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
-from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from register.tokens import account_activation_token
-from logout.views import logout
+from django.utils.http import urlsafe_base64_encode
 
-# Create your views here.
+from logout.views import logout
+from register.models import Usuario
+from register.tokens import account_activation_token
+from .forms import ChangeName, ChangePass, ChangeUsername
+
+
 @login_required(login_url='/login')
 def changeName(request, *args):
-    form = ChangeName(request.POST)
-    if request.method == "POST":
-        current_user = request.user
-        if len(form.data['name']) < 4 or len(form.data['name']) > 25:
-                messages.error(request, 'O tamanho do nome tem que ser entre 4 e 25.')
-        else:
-            t = Usuario.objects.get(id=current_user.id)
-            if not args:
-                t.name = request.POST.get('name')
-                t.save()
-                return redirect("/")
-            else:
-                if form.is_valid():
-                    t.username = request.POST.get('name')
-                    t.usernameinsensitive = request.POST.get('name').upper()
-                    t.save()
-                    logout(request)
+    if request.method == 'POST':
+        form = ChangeUsername(request.POST) if args else ChangeName(request.POST)
+        if form.is_valid():
+            value = form.cleaned_data['username' if args else 'name']
+            if args:
+                if Usuario.objects.filter(username__iexact=value).exclude(
+                    pk=request.user.pk
+                ).exists():
+                    form.add_error('username', 'Este nome de usuário já existe.')
                 else:
-                    messages.error(request, 'Somente caracteres alfanuméricos são permitidos no nome de usuario.')
+                    request.user.username = value
+                    request.user.usernameinsensitive = value.upper()
+                    request.user.save(update_fields=['username', 'usernameinsensitive'])
+                    return logout(request)
+            else:
+                request.user.name = value
+                request.user.save(update_fields=['name'])
+                return redirect('/')
+        else:
+            messages.error(request, 'Verifique os dados informados.')
     else:
-        form = ChangeName()
-    return render(request, "change/changeName.html", {"form":form})
+        form = ChangeUsername() if args else ChangeName()
+    template = 'change/changeUsername.html' if args else 'change/changeName.html'
+    return render(request, template, {'form': form})
+
 
 @login_required(login_url='/login')
 def changeUsername(request):
-    if request.method == "POST":
-        form = ChangeName(request.POST)
-        username = True
-        return changeName(request, username)
-    else:
-        form = ChangeName()
-    return render(request, "change/changeUsername.html", {"form":form})
+    return changeName(request, True)
 
-@login_required(login_url='/login')
+
 def changePass(request):
-    form = ChangePass(request.POST)
-    if request.method == 'GET':
-        email(request)
+    reset_user_id = request.session.get('password_reset_user_id')
+    if reset_user_id:
+        user = Usuario.objects.filter(pk=reset_user_id).first()
+    elif request.user.is_authenticated:
+        user = request.user
     else:
-        current_user = request.user
-        if request.POST['senha'] != request.POST['confirme_sua_senha']:
-            messages.error(request, 'As senhas não são identicas.')
-        elif len(form.data['senha']) <8:
-            messages.error(request, 'A senha precisa ter no minimo 8 caracteres.')
-        else:
-            current_user.password = make_password(request.POST['senha'])
-            current_user.save()
-            return logout(request) 
-    
-        
-    return render(request, "change/changePass.html",{'form':form})
+        return redirect('/login')
+    if user is None:
+        request.session.pop('password_reset_user_id', None)
+        return redirect('/login')
+
+    if request.method == 'POST':
+        form = ChangePass(request.POST)
+        if form.is_valid():
+            if form.cleaned_data['senha'] != form.cleaned_data['confirme_sua_senha']:
+                form.add_error('confirme_sua_senha', 'As senhas não são identicas.')
+            elif len(form.cleaned_data['senha']) < 8:
+                form.add_error('senha', 'A senha precisa ter no minimo 8 caracteres.')
+            else:
+                user.password = make_password(form.cleaned_data['senha'])
+                user.save(update_fields=['password'])
+                request.session.pop('password_reset_user_id', None)
+                return logout(request)
+    else:
+        form = ChangePass()
+    return render(request, 'change/changePass.html', {'form': form})
 
 
-def email (request, *args):
-    form = ChangePass()
+def email(request, *args):
     try:
-        if not args:
-            current_user = request.user
-            t = Usuario.objects.get(id=current_user.id)
-        else:
-            t = Usuario.objects.get(email = args[0])
-    except:
-        return
+        user = (
+            request.user if not args
+            else Usuario.objects.get(email__iexact=args[0])
+        )
+    except Usuario.DoesNotExist:
+        return None
+
     current_site = get_current_site(request)
-    mail_subject = 'Trocar senha do ETEWITTER.'
     message = render_to_string('emailconfirmation/changepassword.html', {
-        'user': t,
+        'user': user,
         'domain': current_site.domain,
-        'uid':urlsafe_base64_encode(force_bytes(t.id)),
-        'token':account_activation_token.make_token(t),
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': account_activation_token.make_token(user),
     })
-    to_email = Usuario.objects.values_list("email").filter(email=t.email).first()
-    print(to_email[0])
-    email = EmailMessage(
-                mail_subject, message, to=[to_email[0]]
+    EmailMessage(
+        'Trocar senha do ETEWITTER.',
+        message,
+        to=[user.email],
+    ).send()
+    return HttpResponse(
+        'Por favor, clique no link enviado em seu email para mudar de senha'
     )
-    email.send()
-    return HttpResponse('Por favor, clique no link enviado em seu email para mudar de senha')

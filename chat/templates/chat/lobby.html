@@ -1,62 +1,69 @@
 {% extends "main/template.html" %}
-{% load static %}
-{% load crispy_forms_tags %}
-{%block content%}
-<body>
-    <h1>Conversa {{user.username}}</h1>
-
-    {{user.username |json_script:"user"}}
-    {{receiver.username |json_script:"receiver"}}
-    {{user.id |json_script:"userid"}}
-    {{receiver.id |json_script:"receiverid"}}
-    <form id="form">
-        <input type="text" name="message">
-        <button type="submit" value="send"></button>
-    </form>
-
-    <div id="messages">
-        {% for message in messages %}
-            <p>{{message.sender}}: {{message.body}}</p>
+{% block title %}Mensagem para @{{ receiver.username }} · Etewitter{% endblock %}
+{% block header_title %}Mensagens{% endblock %}
+{% block content %}
+{{ user.username|json_script:"user" }}
+{{ receiver.username|json_script:"receiver" }}
+{{ user.id|json_script:"userid" }}
+{{ receiver.id|json_script:"receiverid" }}
+<section class="chat-page">
+    <div class="tweet-meta">{% include "main/profile_avatar.html" with person=receiver %}<a href="/{{ receiver.username }}/">{{ receiver.name }} @{{ receiver.username }}</a></div>
+    <div id="messages" class="chat-messages">
+        {% for message in chat_messages %}
+        <div class="chat-bubble {% if message.sender_id == user.id %}mine{% endif %}">
+            <small><a href="/{{ message.sender.username }}/">@{{ message.sender.username }}</a></small>{{ message.body }}
+        </div>
+        {% empty %}
+        <div class="empty-state"><div class="empty-icon">✉</div><h2>Comece a conversa</h2><p>Envie uma mensagem para @{{ receiver.username }}.</p></div>
         {% endfor %}
     </div>
-{%endblock%}
-{%block javascript%}
-    <script type="text/javascript">
-        var userid = document.getElementById("userid").textContent;
-        var receiverid = document.getElementById("receiverid").textContent;
-        var wsStart = 'ws://';
-        if (window.location.protocol == 'https:') {
-            wsStart = 'wss://'
+    <form id="form" class="chat-form">
+        <input type="text" name="message" aria-label="Mensagem" maxlength="250" placeholder="Escreva uma mensagem..." autocomplete="off" required>
+        <button class="primary-button" type="submit">Enviar</button>
+    </form>
+</section>
+{% endblock %}
+{% block javascript %}
+<script>
+    const user = JSON.parse(document.getElementById('user').textContent);
+    const receiver = JSON.parse(document.getElementById('receiver').textContent);
+    const userid = JSON.parse(document.getElementById('userid').textContent);
+    const receiverid = JSON.parse(document.getElementById('receiverid').textContent);
+    const chatSocket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/messages/${userid}-${receiverid}/`);
+    const messages = document.getElementById('messages');
+    let lastReceivedId = 0;
+    function acknowledgeMessages() {
+        if (lastReceivedId && document.visibilityState === 'visible' && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({type: 'read', through_id: lastReceivedId}));
         }
-        
-        let url = `${wsStart}${window.location.host}/ws/messages/${userid}-${receiverid}/`
-        const chatSocket = new WebSocket(url)
-
-        chatSocket.onmessage = function(e){
-            let data = JSON.parse(e.data)
-            console.log('DATA:', data)
-
-            if(data.type === 'chat'){
-                let messages = document.getElementById("messages")
-                let username = JSON.parse(document.getElementById('user').textContent);
-                messages.insertAdjacentHTML('beforeend', `<div
-                                                            <p>${data.username}: ${data.message}</p>
-                                                        </div>`)
+    }
+    document.addEventListener('visibilitychange', acknowledgeMessages);
+    window.addEventListener('focus', acknowledgeMessages);
+    chatSocket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        if (data.type === 'chat') {
+            if (data.username !== user) {
+                lastReceivedId = data.message_id;
+                acknowledgeMessages();
             }
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${data.username === user ? 'mine' : ''}`;
+            const author = document.createElement('a');
+            author.href = `/${encodeURIComponent(data.username)}/`;
+            author.textContent = `@${data.username}`;
+            bubble.append(author, document.createTextNode(`: ${data.message}`));
+            messages.querySelector('.empty-state')?.remove();
+            messages.appendChild(bubble);
+            messages.scrollTop = messages.scrollHeight;
         }
-
-        let form = document.getElementById('form')
-        form.addEventListener('submit', (e)=> {
-            e.preventDefault()
-            let message = e.target.message.value
-            let username = JSON.parse(document.getElementById('user').textContent);
-            let receiver = JSON.parse(document.getElementById('receiver').textContent);
-            chatSocket.send(JSON.stringify({
-                'message':message,
-                'username':username,
-                'receiver':receiver
-            }))
-            form.reset()
-        })
-    </script>
-{%endblock%}
+    };
+    messages.scrollTop = messages.scrollHeight;
+    document.getElementById('form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const input = event.target.message;
+        if (!input.value.trim()) return;
+        chatSocket.send(JSON.stringify({message: input.value.trim(), username: user, receiver}));
+        input.value = '';
+    });
+</script>
+{% endblock %}
