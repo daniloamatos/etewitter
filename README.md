@@ -2,6 +2,8 @@
 
 Etewitter is a Django application for publishing short posts, following accounts, and having conversations through replies and direct messages. It includes a chronological home timeline, profile pages, search, mentions, notifications, saved posts, reposts, and browser-based end-to-end encrypted messaging. The interface supports Brazilian Portuguese and US English.
 
+**Live site:** [etewitter.wearedang.co](https://etewitter.wearedang.co). The application is hosted on an AWS EC2 instance. Cloudflare manages DNS and routes proxied domain traffic to the instance; Nginx on EC2 terminates HTTPS and forwards HTTP and WebSocket requests to the Django ASGI application running in Docker. The Cloudflare Worker setup below is a separate deployment option.
+
 ## How the application works
 
 After signing in, a user’s home timeline combines original posts from accounts they follow with their own posts. Reposts are timeline events: they are ordered by the time of the repost, independently of when the original post was published. Users can open a post to read its reply thread; reply previews expand inline up to two levels, while selecting a post opens its detail page.
@@ -16,7 +18,7 @@ Direct conversations use an authenticated WebSocket connection for live delivery
 - **Relational content model:** Posts, replies, likes, mentions, follows, repost events, saved items, reports, and notifications are represented as database records and relationships. Database constraints prevent duplicate follow/repost/save relationships and enforce single-target records for saved items and reports.
 - **Timeline ordering:** Original posts and reposts are assembled as timeline events and sorted by their respective publication or repost timestamps.
 - **ASGI and Channels:** Django HTTP routes and authenticated WebSocket routes are served through the ASGI application. WebSocket origins are checked against allowed hosts. The configured channel layer is in-memory, suitable for local single-process development; a multi-worker deployment needs a shared Channels layer such as Redis.
-- **Browser cryptography:** The client creates P-256 ECDH keys and uses AES-GCM to encrypt message payloads. Private keys remain in browser IndexedDB. Losing that browser storage means the user cannot decrypt messages with that key; there is no server-side private-key recovery. The demo seeder does not create messages because it cannot provision browser-held private keys.
+- **Browser cryptography:** The client creates P-256 ECDH keys and uses AES-GCM to encrypt message payloads. Private keys remain in browser IndexedDB. The server stores one public key per account, so using the account in a different browser creates and publishes a new key that replaces the previous public key. There is no key synchronization, server-side private-key recovery, or multi-device key management; the old browser's private key is needed to decrypt messages encrypted for it. The demo seeder does not create messages because it cannot provision browser-held private keys.
 - **Uploads:** Image uploads are checked for supported formats and size limits, decoded with Pillow, and normalized before storage. Animated images are retained as animations.
 - **Localization and interface:** Django localization supports `pt-br` and `en-us`; the selected locale is handled through Django’s language middleware. The interface also includes dark and light themes and client-side interactions for mentions, profile previews, reply expansion, and unread-message indicators.
 - **Development storage:** SQLite is the default database. Uploaded media is stored under `uploads/`; collected static assets go to `staticfiles/`.
@@ -49,7 +51,7 @@ python manage.py migrate
 python manage.py seed_demo
 ```
 
-For encrypted messaging, sign in to two demo accounts in separate browser profiles and start a conversation. Each browser needs its own locally stored key pair.
+For encrypted messaging, sign in to two demo accounts in separate browser profiles and start a conversation. Keep each account in the same browser profile: signing that account in from another browser publishes a different public key and replaces the key currently registered for that account.
 
 ## Configuration and deployment
 
