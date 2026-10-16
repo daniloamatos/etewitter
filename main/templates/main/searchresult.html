@@ -1,5 +1,5 @@
 {% extends "main/template.html" %}
-{% load static %}
+{% load static custom_filters %}
 {% block title %}{{ query|default:"Explorar" }} · Etewitter{% endblock %}
 {% block header_title %}Explorar{% endblock %}
 {% block content %}
@@ -25,7 +25,7 @@
     <article data-card-url="/{{ tweet.tweetLink }}" tabindex="0" role="link" class="tweet-card">
         <a href="/{{ tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if tweet.tweetAuthor.profilepic and tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ tweet.tweetAuthor.name }}"></a>
         <div class="tweet-body">
-            <div class="tweet-meta"><a href="/{{ tweet.tweetAuthor.username }}/"><strong>{{ tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ tweet.tweetAuthor.username }}/">@{{ tweet.tweetAuthor.username }}</a><span>·</span><time>{{ tweet.publishDate|date:"d M" }}</time></div>
+            <div class="tweet-meta"><a href="/{{ tweet.tweetAuthor.username }}/"><strong>{{ tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ tweet.tweetAuthor.username }}/">@{{ tweet.tweetAuthor.username }}</a><span>·</span><time>{{ tweet.publishDate|smart_date }}</time></div>
             <a class="tweet-content" href="/{{ tweet.tweetLink }}">{{ tweet.tweet|linebreaksbr }}</a>
             {% if tweet.image %}<img class="tweet-image" src="{{ tweet.image.url }}" alt="Imagem do tweet">{% endif %}
             <div class="tweet-actions">
@@ -52,7 +52,7 @@
                 <a href="/{{ result.parent_url }}">{{ result.parent_text|truncatechars:120 }}</a>
                 {% if result.parent_image %}<img class="search-context-image" src="{{ result.parent_image.url }}" alt="Imagem do tweet pai">{% endif %}
             </div>
-            <div class="tweet-meta"><a href="/{{ reply.user.username }}/"><strong>{{ reply.user.name }}</strong></a><a class="profile-handle-link" href="/{{ reply.user.username }}/">@{{ reply.user.username }}</a><span>·</span><time>{{ reply.publishDate|date:"d M" }}</time></div>
+            <div class="tweet-meta"><a href="/{{ reply.user.username }}/"><strong>{{ reply.user.name }}</strong></a><a class="profile-handle-link" href="/{{ reply.user.username }}/">@{{ reply.user.username }}</a><span>·</span><time>{{ reply.publishDate|smart_date }}</time></div>
             <a class="tweet-content" href="/{{ reply.replyLink }}">{{ reply.body|linebreaksbr }}</a>
             {% if reply.image %}<img class="tweet-image" src="{{ reply.image.url }}" alt="Imagem da resposta">{% endif %}
             <div class="tweet-actions">

@@ -28,7 +28,9 @@ def register(request):
                 t.usernameinsensitive = form.cleaned_data['username'].upper()
                 t.save()
                 auth_login(request, t, backend='login.authenticate.authentication')
-                # O envio e a confirmação de e-mail continuam preservados no histórico:
+
+
+                # email confirmation || 
                 # current_site = get_current_site(request)
                 # mail_subject = 'Ative sua conta no ETEWITTER.'
                 # message = render_to_string('emailconfirmation/acc_active_email.html', {
@@ -37,6 +39,7 @@ def register(request):
                 #     'token': account_activation_token.make_token(t),
                 # })
                 # EmailMessage(mail_subject, message, to=[form.cleaned_data['email']]).send()
+
                 return redirect("/")
             if not form.is_valid():
                 for field, errors in form.errors.items():

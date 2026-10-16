@@ -19,8 +19,33 @@ from django.db.models import OuterRef, Q, Subquery
 @login_required(login_url='/login')
 def notifications(request):
     user = request.user
-    notifications = Notification.objects.filter(user=user).exclude(linkzaocarai__startswith='messages/').select_related("actor").order_by("-id")
-    return render(request, 'main/notifications.html', {'user':user,'notifications':notifications})
+    notifications_qs = Notification.objects.filter(user=user).exclude(
+        linkzaocarai__startswith='messages/'
+    ).select_related(
+        "actor",
+        "tweet",
+        "tweet__tweetAuthor",
+        "reply",
+        "reply__user",
+        "reply__tweet",
+        "reply__tweet__tweetAuthor",
+    ).order_by("-id")
+    Notification.objects.filter(user=user, is_read=False).update(is_read=True)
+    try:
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            async_to_sync(channel_layer.group_send)(
+                user.username + 'notifications',
+                {
+                    'type': 'unread_notifications',
+                    'unread': False,
+                }
+            )
+    except Exception:
+        pass
+    return render(request, 'main/notifications.html', {'user':user,'notifications':notifications_qs})
 
 @login_required(login_url='/login')
 def home(request):
@@ -71,11 +96,14 @@ def home(request):
             if mention:
                 mentioned_user = Usuario.objects.filter(username__iexact=mention).first()
                 if mentioned_user:
-                    Notification.objects.create(
+                    from .notifications import create_notification
+                    create_notification(
                         user=mentioned_user,
                         actor=request.user,
-                        body=f"{request.user} te mencionou em um tweet",
+                        notification_type='mention',
+                        body=f"{request.user.name} te mencionou em um tweet",
                         linkzaocarai=tweet.tweetLink,
+                        tweet=tweet,
                     )
             return redirect("/")
         messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
@@ -131,6 +159,15 @@ def follow(request):
             following.save()
             user.followingC += 1
             user.save()
+            if following != user:
+                from .notifications import create_notification
+                create_notification(
+                    user=following,
+                    actor=user,
+                    notification_type='follow',
+                    body=f"{user.name} começou a te seguir",
+                    linkzaocarai=f"{user.username}/",
+                )
             return redirect(next_url)
     return redirect('/')
 

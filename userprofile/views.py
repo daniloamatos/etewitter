@@ -2,7 +2,7 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from register.models import Usuario
 from check.views import checkIfUsernameExists
 from main.models import Tweet,Replys,SavedItems, Follower, Chat
@@ -83,15 +83,31 @@ def likereply(request,**username):
         reply_id = request.POST['replyid']
         reply_obj = get_object_or_404(Replys, id=reply_id)
         usuario = user
+        liked = False
         if usuario not in reply_obj.likes.all():
             reply_obj.likes.add(usuario)
             reply_obj.likec += 1
             reply_obj.save()
+            liked = True
+            if reply_obj.user != user:
+                from main.notifications import create_notification
+                create_notification(
+                    user=reply_obj.user,
+                    actor=user,
+                    notification_type='like',
+                    body=f"{user.name} curtiu sua resposta",
+                    linkzaocarai=reply_obj.replyLink,
+                    reply=reply_obj,
+                    tweet=reply_obj.tweet,
+                )
         else:
             reply_obj.likes.remove(usuario)
             reply_obj.likec -= 1
             reply_obj.save()
-        return redirect(request.POST.get('next', '/'))
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'ok', 'liked': liked, 'count': reply_obj.likec})
+        return HttpResponse(status=204)
+    return redirect('/')
 
 @login_required(login_url='/login')
 def like (request, **username):
@@ -100,37 +116,89 @@ def like (request, **username):
         tweet_id = request.POST['tweetid']
         tweet_obj = get_object_or_404(Tweet, id=tweet_id)
         usuario = user
+        liked = False
         if usuario not in tweet_obj.likes.all():
             tweet_obj.likes.add(usuario)
             tweet_obj.likec += 1
             tweet_obj.save()
+            liked = True
+            if tweet_obj.tweetAuthor != user:
+                from main.notifications import create_notification
+                create_notification(
+                    user=tweet_obj.tweetAuthor,
+                    actor=user,
+                    notification_type='like',
+                    body=f"{user.name} curtiu seu tweet",
+                    linkzaocarai=tweet_obj.tweetLink,
+                    tweet=tweet_obj,
+                )
         else:
             tweet_obj.likes.remove(usuario)
             tweet_obj.likec -= 1
             tweet_obj.save()
-        return redirect(request.POST.get('next', '/'))
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'ok', 'liked': liked, 'count': tweet_obj.likec})
+        return HttpResponse(status=204)
+    return redirect('/')
 
 
 @login_required(login_url='/login')
 def retweet(request, **username):
     if request.method == 'POST':
         tweet_obj = get_object_or_404(Tweet, id=request.POST.get('tweetid'))
+        retweeted = False
         if request.user in tweet_obj.retweets.all():
             tweet_obj.retweets.remove(request.user)
         else:
             tweet_obj.retweets.add(request.user)
-        return redirect(request.POST.get('next', '/'))
+            retweeted = True
+            if tweet_obj.tweetAuthor != request.user:
+                from main.notifications import create_notification
+                create_notification(
+                    user=tweet_obj.tweetAuthor,
+                    actor=request.user,
+                    notification_type='retweet',
+                    body=f"{request.user.name} retweetou seu tweet",
+                    linkzaocarai=tweet_obj.tweetLink,
+                    tweet=tweet_obj,
+                )
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'ok', 'retweeted': retweeted,
+                'count': tweet_obj.retweets.count(),
+            })
+        return HttpResponse(status=204)
+    return redirect('/')
 
 
 @login_required(login_url='/login')
 def retweetreply(request, **username):
     if request.method == 'POST':
         reply_obj = get_object_or_404(Replys, id=request.POST.get('replyid'))
+        retweeted = False
         if request.user in reply_obj.retweets.all():
             reply_obj.retweets.remove(request.user)
         else:
             reply_obj.retweets.add(request.user)
-        return redirect(request.POST.get('next', '/'))
+            retweeted = True
+            if reply_obj.user != request.user:
+                from main.notifications import create_notification
+                create_notification(
+                    user=reply_obj.user,
+                    actor=request.user,
+                    notification_type='retweet',
+                    body=f"{request.user.name} retweetou sua resposta",
+                    linkzaocarai=reply_obj.replyLink,
+                    reply=reply_obj,
+                    tweet=reply_obj.tweet,
+                )
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'ok', 'retweeted': retweeted,
+                'count': reply_obj.retweets.count(),
+            })
+        return HttpResponse(status=204)
+    return redirect('/')
 
 
 
@@ -159,6 +227,17 @@ def reply (request, **username):
                 test.reply.add(tweet_obj)
                 tweet_obj.replysC += 1
                 tweet_obj.save(update_fields=['replysC'])
+                if tweet_obj.user != user:
+                    from main.notifications import create_notification
+                    create_notification(
+                        user=tweet_obj.user,
+                        actor=user,
+                        notification_type='reply',
+                        body=f"{user.name} respondeu à sua publicação",
+                        linkzaocarai=test.replyLink,
+                        reply=test,
+                        tweet=tweet_obj.tweet,
+                    )
                 return redirect(request.POST.get('next', '/'))
             else:
                 instance = form.save(commit=False)
@@ -170,6 +249,17 @@ def reply (request, **username):
                 instance.body = request.POST['body']
                 instance.replyLink = generateLink(request)
                 instance.save()
+                if tweet_obj.tweetAuthor != user:
+                    from main.notifications import create_notification
+                    create_notification(
+                        user=tweet_obj.tweetAuthor,
+                        actor=user,
+                        notification_type='reply',
+                        body=f"{user.name} respondeu ao seu tweet",
+                        linkzaocarai=instance.replyLink,
+                        reply=instance,
+                        tweet=tweet_obj,
+                    )
                 return redirect(request.POST.get('next', '/'))
         else:
             messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
@@ -243,9 +333,14 @@ def save(request):
         action = request.POST.get('action', 'toggle')
         if action == 'remove' or (action == 'toggle' and saveditems.exists()):
             saveditems.delete()
+            saved = False
         elif action in ('save', 'toggle'):
             SavedItems.objects.get_or_create(**lookup)
-        return redirect(request.POST.get('next', '/'))
+            saved = True
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'ok', 'saved': saved})
+        return HttpResponse(status=204)
+    return redirect('/')
 
 @login_required(login_url='/login')
 def message(request):

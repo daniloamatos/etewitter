@@ -38,6 +38,6 @@ class RegisterForm(UserCreationForm):
 
     def clean_password1(self):
         password = self.cleaned_data.get('password1', '')
-        if len(password) <= 4:
-            raise forms.ValidationError('A senha precisa ter mais de 4 caracteres.')
+        if len(password) < 5:
+            raise forms.ValidationError('A senha precisa ter pelo menos 5 caracteres.')
         return password

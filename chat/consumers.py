@@ -54,7 +54,8 @@ class ChatConsumer(WebsocketConsumer):
                 'message':message,
                 'message_id': saved_message.pk,
                 'username':user.username,
-                'receiver':receiver.username
+                'receiver':receiver.username,
+                'time': timezone.localtime(saved_message.publishDate).strftime('%H:%M')
             }
         )
 
@@ -65,7 +66,8 @@ class ChatConsumer(WebsocketConsumer):
             'type':'chat',
             'message_id': event['message_id'],
             'message':message,
-            'username':user
+            'username':user,
+            'time': event.get('time') or timezone.localtime(timezone.now()).strftime('%H:%M')
         }))
 
     def save_message(self, message, user, receiver):

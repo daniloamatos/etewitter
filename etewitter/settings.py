@@ -101,7 +101,11 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'main.context_processors.unread_messages',
+                'main.context_processors.saved_items',
             ],
+            'libraries': {
+                'custom_filters': 'main.templatetags.custom_filters',
+            },
         },
     },
 ]

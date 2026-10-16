@@ -65,8 +65,8 @@ def changePass(request):
         if form.is_valid():
             if form.cleaned_data['senha'] != form.cleaned_data['confirme_sua_senha']:
                 form.add_error('confirme_sua_senha', 'As senhas não são identicas.')
-            elif len(form.cleaned_data['senha']) < 8:
-                form.add_error('senha', 'A senha precisa ter no minimo 8 caracteres.')
+            elif len(form.cleaned_data['senha']) < 5:
+                form.add_error('senha', 'A senha precisa ter no minimo 5 caracteres.')
             else:
                 user.password = make_password(form.cleaned_data['senha'])
                 user.save(update_fields=['password'])

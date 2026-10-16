@@ -12,7 +12,16 @@
                     link.querySelector('.unread-dot').hidden = !data.unread;
                     link.setAttribute('aria-label', data.unread ? 'Mensagens não lidas' : 'Mensagens');
                 });
+            } else if (data.type === 'unread_notifications') {
+                document.querySelectorAll('.notifications-nav').forEach((link) => {
+                    link.querySelector('.unread-dot').hidden = !data.unread;
+                    link.setAttribute('aria-label', data.unread ? 'Notificações não lidas' : 'Notificações');
+                });
             } else if (data.type === 'notification') {
+                document.querySelectorAll('.notifications-nav').forEach((link) => {
+                    link.querySelector('.unread-dot').hidden = false;
+                    link.setAttribute('aria-label', 'Notificações não lidas');
+                });
                 window.dispatchEvent(new CustomEvent('site-notification', {detail: data}));
             }
         };

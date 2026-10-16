@@ -2,7 +2,7 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from main.models import Message
+from main.models import Message, Notification
 from register.models import Usuario
 from django.db.models import Q
 from datetime import datetime
@@ -21,6 +21,7 @@ class NotificationConsumer(WebsocketConsumer):
         )
         self.accept()
         self.unread_messages({})
+        self.unread_notifications({})
 
     def new_notification(self,event):
         notification = event['notification']
@@ -36,6 +37,15 @@ class NotificationConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'type': 'unread_messages',
             'unread': Message.objects.filter(receiver=self.scope['user'], is_read=False).exists(),
+        }))
+
+    def unread_notifications(self, event):
+        unread = event.get('unread') if 'unread' in event else Notification.objects.filter(
+            user=self.scope['user'], is_read=False
+        ).exclude(linkzaocarai__startswith='messages/').exists()
+        self.send(text_data=json.dumps({
+            'type': 'unread_notifications',
+            'unread': unread,
         }))
 
     def disconnect(self, close_code):

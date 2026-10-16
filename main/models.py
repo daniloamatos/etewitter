@@ -2,6 +2,7 @@ from django.db import models
 from register.models import Usuario
 from django.core.validators import FileExtensionValidator
 from datetime import datetime
+from django.utils import timezone
 import random
 import os
 
@@ -124,3 +125,8 @@ class Notification(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notified")
     body = models.CharField(blank=False, max_length=250)
     linkzaocarai = models.CharField(blank=False, max_length=250)
+    notification_type = models.CharField(max_length=20, default='general')
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, null=True, blank=True)
+    reply = models.ForeignKey('Replys', on_delete=models.CASCADE, null=True, blank=True)
+    is_read = models.BooleanField(default=False, db_index=True)
+    publishDate = models.DateTimeField(default=timezone.now, blank=True)

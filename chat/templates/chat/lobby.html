@@ -7,12 +7,10 @@
 {{ user.id|json_script:"userid" }}
 {{ receiver.id|json_script:"receiverid" }}
 <section class="chat-page">
-    <div class="tweet-meta">{% include "main/profile_avatar.html" with person=receiver %}<a href="/{{ receiver.username }}/">{{ receiver.name }} @{{ receiver.username }}</a></div>
+    <div class="tweet-meta">{% include "main/profile_avatar.html" with person=receiver %}<a href="/{{ receiver.username }}/"><strong>{{ receiver.name|default:receiver.username }}</strong></a></div>
     <div id="messages" class="chat-messages">
         {% for message in chat_messages %}
-        <div class="chat-bubble {% if message.sender_id == user.id %}mine{% endif %}">
-            <small><a href="/{{ message.sender.username }}/">@{{ message.sender.username }}</a></small>{{ message.body }}
-        </div>
+        <div class="chat-bubble {% if message.sender_id == user.id %}mine{% endif %}"><span class="chat-bubble-text">{{ message.body }}</span><time class="chat-bubble-time">{{ message.publishDate|date:"H:i" }}</time></div>
         {% empty %}
         <div class="empty-state"><div class="empty-icon">✉</div><h2>Comece a conversa</h2><p>Envie uma mensagem para @{{ receiver.username }}.</p></div>
         {% endfor %}
@@ -48,10 +46,13 @@
             }
             const bubble = document.createElement('div');
             bubble.className = `chat-bubble ${data.username === user ? 'mine' : ''}`;
-            const author = document.createElement('a');
-            author.href = `/${encodeURIComponent(data.username)}/`;
-            author.textContent = `@${data.username}`;
-            bubble.append(author, document.createTextNode(`: ${data.message}`));
+            const textSpan = document.createElement('span');
+            textSpan.className = 'chat-bubble-text';
+            textSpan.textContent = data.message;
+            const timeEl = document.createElement('time');
+            timeEl.className = 'chat-bubble-time';
+            timeEl.textContent = data.time || new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            bubble.append(textSpan, timeEl);
             messages.querySelector('.empty-state')?.remove();
             messages.appendChild(bubble);
             messages.scrollTop = messages.scrollHeight;

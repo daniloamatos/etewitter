@@ -7,12 +7,12 @@
     {% if chat.sender_id == request.user.id %}
     <article class="conversation-item" data-card-url="/messages/{{ request.user.id }}-{{ chat.receiver.id }}" tabindex="0" role="link">
         {% include "main/profile_avatar.html" with person=chat.receiver %}
-        <div><a href="/{{ chat.receiver.username }}/"><strong>{{ chat.receiver.name }}</strong></a><br><a href="/{{ chat.receiver.username }}/">@{{ chat.receiver.username }}</a><br><a href="/messages/{{ request.user.id }}-{{ chat.receiver.id }}">Abrir conversa</a></div>
+        <div><a href="/{{ chat.receiver.username }}/"><strong>{{ chat.receiver.name }}</strong></a><br><a href="/{{ chat.receiver.username }}/">@{{ chat.receiver.username }}</a><br><a href="/messages/{{ request.user.id }}-{{ chat.receiver.id }}"></a></div>
     </article>
     {% else %}
     <article class="conversation-item" data-card-url="/messages/{{ request.user.id }}-{{ chat.sender.id }}" tabindex="0" role="link">
         {% include "main/profile_avatar.html" with person=chat.sender %}
-        <div><a href="/{{ chat.sender.username }}/"><strong>{{ chat.sender.name }}</strong></a><br><a href="/{{ chat.sender.username }}/">@{{ chat.sender.username }}</a><br><a href="/messages/{{ request.user.id }}-{{ chat.sender.id }}">Abrir conversa</a></div>
+        <div><a href="/{{ chat.sender.username }}/"><strong>{{ chat.sender.name }}</strong></a><br><a href="/{{ chat.sender.username }}/">@{{ chat.sender.username }}</a><br><a href="/messages/{{ request.user.id }}-{{ chat.sender.id }}"></a></div>
     </article>
     {% endif %}
     {% empty %}

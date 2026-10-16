@@ -1,8 +1,19 @@
-<form method="post" action="/save/" class="inline-form" onclick="event.stopPropagation()">
+<form method="post" action="/save/" class="inline-form">
     {% csrf_token %}
     <input type="hidden" name="content_type" value="{{ content_type|default:'tweet' }}">
     <input type="hidden" name="tweetid" value="{{ saved_tweet.id }}">
     <input type="hidden" name="next" value="{{ request.path }}">
-    <input type="hidden" name="action" value="{% if remove_saved %}remove{% else %}save{% endif %}">
-    <button class="tweet-action bookmark-action{% if remove_saved %} is-saved{% endif %}" type="submit" aria-label="{% if remove_saved %}Remover dos salvos{% else %}Salvar{% endif %}" title="{% if remove_saved %}Remover dos salvos{% else %}Salvar{% endif %}"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></button>
+    {% if content_type == 'reply' %}
+    {% if saved_tweet.id in saved_reply_ids %}
+    <button class="tweet-action bookmark-action is-saved" type="submit" aria-label="Remover dos salvos" title="Remover dos salvos"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></button>
+    {% else %}
+    <button class="tweet-action bookmark-action" type="submit" aria-label="Salvar" title="Salvar"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></button>
+    {% endif %}
+    {% else %}
+    {% if saved_tweet.id in saved_tweet_ids %}
+    <button class="tweet-action bookmark-action is-saved" type="submit" aria-label="Remover dos salvos" title="Remover dos salvos"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></button>
+    {% else %}
+    <button class="tweet-action bookmark-action" type="submit" aria-label="Salvar" title="Salvar"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg></button>
+    {% endif %}
+    {% endif %}
 </form>

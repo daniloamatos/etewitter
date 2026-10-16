@@ -1,5 +1,5 @@
 {% extends "main/template.html" %}
-{% load static %}
+{% load static custom_filters %}
 {% block title %}Página inicial · Etewitter{% endblock %}
 {% block content %}
 <section class="composer-card">
@@ -25,7 +25,7 @@
     <a href="/{{ Tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if Tweet.tweetAuthor.profilepic and Tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ Tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ Tweet.tweetAuthor.name }}"></a>
     <div class="tweet-body">
         {% if Tweet.retweet_by_name %}<div class="retweet-label">↻ <a href="/{{ Tweet.retweet_by_username }}/">{{ Tweet.retweet_by_name }}</a> retweetou</div>{% endif %}
-        <div class="tweet-meta"><a href="/{{ Tweet.tweetAuthor.username }}/"><strong>{{ Tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ Tweet.tweetAuthor.username }}/">@{{ Tweet.tweetAuthor.username }}</a><span>·</span><time>{{ Tweet.publishDate|date:"d M" }}</time></div>
+        <div class="tweet-meta"><a href="/{{ Tweet.tweetAuthor.username }}/"><strong>{{ Tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ Tweet.tweetAuthor.username }}/">@{{ Tweet.tweetAuthor.username }}</a><span>·</span><time>{{ Tweet.publishDate|smart_date }}</time></div>
         <a class="tweet-content" href="/{{ Tweet.tweetLink }}">{{ Tweet.tweet|linebreaksbr }}</a>
         {% if Tweet.image %}<img class="tweet-image" src="{{ Tweet.image.url }}" alt="Imagem do tweet">{% endif %}
         <div class="tweet-actions">

@@ -1,5 +1,5 @@
 {% extends "main/template.html" %}
-{% load static %}
+{% load static custom_filters %}
 {% block title %}Itens salvos · Etewitter{% endblock %}
 {% block header_title %}Itens salvos{% endblock %}
 {% block content %}
@@ -12,7 +12,7 @@
     <article data-card-url="/{{ item.tweetLink }}" tabindex="0" role="link" class="tweet-card">
         <a href="/{{ item.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if item.tweetAuthor.profilepic and item.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ item.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ item.tweetAuthor.name }}"></a>
         <div class="tweet-body">
-            <div class="tweet-meta"><a href="/{{ item.tweetAuthor.username }}/"><strong>{{ item.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ item.tweetAuthor.username }}/">@{{ item.tweetAuthor.username }}</a><span>·</span><time>{{ item.publishDate|date:"d M" }}</time></div>
+            <div class="tweet-meta"><a href="/{{ item.tweetAuthor.username }}/"><strong>{{ item.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ item.tweetAuthor.username }}/">@{{ item.tweetAuthor.username }}</a><span>·</span><time>{{ item.publishDate|smart_date }}</time></div>
             <a class="tweet-content" href="/{{ item.tweetLink }}">{{ item.tweet|linebreaksbr }}</a>
             {% if item.image %}<img class="tweet-image" src="{{ item.image.url }}" alt="Imagem do tweet">{% endif %}
             <div class="tweet-actions">
