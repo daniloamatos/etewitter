@@ -1,53 +1,54 @@
 {% extends "main/template.html" %}
-{% block title %}Configurações · Etewitter{% endblock %}
-{% block header_title %}Configurações{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Configurações" %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Configurações" %}{% endblock %}
 {% block content %}
 <section class="settings-page">
-    <h1>Editar perfil</h1>
-    <p class="settings-help">Atualize suas informações e personalize seu perfil.</p>
+    <h1>{% trans "Editar perfil" %}</h1>
+    <p class="settings-help">{% trans "Atualize suas informações e personalize seu perfil." %}</p>
     <form method="post" enctype="multipart/form-data" class="settings-form">
         {% csrf_token %}
         <div class="settings-field">
-            <label for="{{ form.profilepic.id_for_label }}">Foto de perfil</label>
+            <label for="{{ form.profilepic.id_for_label }}">{% trans "Foto de perfil" %}</label>
             <div class="image-picker">
-                <img class="profile-image-preview" id="profilepic-preview" src="{% if form.instance.profilepic and form.instance.profilepic.name != 'default/default_profile_400x400.png' %}{{ form.instance.profilepic.url }}{% else %}{{ default_profile_url }}{% endif %}" alt="Prévia da foto de perfil">
+                <img class="profile-image-preview" id="profilepic-preview" src="{% if form.instance.profilepic and form.instance.profilepic.name != 'default/default_profile_400x400.png' %}{{ form.instance.profilepic.url }}{% else %}{{ default_profile_url }}{% endif %}" alt="{% trans 'Prévia da foto de perfil' %}">
                 <div class="image-picker-controls">
-                    <label class="outline-button file-button" for="{{ form.profilepic.id_for_label }}" title="Formatos: JPG, PNG, GIF e WEBP · até 20 MB">Escolher foto</label>
+                    <label class="outline-button file-button" for="{{ form.profilepic.id_for_label }}" title="{% trans 'Formatos: JPG, PNG, GIF e WEBP · até 20 MB' %}">{% trans "Escolher foto" %}</label>
                     <input class="visually-hidden-file" type="file" name="profilepic" id="{{ form.profilepic.id_for_label }}" accept="image/jpeg,image/png,image/gif,image/webp" data-preview-target="profilepic-preview" data-max-size-mb="20">
-                    <label class="clear-choice"><input type="checkbox" name="profilepic-clear" id="profilepic-clear"> Remover foto</label>
+                    <label class="clear-choice"><input type="checkbox" name="profilepic-clear" id="profilepic-clear"> {% trans "Remover foto" %}</label>
                 </div>
             </div>
             <small class="field-error image-picker-error" hidden></small>
             {% for error in form.profilepic.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         </div>
         <div class="settings-field">
-            <label for="{{ form.bannerpic.id_for_label }}">Imagem de capa</label>
+            <label for="{{ form.bannerpic.id_for_label }}">{% trans "Imagem de capa" %}</label>
             <div class="image-picker">
-                <img class="banner-image-preview" id="bannerpic-preview" src="{% if form.instance.bannerpic and form.instance.bannerpic.name != 'default/default.banner.jpg' %}{{ form.instance.bannerpic.url }}{% else %}{{ default_banner_url }}{% endif %}" alt="Prévia da imagem de capa">
+                <img class="banner-image-preview" id="bannerpic-preview" src="{% if form.instance.bannerpic and form.instance.bannerpic.name != 'default/default.banner.jpg' %}{{ form.instance.bannerpic.url }}{% else %}{{ default_banner_url }}{% endif %}" alt="{% trans 'Prévia da imagem de capa' %}">
                 <div class="image-picker-controls">
-                    <label class="outline-button file-button" for="{{ form.bannerpic.id_for_label }}" title="Formatos: JPG, PNG, GIF e WEBP · até 50 MB">Escolher capa</label>
+                    <label class="outline-button file-button" for="{{ form.bannerpic.id_for_label }}" title="{% trans 'Formatos: JPG, PNG, GIF e WEBP · até 50 MB' %}">{% trans "Escolher capa" %}</label>
                     <input class="visually-hidden-file" type="file" name="bannerpic" id="{{ form.bannerpic.id_for_label }}" accept="image/jpeg,image/png,image/gif,image/webp" data-preview-target="bannerpic-preview" data-max-size-mb="50">
-                    <label class="clear-choice"><input type="checkbox" name="bannerpic-clear" id="bannerpic-clear"> Remover capa</label>
+                    <label class="clear-choice"><input type="checkbox" name="bannerpic-clear" id="bannerpic-clear"> {% trans "Remover capa" %}</label>
                 </div>
             </div>
             <small class="field-error image-picker-error" hidden></small>
             {% for error in form.bannerpic.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         </div>
         <div class="settings-field">
-            <label for="{{ form.name.id_for_label }}">Nome</label>
+            <label for="{{ form.name.id_for_label }}">{% trans "Nome" %}</label>
             {{ form.name }}
             {% for error in form.name.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         </div>
         <div class="settings-field">
-            <label for="{{ form.bio.id_for_label }}">Bio</label>
+            <label for="{{ form.bio.id_for_label }}">{% trans "Bio" %}</label>
             {{ form.bio }}
             {% for error in form.bio.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         </div>
-        <button class="primary-button" type="submit">Salvar alterações</button>
+        <button class="primary-button" type="submit">{% trans "Salvar alterações" %}</button>
     </form>
     <div class="settings-links">
-        <a href="/changepassword/">Mudar senha <span>›</span></a>
-        <a href="/changeusername/">Mudar nome de usuário <span>›</span></a>
+        <a href="/changepassword/">{% trans "Mudar senha" %} <span>›</span></a>
+        <a href="/changeusername/">{% trans "Mudar nome de usuário" %} <span>›</span></a>
     </div>
 </section>
 {% endblock %}
@@ -55,6 +56,10 @@
 <script>
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+const IMAGE_ERRORS = {
+    format: '{% trans "Formato não suportado. Use JPG, PNG, GIF ou WEBP." %}',
+    size: '{% trans "A imagem é grande demais. O limite é de {limit} MB." %}',
+};
 document.querySelectorAll(".visually-hidden-file[data-preview-target]").forEach((input) => {
     const field = input.closest('.settings-field');
     const errorBox = field ? field.querySelector('.image-picker-error') : null;
@@ -65,11 +70,11 @@ document.querySelectorAll(".visually-hidden-file[data-preview-target]").forEach(
         if (file) {
             const ext = (file.name.split('.').pop() || '').toLowerCase();
             if (!ALLOWED_IMAGE_TYPES.includes(file.type) && !ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
-                error = 'Formato não suportado. Use JPG, PNG, GIF ou WEBP.';
+                error = IMAGE_ERRORS.format;
             } else {
                 const maxMb = parseInt(input.dataset.maxSizeMb, 10) || 0;
                 if (file.size > maxMb * 1024 * 1024) {
-                    error = `A imagem tem ${(file.size / 1048576).toFixed(1)} MB. O limite é ${maxMb} MB.`;
+                    error = IMAGE_ERRORS.size.replace('{limit}', maxMb);
                 }
             }
         }

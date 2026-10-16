@@ -1,30 +1,35 @@
 {% extends "main/template.html" %}
-{% block title %}Mensagem para @{{ receiver.username }} · Etewitter{% endblock %}
-{% block header_title %}Mensagens{% endblock %}
+{% load static i18n %}
+{% block title %}{% blocktrans with handle=receiver.username %}Mensagem para @{{ handle }}{% endblocktrans %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Mensagens" %}{% endblock %}
 {% block content %}
 {{ user.username|json_script:"user" }}
 {{ receiver.username|json_script:"receiver" }}
 {{ user.id|json_script:"userid" }}
 {{ receiver.id|json_script:"receiverid" }}
+{{ receiver.public_key|default:""|json_script:"receiverkey" }}
 <section class="chat-page">
-    <div class="tweet-meta">{% include "main/profile_avatar.html" with person=receiver %}<a href="/{{ receiver.username }}/"><strong>{{ receiver.name|default:receiver.username }}</strong></a></div>
+    <div class="tweet-meta">{% include "main/profile_avatar.html" with person=receiver %}<a href="/{{ receiver.username }}/"><strong>{{ receiver.name|default:receiver.username }}</strong></a><span class="chat-e2e-badge" title="{% trans 'Mensagens cifradas ponta-a-ponta' %}">🔒 {% trans "ponta-a-ponta" %}</span></div>
+    <p class="chat-crypto-notice" id="chat-crypto-notice" hidden></p>
     <div id="messages" class="chat-messages">
         {% for message in chat_messages %}
-        <div class="chat-bubble {% if message.sender_id == user.id %}mine{% endif %}">{% if message.image %}<img class="chat-bubble-image" src="{{ message.image.url }}" alt="Imagem da mensagem">{% endif %}{% if message.body %}<span class="chat-bubble-text">{{ message.body }}</span>{% endif %}<time class="chat-bubble-time">{{ message.publishDate|date:"H:i" }}</time></div>
+        <div class="chat-bubble {% if message.sender_id == user.id %}mine{% endif %}">{% if message.image %}<img class="chat-bubble-image" src="{{ message.image.url }}" alt="{% trans 'Imagem da mensagem' %}">{% endif %}{% if message.body %}{% if message.body|slice:':3' == 'e1:' %}<span class="chat-bubble-text" data-cipher="{{ message.body }}"></span>{% else %}<span class="chat-bubble-text">{{ message.body }}</span>{% endif %}{% endif %}<time class="chat-bubble-time">{{ message.publishDate|date:"H:i" }}</time></div>
         {% empty %}
-        <div class="empty-state"><div class="empty-icon">✉</div><h2>Comece a conversa</h2><p>Envie uma mensagem para @{{ receiver.username }}.</p></div>
+        <div class="empty-state"><div class="empty-icon">✉</div><h2>{% trans "Comece a conversa" %}</h2><p>{% blocktrans with handle=receiver.username %}Envie uma mensagem para @{{ handle }}.{% endblocktrans %}</p></div>
         {% endfor %}
     </div>
     <form id="form" class="chat-form" enctype="multipart/form-data">
         <div class="composer-preview" hidden>
-            <img alt="Prévia da imagem selecionada">
-            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="Remover imagem">✕</button>
+            <img alt="{% trans 'Prévia da imagem selecionada' %}">
+            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="{% trans 'Remover imagem' %}">✕</button>
         </div>
         <div class="chat-form-row">
-            <label class="media-button" for="chat-image" title="Formatos: JPG, PNG, GIF e WEBP · até 5 MB"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>Foto</span></label>
+            <div class="input-media">
+                <input type="text" name="message" aria-label="{% trans 'Mensagem' %}" maxlength="250" placeholder="{% trans 'Escreva uma mensagem...' %}" autocomplete="off">
+                <label class="media-button input-media-button" for="chat-image" title="{% trans 'Formatos: JPG, PNG, GIF e WEBP · até 5 MB' %}" aria-label="{% trans 'Anexar foto' %}"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg></label>
+            </div>
             <input type="file" id="chat-image" name="image" accept="image/jpeg,image/png,image/gif,image/webp">
-            <input type="text" name="message" aria-label="Mensagem" maxlength="250" placeholder="Escreva uma mensagem..." autocomplete="off">
-            <button class="primary-button" type="submit">Enviar</button>
+            <button class="primary-button" type="submit">{% trans "Enviar" %}</button>
         </div>
     </form>
 </section>
@@ -35,18 +40,148 @@
     const receiver = JSON.parse(document.getElementById('receiver').textContent);
     const userid = JSON.parse(document.getElementById('userid').textContent);
     const receiverid = JSON.parse(document.getElementById('receiverid').textContent);
+    const receiverKey = JSON.parse(document.getElementById('receiverkey').textContent);
     const chatSocket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/messages/${userid}-${receiverid}/`);
     const messages = document.getElementById('messages');
     const form = document.getElementById('form');
     const imageInput = document.getElementById('chat-image');
-    let lastReceivedId = 0;
+    const cryptoNotice = document.getElementById('chat-crypto-notice');
+    const STRINGS = {
+        notice: '{% trans "A criptografia ponta-a-ponta ainda não está ativa com este contato. Peça para a pessoa abrir o Etewitter para publicar a chave dela." %}',
+        notReady: '{% trans "A criptografia ponta-a-ponta ainda não está ativa para esta conversa." %}',
+        protectedMessage: '{% trans "🔒 mensagem protegida" %}',
+        protectedImage: '{% trans "Imagem protegida" %}',
+        imageAlt: '{% trans "Imagem da mensagem" %}',
+        loading: '{% trans "Decifrando…" %}',
+    };
+    let lastReadThrough = null;
+    let sessionKey = null;
+    let cryptoReady = false;
+
     function acknowledgeMessages() {
-        if (lastReceivedId && document.visibilityState === 'visible' && chatSocket.readyState === WebSocket.OPEN) {
-            chatSocket.send(JSON.stringify({type: 'read', through_id: lastReceivedId}));
+        if (lastReadThrough && document.visibilityState === 'visible' && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({type: 'read', through: lastReadThrough}));
         }
     }
     document.addEventListener('visibilitychange', acknowledgeMessages);
     window.addEventListener('focus', acknowledgeMessages);
+
+    // ---- Criptografia ponta-a-ponta -----------------------------------------
+    async function refreshSessionKey(forceFetch) {
+        if (!window.E2E) return false;
+        // Usa a chave já renderizada na página (sem round-trip). Só busca no
+        // servidor se ela não veio ou se pedirmos explicitamente (rotação).
+        let peerKey = forceFetch ? '' : receiverKey;
+        if (!peerKey) {
+            try {
+                const response = await fetch(`/messages/keys/${receiverid}/`, {credentials: 'same-origin'});
+                if (response.ok) peerKey = (await response.json()).public_key;
+            } catch (err) { /* sem chave ainda */ }
+        }
+        if (!peerKey) peerKey = receiverKey;
+        sessionKey = peerKey ? await window.E2E.sessionKeyFor(peerKey) : null;
+        return Boolean(sessionKey);
+    }
+
+    // Uma tentativa de carregar a chave por vez (evita um fetch por bolha).
+    let sessionKeyPromise = null;
+    function loadSessionKey(forceFetch) {
+        if (sessionKey && !forceFetch) return Promise.resolve(true);
+        if (!sessionKeyPromise) {
+            sessionKeyPromise = refreshSessionKey(forceFetch).finally(() => { sessionKeyPromise = null; });
+        }
+        return sessionKeyPromise;
+    }
+
+    function showCryptoNotice() {
+        if (cryptoNotice && cryptoNotice.hidden) {
+            cryptoNotice.textContent = STRINGS.notice;
+            cryptoNotice.hidden = false;
+        }
+    }
+    function hideCryptoNotice() {
+        if (cryptoNotice && !cryptoNotice.hidden) cryptoNotice.hidden = true;
+    }
+
+    async function initCrypto() {
+        // A chave pública do contato pode ainda não ter sido publicada (ele
+        // precisa abrir o Etewitter ao menos uma vez). Não travamos a tela por
+        // causa disso: seguimos renderizando e retomamos em segundo plano.
+        if (await loadSessionKey()) {
+            cryptoReady = true;
+            window.__chatCryptoReady = true;
+            hideCryptoNotice();
+            return true;
+        }
+        showCryptoNotice();
+        return false;
+    }
+
+    // Re-tenta carregar a chave do contato sem bloquear a renderização.
+    function scheduleCryptoRetry() {
+        let attempts = 0;
+        const tick = async () => {
+            if (sessionKey) return;
+            if (await loadSessionKey()) {
+                cryptoReady = true;
+                window.__chatCryptoReady = true;
+                hideCryptoNotice();
+                await decryptAllBubbles();
+                return;
+            }
+            attempts += 1;
+            if (attempts < 20) setTimeout(tick, 1500);
+        };
+        setTimeout(tick, 500);
+    }
+
+    // Guarda o texto original (cifrado) para poder tentar de novo depois.
+    const originalText = new Map();
+
+    async function renderBubble(bubble) {
+        const textEl = bubble.querySelector('.chat-bubble-text');
+        if (textEl && window.E2E) {
+            const original = originalText.has(textEl) ? originalText.get(textEl) : (textEl.dataset.cipher || textEl.textContent || '');
+            originalText.set(textEl, original);
+            if (!original || !original.startsWith(window.E2E.textPrefix)) {
+                // Texto puro (legado) ou mensagem só com imagem.
+                textEl.textContent = original;
+            } else if (!sessionKey && !(await loadSessionKey())) {
+                // Ainda sem a chave do contato: não exibe o blob cifrado.
+                textEl.textContent = STRINGS.loading;
+            } else {
+                const plain = await window.E2E.decryptText(sessionKey, original);
+                textEl.dataset.failed = plain === null ? '1' : '';
+                textEl.textContent = plain === null ? STRINGS.protectedMessage : plain;
+            }
+        }
+        const img = bubble.querySelector('.chat-bubble-image');
+        if (img && sessionKey && /\.enc(\?|$)/.test(img.src)) {
+            try {
+                const buffer = await (await fetch(img.src)).arrayBuffer();
+                const plain = await window.E2E.decryptBytes(sessionKey, buffer);
+                img.src = URL.createObjectURL(new Blob([plain]));
+            } catch (err) {
+                img.alt = STRINGS.protectedImage;
+                img.removeAttribute('src');
+            }
+        }
+    }
+
+    async function decryptAllBubbles() {
+        const bubbleEls = [...messages.querySelectorAll('.chat-bubble')];
+        await Promise.all(bubbleEls.map(renderBubble));
+        // Se alguma falhou, a chave do contato pode ter mudado: atualiza e tenta
+        // decifrar de novo (uma única vez).
+        const anyFailed = bubbleEls.some((b) => {
+            const t = b.querySelector('.chat-bubble-text');
+            return t && t.dataset.failed === '1';
+        });
+        if (anyFailed && await loadSessionKey(true)) {
+            await Promise.all(bubbleEls.map(renderBubble));
+        }
+    }
+
     function appendBubble(username, text, time, imageUrl) {
         const bubble = document.createElement('div');
         bubble.className = `chat-bubble ${username === user ? 'mine' : ''}`;
@@ -54,13 +189,13 @@
             const img = document.createElement('img');
             img.className = 'chat-bubble-image';
             img.src = imageUrl;
-            img.alt = 'Imagem da mensagem';
+            img.alt = STRINGS.imageAlt;
             bubble.appendChild(img);
         }
         if (text) {
             const textSpan = document.createElement('span');
             textSpan.className = 'chat-bubble-text';
-            textSpan.textContent = text;
+            textSpan.dataset.cipher = text;
             bubble.appendChild(textSpan);
         }
         const timeEl = document.createElement('time');
@@ -70,12 +205,14 @@
         messages.querySelector('.empty-state')?.remove();
         messages.appendChild(bubble);
         messages.scrollTop = messages.scrollHeight;
+        renderBubble(bubble);
     }
+
     chatSocket.onmessage = function (event) {
         const data = JSON.parse(event.data);
         if (data.type === 'chat') {
             if (data.username !== user) {
-                lastReceivedId = data.message_id;
+                lastReadThrough = data.published;
                 acknowledgeMessages();
             }
             appendBubble(data.username, data.message, data.time, data.image);
@@ -100,22 +237,47 @@
         const text = input.value.trim();
         const file = imageInput && imageInput.files && imageInput.files[0];
         if (!text && !file) return;
+        if (!cryptoReady) {
+            showChatError(STRINGS.notReady);
+            return;
+        }
         const reset = () => {
             input.value = '';
             imageInput.value = '';
             imageInput.dispatchEvent(new Event('change'));
         };
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                chatSocket.send(JSON.stringify({message: text, image: reader.result, username: user, receiver}));
-                reset();
-            };
-            reader.readAsDataURL(file);
-        } else {
-            chatSocket.send(JSON.stringify({message: text, username: user, receiver}));
+        (async () => {
+            await loadSessionKey();
+            if (!sessionKey) {
+                showChatError(STRINGS.notReady);
+                return;
+            }
+            const payload = {username: user, receiver};
+            if (text) payload.message = await window.E2E.encryptText(sessionKey, text);
+            if (file) {
+                const bytes = await file.arrayBuffer();
+                const encrypted = await window.E2E.encryptBytes(sessionKey, bytes);
+                payload.image = window.E2E.toBase64(encrypted);
+            }
+            chatSocket.send(JSON.stringify(payload));
             reset();
-        }
+        })();
     });
+
+    function startChatCrypto() {
+        (async () => {
+            await initCrypto();
+            await decryptAllBubbles();
+            messages.scrollTop = messages.scrollHeight;
+            if (!cryptoReady) scheduleCryptoRetry();
+        })();
+    }
+    // Precisa esperar o DOMContentLoaded: o e2e.js é "defer" e só roda depois do
+    // parse, então neste ponto (script inline) window.E2E ainda não existe.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startChatCrypto);
+    } else {
+        startChatCrypto();
+    }
 </script>
 {% endblock %}

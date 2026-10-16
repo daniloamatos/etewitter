@@ -1,9 +1,11 @@
 import io
 import tempfile
+from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from PIL import Image
 
 from main.image_utils import (
@@ -11,7 +13,7 @@ from main.image_utils import (
     validate_image_size,
     validate_profile_image_size,
 )
-from main.models import Follower, Replys, SavedItems, Tweet
+from main.models import Follower, ReplyRetweet, Replys, SavedItems, Tweet, TweetRetweet
 from register.models import Usuario
 
 
@@ -41,6 +43,125 @@ class CoreFlowTests(TestCase):
             usernameinsensitive='THIRD',
             is_active=True,
         )
+
+    def test_notifications_are_ordered_by_occurrence_time(self):
+        from main.models import Notification
+
+        now = timezone.now()
+        older = Notification.objects.create(
+            user=self.user, actor=self.other, body='Aviso antigo',
+            linkzaocarai='other/', publishDate=now - timedelta(days=1),
+        )
+        newer = Notification.objects.create(
+            user=self.user, actor=self.third, body='Aviso novo',
+            linkzaocarai='third/', publishDate=now,
+        )
+        self.client.force_login(self.user)
+        response = self.client.get('/notifications/')
+        html = response.content.decode()
+        self.assertLess(html.index(f'data-notification-id="{newer.pk}"'),
+                        html.index(f'data-notification-id="{older.pk}"'))
+
+    def test_mention_suggestions_only_include_followed_matching_accounts(self):
+        Follower.objects.create(follower=self.user, following=self.other)
+        self.client.force_login(self.user)
+
+        self.assertEqual(
+            [user['username'] for user in self.client.get('/mention-suggestions/', {'q': '@oth'}).json()['users']],
+            ['other'],
+        )
+        self.assertEqual(
+            [user['username'] for user in self.client.get('/mention-suggestions/', {'q': ''}).json()['users']],
+            ['other'],
+        )
+        self.assertEqual(self.client.get('/mention-suggestions/', {'q': 'third'}).json()['users'], [])
+        self.assertContains(self.client.get('/search/', {'query': '@other'}), '/other/')
+
+    def test_mentions_multiple_handles_and_safe_rendering(self):
+        from main.models import Notification
+        from main.templatetags.custom_filters import render_mentions
+        self.client.force_login(self.user)
+        body = '<script>alert(1)</script> @OTHER, @other! @third @tester @missinguser email@other @other_invalid'
+        self.client.post('/', {'tweet': body})
+        post = Tweet.objects.get(tweetAuthor=self.user)
+        self.assertEqual(set(post.mentions.all()), {self.user, self.other, self.third})
+        self.assertEqual(Notification.objects.filter(notification_type='mention').count(), 2)
+        rendered = render_mentions(body)
+        self.assertIn('&lt;script&gt;', rendered)
+        self.assertNotIn('<script>', rendered)
+        self.assertEqual(rendered.count('href="/other/"'), 2)
+        self.assertIn('email@other @other_invalid', rendered)
+        response = self.client.get('/' + post.tweetLink)
+        self.assertContains(response, 'class="profile-handle-link mention-link"')
+        self.assertNotContains(response, '<a class="tweet-content')
+
+    def test_mentioned_users_receive_post_interactions(self):
+        from main.models import Notification
+        self.client.force_login(self.user)
+        self.client.post('/', {'tweet': 'Hello @other @tester'})
+        post = Tweet.objects.get(tweetAuthor=self.user)
+        Notification.objects.all().delete()
+        self.client.force_login(self.third)
+        for endpoint, kind in [('like', 'like'), ('retweet', 'retweet')]:
+            self.client.post('/tester/' + endpoint + '/', {'tweetid': str(post.pk)})
+            self.assertEqual(set(Notification.objects.filter(notification_type=kind).values_list('user_id', flat=True)), {self.user.pk, self.other.pk})
+            self.client.post('/tester/' + endpoint + '/', {'tweetid': str(post.pk)})
+            self.assertEqual(Notification.objects.filter(notification_type=kind).count(), 2)
+        self.client.post('/third/status/reply', {'tweetid': str(post.pk), 'body': 'Reply @other'})
+        child = Replys.objects.get(tweet=post)
+        self.assertEqual(Notification.objects.filter(reply=child, user=self.other).count(), 1)
+        self.assertEqual(Notification.objects.get(reply=child, user=self.other).notification_type, 'mention')
+        self.client.force_login(self.other)
+        response = self.client.get('/notifications/')
+        self.assertContains(response, 'curtiu uma publicação em que você foi mencionado')
+
+    def test_nested_mentions_and_profile_composer(self):
+        from main.models import Notification
+        self.client.force_login(self.user)
+        self.client.post('/tester/', {'tweet': 'Profile @other'})
+        root = Tweet.objects.get(tweetAuthor=self.user)
+        self.assertTrue(root.mentions.filter(pk=self.other.pk).exists())
+        self.client.post('/tester/status/reply', {'tweetid': str(root.pk), 'body': 'First'})
+        parent = Replys.objects.get(tweet=root)
+        self.client.post('/tester/status/reply', {'tweetid': str(parent.pk), 'content_type': 'reply', 'body': 'Child @third!'})
+        child = Replys.objects.exclude(pk=parent.pk).get()
+        self.assertTrue(child.mentions.filter(pk=self.third.pk).exists())
+        self.assertEqual(Notification.objects.filter(user=self.third, reply=child, notification_type='mention').count(), 1)
+        self.client.force_login(self.other)
+        self.client.post('/likereply/', {'replyid': str(child.pk)})
+        self.client.post('/other/retweet-reply/', {'replyid': str(child.pk)})
+        for kind in ['like', 'retweet']:
+            self.assertTrue(Notification.objects.filter(user=self.third, reply=child, notification_type=kind).exists())
+        self.client.post('/other/status/reply', {'tweetid': str(child.pk), 'content_type': 'reply', 'body': 'Grandchild'})
+        grandchild = Replys.objects.get(body='Grandchild')
+        self.assertTrue(Notification.objects.filter(user=self.third, reply=grandchild, notification_type='reply').exists())
+        self.assertFalse(Notification.objects.filter(user=self.other, actor=self.other).exists())
+
+    def test_profile_preview_and_follows_you(self):
+        self.other.bio = 'Sobre esta pessoa'
+        self.other.save(update_fields=['bio'])
+        Follower.objects.create(follower=self.other, following=self.user)
+        self.client.force_login(self.user)
+
+        response = self.client.get('/profile-preview/other/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['bio'], 'Sobre esta pessoa')
+        self.assertTrue(response.json()['follows_you'])
+        self.assertFalse(response.json()['is_following'])
+        badge = '<p class="profile-follows-you">Segue você</p>'
+        self.assertContains(self.client.get('/other/'), badge)
+        self.assertNotContains(self.client.get('/third/'), badge)
+
+        response = self.client.post('/follow/', {'userP': str(self.other.pk)},
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.json()['following'], True)
+        self.assertEqual(response.json()['followers'], 1)
+        self.assertTrue(self.client.get('/profile-preview/other/').json()['is_following'])
+
+        response = self.client.post('/follow/', {'userP': str(self.other.pk)},
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.json()['following'], False)
+        self.assertEqual(response.json()['followers'], 0)
 
     def test_login_accepts_username_case_insensitively(self):
         response = self.client.post(
@@ -154,6 +275,58 @@ class CoreFlowTests(TestCase):
         self.assertEqual(response.status_code, 204)
         self.assertTrue(reply.retweets.filter(pk=self.user.pk).exists())
 
+    def test_tweet_retweet_uses_retweet_time_in_home_timeline(self):
+        old = Tweet.objects.create(tweetAuthor=self.third, tweet='Post antigo')
+        recent = Tweet.objects.create(tweetAuthor=self.other, tweet='Post recente')
+        now = timezone.now()
+        Tweet.objects.filter(pk=old.pk).update(publishDate=now - timedelta(days=3))
+        Tweet.objects.filter(pk=recent.pk).update(publishDate=now - timedelta(hours=1))
+        Follower.objects.create(follower=self.user, following=self.other)
+        self.client.force_login(self.other)
+        self.client.post('/other/retweet/', {'tweetid': old.pk})
+        event = TweetRetweet.objects.get(tweet=old, user=self.other)
+        self.assertGreater(event.created_at, recent.publishDate)
+
+        self.client.force_login(self.user)
+        timeline = self.client.get('/').context['timeline']
+        self.assertEqual([item.pk for item in timeline[:2]], [old.pk, recent.pk])
+        self.assertEqual(timeline[0].retweet_by_username, 'other')
+        self.assertEqual(timeline[0].timeline_date, event.created_at)
+        self.assertEqual(timeline[0].publishDate.date(), (now - timedelta(days=3)).date())
+
+    def test_reply_retweet_uses_retweet_time_in_profile_timeline(self):
+        root = Tweet.objects.create(tweetAuthor=self.third, tweet='Raiz')
+        reply = Replys.objects.create(user=self.third, tweet=root, body='Resposta antiga')
+        recent = Tweet.objects.create(tweetAuthor=self.other, tweet='Post recente')
+        now = timezone.now()
+        Replys.objects.filter(pk=reply.pk).update(publishDate=now - timedelta(days=3))
+        Tweet.objects.filter(pk=recent.pk).update(publishDate=now - timedelta(hours=1))
+        self.client.force_login(self.other)
+        self.client.post('/other/retweet-reply/', {'replyid': reply.pk})
+        event = ReplyRetweet.objects.get(reply=reply, user=self.other)
+
+        timeline = self.client.get('/other/').context['timeline']
+        self.assertEqual([item.pk for item in timeline[:2]], [reply.pk, recent.pk])
+        self.assertEqual(timeline[0].timeline_date, event.created_at)
+
+    def test_each_retweet_is_a_separate_event_and_reposting_gets_new_time(self):
+        tweet = Tweet.objects.create(tweetAuthor=self.user, tweet='Compartilhado')
+        tweet.retweets.add(self.other, self.third)
+        old_time = timezone.now() - timedelta(days=2)
+        TweetRetweet.objects.filter(tweet=tweet, user=self.other).update(created_at=old_time)
+        Follower.objects.create(follower=self.user, following=self.other)
+        Follower.objects.create(follower=self.user, following=self.third)
+        self.client.force_login(self.user)
+        timeline = self.client.get('/').context['timeline']
+        retweets = [item for item in timeline if getattr(item, 'retweet_by_username', None)]
+        self.assertEqual([item.retweet_by_username for item in retweets], ['third', 'other'])
+
+        self.client.force_login(self.other)
+        self.client.post('/other/retweet/', {'tweetid': tweet.pk})
+        self.assertFalse(TweetRetweet.objects.filter(tweet=tweet, user=self.other).exists())
+        self.client.post('/other/retweet/', {'tweetid': tweet.pk})
+        self.assertGreater(TweetRetweet.objects.get(tweet=tweet, user=self.other).created_at, old_time)
+
     def test_retweeted_tweet_appears_on_retweeter_profile(self):
         tweet = Tweet.objects.create(
             tweetAuthor=self.third,
@@ -167,7 +340,7 @@ class CoreFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Original que foi retweetado')
-        self.assertContains(response, '<a href="/other/">Other</a> retweetou')
+        self.assertContains(response, 'href="/other/">@other</a> repostou')
 
     def test_retweeted_tweet_appears_in_followers_feed(self):
         tweet = Tweet.objects.create(
@@ -183,7 +356,7 @@ class CoreFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Tweet distribuído pelo retweet')
-        self.assertContains(response, '<a href="/other/">Other</a> retweetou')
+        self.assertContains(response, 'href="/other/">@other</a> repostou')
 
     def test_reply_like_toggles_without_redirect(self):
         tweet = Tweet.objects.create(tweetAuthor=self.other, tweet='Pai')
@@ -501,7 +674,7 @@ class CoreFlowTests(TestCase):
         for url in ('/', '/other/'):
             response = self.client.get(url)
             self.assertContains(response, reply.body)
-            self.assertContains(response, '<a href="/other/">Other</a> retweetou')
+            self.assertContains(response, 'href="/other/">@other</a> repostou')
             self.assertContains(response, f'href="/{reply.replyLink}"')
             self.assertNotContains(response, 'Seu feed está vazio')
             self.assertNotContains(response, 'Nenhum tweet ainda')
@@ -528,10 +701,10 @@ class CoreFlowTests(TestCase):
         self.assertNotContains(response, 'A4.8 4.8 0 0 0 12 6')
         self.assertContains(response, 'action="/save/"')
 
-    def test_child_save_and_report_target_the_child_when_ids_overlap(self):
+    def test_child_save_and_report_target_the_child_not_the_root(self):
         from main.models import Report
-        root = Tweet.objects.create(id=900, tweetAuthor=self.other, tweet='Raiz exclusiva', tweetLink='other/status/root900')
-        child = Replys.objects.create(id=900, tweet=root, user=self.third, body='Filho exclusivo', replyLink='third/status/child900')
+        root = Tweet.objects.create(tweetAuthor=self.other, tweet='Raiz exclusiva', tweetLink='other/status/root-unico')
+        child = Replys.objects.create(tweet=root, user=self.third, body='Filho exclusivo', replyLink='third/status/child-unico')
         self.client.force_login(self.user)
         data = {'content_type': 'reply', 'tweetid': child.pk, 'action': 'save'}
         self.client.post('/save/', data)
@@ -551,7 +724,7 @@ class CoreFlowTests(TestCase):
         self.assertTrue(SavedItems.objects.filter(user=self.user, reply=child).exists())
         self.client.force_login(self.third)
         self.client.post('/delete/', {'content_type': 'reply', 'tweetid': child.pk})
-        self.assertFalse(SavedItems.objects.filter(reply_id=900).exists())
+        self.assertFalse(SavedItems.objects.filter(reply=child).exists())
         self.assertTrue(Tweet.objects.filter(pk=root.pk).exists())
 
     def test_saved_child_is_deleted_when_root_is_deleted(self):
@@ -589,6 +762,154 @@ class CoreFlowTests(TestCase):
         self.assertContains(response, 'href="/other/"')
         self.assertContains(response, 'alt="Foto de Other"')
         self.assertContains(response, 'data-card-url="/other/status/mention"')
+
+    def test_mention_notifications_show_actor_date_and_content_without_extra_label(self):
+        from main.models import Notification
+        root = Tweet.objects.create(
+            tweetAuthor=self.other, tweet='Post com @tester',
+            tweetLink='other/status/mention-post',
+        )
+        reply = Replys.objects.create(
+            user=self.other, tweet=root, body='Resposta com @tester',
+            replyLink='other/status/mention-reply',
+        )
+        self.client.force_login(self.user)
+        for post, text in ((root, root.tweet), (reply, reply.body)):
+            notice = Notification.objects.create(
+                user=self.user, actor=self.other, notification_type='mention',
+                body='Other te mencionou',
+                linkzaocarai=post.replyLink if isinstance(post, Replys) else post.tweetLink,
+                tweet=root, reply=post if isinstance(post, Replys) else None,
+            )
+            with self.subTest(post=post):
+                html = self.client.get(f'/notifications/{notice.pk}/').content.decode()
+                self.assertIn(text.split(' @')[0], html)
+                self.assertIn('@other</a><span class="notification-date-separator"', html)
+                self.assertEqual(html.count('<time '), 1)
+                self.assertNotIn('notification-icon', html)
+                self.assertNotIn('notification-reply-context', html)
+                self.assertNotIn('notification-text', html)
+                self.assertNotIn('te mencionou', html)
+
+    def test_notification_post_content_and_actions_use_site_order(self):
+        from main.models import Notification
+        root = Tweet.objects.create(tweetAuthor=self.user, tweet='Texto do tweet', tweetLink='tester/status/notification-root')
+        reply = Replys.objects.create(user=self.other, tweet=root, body='Texto da resposta', replyLink='other/status/notification-reply')
+        tweet_notice = Notification.objects.create(
+            user=self.user, actor=self.other, notification_type='like',
+            body='curtiu', linkzaocarai=root.tweetLink, tweet=root,
+        )
+        reply_notice = Notification.objects.create(
+            user=self.user, actor=self.other, notification_type='reply',
+            body='respondeu', linkzaocarai=reply.replyLink, reply=reply,
+        )
+        self.client.force_login(self.user)
+        for notice, content, kind in (
+            (tweet_notice, 'Texto do tweet', 'tweet'),
+            (reply_notice, 'Texto da resposta', 'reply'),
+        ):
+            with self.subTest(kind=kind):
+                response = self.client.get(f'/notifications/{notice.pk}/')
+                self.assertEqual(response.status_code, 200)
+                html = response.content.decode()
+                self.assertIn(content, html)
+                self.assertNotIn('notification-target"', html)
+                self.assertLess(html.index('aria-label="Responder"'), html.index('aria-label="Retweetar"'))
+                self.assertLess(html.index('aria-label="Retweetar"'), html.index('aria-label="Curtir"'))
+                self.assertLess(html.index('aria-label="Curtir"'), html.index('aria-label="Salvar"'))
+                self.assertIn(f'name="content_type" value="{kind}"', html)
+
+        self.assertContains(self.client.get('/notifications/'), 'notification-post-text')
+        self.client.force_login(self.third)
+        self.assertEqual(self.client.get(f'/notifications/{tweet_notice.pk}/').status_code, 404)
+
+    def test_like_and_retweet_notifications_show_compact_actor_and_target(self):
+        from main.models import Notification
+        tweet = Tweet.objects.create(
+            tweetAuthor=self.user, tweet='Texto do post', tweetLink='tester/status/text-post',
+        )
+        reply = Replys.objects.create(
+            user=self.user, tweet=tweet, body='', image='notifications/reply.jpg',
+            replyLink='tester/status/photo-reply',
+        )
+        like_notice = Notification.objects.create(
+            user=self.user, actor=self.other, notification_type='like',
+            body='curtiu', linkzaocarai=tweet.tweetLink, tweet=tweet,
+        )
+        retweet_notice = Notification.objects.create(
+            user=self.user, actor=self.third, notification_type='retweet',
+            body='retweetou', linkzaocarai=reply.replyLink, reply=reply,
+        )
+        self.client.force_login(self.user)
+        self.client.cookies['django_language'] = 'en-us'
+
+        like_html = self.client.get(f'/notifications/{like_notice.pk}/').content.decode()
+        self.assertIn('liked your post', like_html)
+        self.assertIn('notification-activity-avatar', like_html)
+        self.assertIn('profile-avatar-link notification-activity-avatar-link', like_html)
+        self.assertIn('notification-post-text', like_html)
+        self.assertIn('Texto do post', like_html)
+        self.assertIn('<time datetime=', like_html)
+
+        retweet_html = self.client.get(f'/notifications/{retweet_notice.pk}/').content.decode()
+        self.assertIn('retweeted your reply', retweet_html)
+        self.assertIn('notification-activity-thumbnail', retweet_html)
+        self.assertIn('/uploads/notifications/reply.jpg', retweet_html)
+        self.assertNotIn('notification-target-image', retweet_html)
+
+    def test_deep_reply_notifies_ancestors_with_direct_parent_handle(self):
+        from main.models import Notification
+        root = Tweet.objects.create(
+            tweetAuthor=self.user, tweet='Raiz', tweetLink='tester/status/root-thread',
+        )
+        child = Replys.objects.create(
+            user=self.other, tweet=root, body='Filho', replyLink='other/status/thread-child',
+        )
+        grandchild = Replys.objects.create(
+            user=self.third, tweet=root, body='Neto', replyLink='third/status/thread-grandchild',
+        )
+        grandchild.reply.add(child)
+        self.client.force_login(self.other)
+
+        response = self.client.post('/other/status/reply', {
+            'tweetid': str(grandchild.pk), 'content_type': 'reply',
+            'body': 'Bisneto', 'next': '/',
+        })
+        self.assertRedirects(response, '/')
+        created = Replys.objects.get(body='Bisneto')
+        notices = Notification.objects.filter(reply=created, notification_type='reply')
+        self.assertEqual(set(notices.values_list('user_id', flat=True)), {self.user.pk, self.third.pk})
+
+        self.client.force_login(self.user)
+        notice = notices.get(user=self.user)
+        html = self.client.get(f'/notifications/{notice.pk}/').content.decode()
+        self.assertIn('Respondendo a', html)
+        self.assertIn('href="/third/">@third</a>', html)
+        self.assertNotIn('respondeu à sua publicação</p>', html)
+        self.client.cookies['django_language'] = 'en-us'
+        self.assertIn('Replying to', self.client.get(f'/notifications/{notice.pk}/').content.decode())
+
+    def test_reply_and_follow_notifications_show_date_without_icons(self):
+        from main.models import Notification
+        root = Tweet.objects.create(tweetAuthor=self.user, tweet='Post raiz')
+        reply = Replys.objects.create(user=self.other, tweet=root, body='Resposta')
+        notices = [
+            Notification.objects.create(
+                user=self.user, actor=self.other, notification_type='reply',
+                body='respondeu', linkzaocarai='other/status/reply', reply=reply,
+            ),
+            Notification.objects.create(
+                user=self.user, actor=self.other, notification_type='follow',
+                body='seguiu', linkzaocarai='other/',
+            ),
+        ]
+        self.client.force_login(self.user)
+        for notice in notices:
+            with self.subTest(type=notice.notification_type):
+                html = self.client.get(f'/notifications/{notice.pk}/').content.decode()
+                self.assertNotIn('class="notification-icon', html)
+                self.assertIn('notification-date-separator', html)
+                self.assertIn('<time', html)
 
     def test_invalid_report_target_is_not_silently_treated_as_tweet(self):
         from main.models import Report

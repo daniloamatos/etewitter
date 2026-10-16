@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login as authLogin
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 
 from change.views import email
 from .forms import LoginForm
@@ -24,9 +25,9 @@ def login(request):
                 user.isAuthenticated = True
                 user.save(update_fields=['isAuthenticated'])
                 return redirect('/')
-            messages.error(request, 'Nome de usuário e/ou senha invalidos.')
+            messages.error(request, _('Nome de usuário e/ou senha invalidos.'))
         else:
-            messages.error(request, 'Digite informações validas.')
+            messages.error(request, _('Digite informações validas.'))
     else:
         form = LoginForm()
     return render(request, 'login/login.html', {'form': form})
@@ -36,6 +37,6 @@ def forgotpass(request):
     if request.method == 'POST':
         email(request, request.POST.get('email', '').strip())
         return HttpResponse(
-            'Se o email estiver cadastrado, enviaremos instruções para recuperação.'
+            _('Se o email estiver cadastrado, enviaremos instruções para recuperação.')
         )
     return render(request, 'login/forgotpass.html')

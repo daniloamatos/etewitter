@@ -1,6 +1,7 @@
 {% extends "main/template.html" %}
-{% block title %}Mensagens · Etewitter{% endblock %}
-{% block header_title %}Mensagens{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Mensagens" %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Mensagens" %}{% endblock %}
 {% block content %}
 <section class="conversation-list">
     {% for chat in chats %}
@@ -16,7 +17,7 @@
     </article>
     {% endif %}
     {% empty %}
-    <div class="empty-state"><div class="empty-icon">✉</div><h2>Nenhuma conversa</h2><p>Visite um perfil para enviar uma mensagem.</p></div>
+    <div class="empty-state"><div class="empty-icon">✉</div><h2>{% trans "Nenhuma conversa" %}</h2><p>{% trans "Visite um perfil para enviar uma mensagem." %}</p></div>
     {% endfor %}
 </section>
 {% endblock %}

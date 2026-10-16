@@ -1,56 +1,38 @@
 {% extends "main/template.html" %}
-{% block title %}Notificações · Etewitter{% endblock %}
-{% block header_title %}Notificações{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Notificações" %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Notificações" %}{% endblock %}
 {% block content %}
 <section class="page-section">
     <div id="notifications" class="notification-list">
         {% for notification in notifications %}
-        <article class="notification-item" data-card-url="/{{ notification.linkzaocarai }}" tabindex="0" role="link">
-            {% if notification.actor %}
-                {% include "main/profile_avatar.html" with person=notification.actor %}
-                <div><div class="tweet-meta"><a href="/{{ notification.actor.username }}/"><strong>{{ notification.actor.name }}</strong></a><a class="profile-handle-link" href="/{{ notification.actor.username }}/">@{{ notification.actor.username }}</a></div>
-                <a href="/{{ notification.linkzaocarai }}">{{ notification.body }}</a></div>
-            {% else %}<span class="avatar avatar-sm">t</span><a href="/{{ notification.linkzaocarai }}">{{ notification.body }}</a>{% endif %}
-        </article>
+        {% include "main/notification_card.html" with notification=notification %}
         {% empty %}
-        <div class="empty-state"><div class="empty-icon">♧</div><h2>Nenhuma notificação</h2><p>Quando algo acontecer, você verá aqui.</p></div>
+        <div class="empty-state"><div class="empty-icon">♧</div><h2>{% trans "Nenhuma notificação" %}</h2><p>{% trans "Quando algo acontecer, você verá aqui." %}</p></div>
         {% endfor %}
     </div>
 </section>
 {% endblock %}
 {% block javascript %}
-{{ user.username|json_script:"user" }}
 <script>
-    window.addEventListener('site-notification', function (event) {
+    window.addEventListener('site-notification', async function (event) {
         const data = event.detail;
-        if (data.type === 'notification') {
-            const item = document.createElement('article');
-            item.className = 'notification-item';
-            item.dataset.cardUrl = data.url || '/notifications/';
-            item.tabIndex = 0;
-            item.setAttribute('role', 'link');
-            if (data.actor) {
-                const profileUrl = `/${encodeURIComponent(data.actor.username)}/`;
-                const avatarLink = document.createElement('a');
-                avatarLink.href = profileUrl;
-                const avatar = document.createElement('img');
-                avatar.className = 'avatar avatar-image';
-                avatar.src = data.actor.avatar;
-                avatar.alt = `Foto de ${data.actor.name}`;
-                avatarLink.appendChild(avatar);
-                item.appendChild(avatarLink);
-                const name = document.createElement('a');
-                name.href = profileUrl;
-                name.textContent = `${data.actor.name} @${data.actor.username}`;
-                item.appendChild(name);
-            }
-            const body = document.createElement('a');
-            body.href = item.dataset.cardUrl;
-            body.textContent = data.notification;
-            item.appendChild(body);
-            document.querySelector('#notifications .empty-state')?.remove();
-            document.getElementById('notifications').prepend(item);
-        }
+        if (data.type !== 'notification' || !data.id) return;
+        try {
+            const response = await fetch(`/notifications/${encodeURIComponent(data.id)}/`, {credentials: 'same-origin'});
+            if (!response.ok) return;
+            const container = document.createElement('div');
+            container.innerHTML = await response.text();
+            const card = container.querySelector('.notification-item');
+            if (!card) return;
+            const list = document.getElementById('notifications');
+            list.querySelector('.empty-state')?.remove();
+            if (list.querySelector(`[data-notification-id="${data.id}"]`)) return;
+            const newer = [...list.querySelectorAll('.notification-item')].find(item =>
+                Number(item.dataset.notificationAt) < Number(card.dataset.notificationAt) ||
+                (item.dataset.notificationAt === card.dataset.notificationAt && item.dataset.notificationId < card.dataset.notificationId));
+            list.insertBefore(card, newer || null);
+        } catch (error) { /* A notificação permanece disponível após recarregar. */ }
     });
 </script>
 {% endblock %}

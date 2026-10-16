@@ -12,19 +12,25 @@ from editprofile import views as veditprofile
 from userprofile import views as vuserprofile
 from search import views
 from main import views as viewsmain
+from chat import views as vchat
 app_name='main'
 
 urlpatterns = [
+    path('i18n/setlang/', viewsmain.set_language, name='set_language'),
     path('', include("main.urls")),
     path('report/', include("main.urls")),
     path('like/',include("main.urls")),
     path('save/',include("main.urls")),
     path('likereply/',include("main.urls")),
+    path('notifications/<uuid:notification_id>/', viewsmain.notification_card, name='notification_card'),
     path('notifications/', include("main.urls")),
     path('delete/', viewsmain.delete, name = 'delete'),
-    path('messages/<int:senderid>-<int:receiverid>', include('chat.urls')),
+    path('messages/keys/', vchat.save_public_key, name='save_public_key'),
+    path('messages/keys/<uuid:userid>/', vchat.get_public_key, name='get_public_key'),
+    path('messages/<uuid:senderid>-<uuid:receiverid>', include('chat.urls')),
     path('messages/', vuserprofile.message, name = 'message'),
     path('follow/', viewsmain.follow, name="follow"),
+    path('profile-preview/<str:username>/', vuserprofile.profile_preview, name="profile_preview"),
     path('saveditems/', viewsmain.saveditems, name="saveditems"),
     path("editprofile/", veditprofile.editprofile, name="editprofile"),
     path('register/', vr.register, name="register"),

@@ -1,0 +1,1005 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-16 00:31-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: change/forms.py:18
+msgid "Coloque a nova senha"
+msgstr "Enter the new password"
+
+#: change/forms.py:29
+msgid "Confirme sua senha"
+msgstr "Confirm your password"
+
+#: change/forms.py:46 register/models.py:38
+msgid "Somente caracteres alfanuméricos são permitidos."
+msgstr "Only alphanumeric characters are allowed."
+
+#: change/templates/change/changeName.html:3
+#: change/templates/change/changeName.html:4
+#: change/templates/change/changeName.html:5
+msgid "Alterar nome"
+msgstr "Change name"
+
+#: change/templates/change/changeName.html:5
+#: change/templates/change/changeUsername.html:5
+#: main/templates/main/save_button.html:10
+#: main/templates/main/save_button.html:16
+msgid "Salvar"
+msgstr "Save"
+
+#: change/templates/change/changePass.html:3
+#: change/templates/change/changePass.html:4
+msgid "Alterar senha"
+msgstr "Change password"
+
+#: change/templates/change/changePass.html:5
+msgid "Crie uma nova senha"
+msgstr "Create a new password"
+
+#: change/templates/change/changePass.html:5
+msgid "Use pelo menos 8 caracteres."
+msgstr "Use at least 8 characters."
+
+#: change/templates/change/changePass.html:5
+msgid "Salvar nova senha"
+msgstr "Save new password"
+
+#: change/templates/change/changeUsername.html:3
+#: change/templates/change/changeUsername.html:4
+msgid "Alterar usuário"
+msgstr "Change username"
+
+#: change/templates/change/changeUsername.html:5
+msgid "Alterar nome de usuário"
+msgstr "Change username"
+
+#: change/templates/change/changeUsername.html:5
+msgid "Seu novo usuário será usado no endereço do seu perfil."
+msgstr "Your new username will be used in your profile address."
+
+#: change/views.py:29
+msgid "Este nome de usuário já existe."
+msgstr "This username already exists."
+
+#: change/views.py:40
+msgid "Verifique os dados informados."
+msgstr "Check the information you entered."
+
+#: change/views.py:68
+msgid "As senhas não são identicas."
+msgstr "The passwords are not identical."
+
+#: change/views.py:70
+msgid "A senha precisa ter no minimo 5 caracteres."
+msgstr "The password must be at least 5 characters long."
+
+#: change/views.py:98
+msgid "Trocar senha do ETEWITTER."
+msgstr "Change your ETEWITTER password."
+
+#: change/views.py:103
+msgid "Por favor, clique no link enviado em seu email para mudar de senha"
+msgstr "Please click the link sent to your email to change your password"
+
+#: chat/consumers.py:32
+msgid "Imagem inválida."
+msgstr "Invalid image."
+
+#: chat/consumers.py:36
+msgid "Não foi possível ler a imagem."
+msgstr "Could not read the image."
+
+#: chat/consumers.py:38
+msgid "A imagem é muito grande."
+msgstr "The image is too large."
+
+#: chat/templates/chat/lobby.html:3
+#, python-format
+msgid "Mensagem para @%(handle)s"
+msgstr "Message to @%(handle)s"
+
+#: chat/templates/chat/lobby.html:4 main/templates/main/conversation.html:3
+#: main/templates/main/conversation.html:4 main/templates/main/message.html:3
+#: main/templates/main/message.html:4 main/templates/main/template.html:35
+msgid "Mensagens"
+msgstr "Messages"
+
+#: chat/templates/chat/lobby.html:12
+msgid "Mensagens cifradas ponta-a-ponta"
+msgstr "End-to-end encrypted messages"
+
+#: chat/templates/chat/lobby.html:12
+msgid "ponta-a-ponta"
+msgstr "end-to-end"
+
+#: chat/templates/chat/lobby.html:16 chat/templates/chat/lobby.html:54
+msgid "Imagem da mensagem"
+msgstr "Message image"
+
+#: chat/templates/chat/lobby.html:18
+msgid "Comece a conversa"
+msgstr "Start the conversation"
+
+#: chat/templates/chat/lobby.html:18
+#, python-format
+msgid "Envie uma mensagem para @%(handle)s."
+msgstr "Send a message to @%(handle)s."
+
+#: chat/templates/chat/lobby.html:23 main/templates/main/homepage.html:11
+#: userprofile/templates/userprofile/tweet.html:88
+#: userprofile/templates/userprofile/userprofile.html:46
+msgid "Prévia da imagem selecionada"
+msgstr "Selected image preview"
+
+#: chat/templates/chat/lobby.html:24 main/templates/main/homepage.html:12
+#: userprofile/templates/userprofile/tweet.html:89
+#: userprofile/templates/userprofile/userprofile.html:47
+msgid "Remover imagem"
+msgstr "Remove image"
+
+#: chat/templates/chat/lobby.html:28
+#: userprofile/templates/userprofile/userprofile.html:22
+msgid "Mensagem"
+msgstr "Message"
+
+#: chat/templates/chat/lobby.html:28
+msgid "Escreva uma mensagem..."
+msgstr "Write a message..."
+
+#: chat/templates/chat/lobby.html:29 main/templates/main/homepage.html:15
+#: userprofile/templates/userprofile/tweet.html:84
+#: userprofile/templates/userprofile/userprofile.html:50
+msgid "Formatos: JPG, PNG, GIF e WEBP · até 5 MB"
+msgstr "Formats: JPG, PNG, GIF and WEBP · up to 5 MB"
+
+#: chat/templates/chat/lobby.html:29
+#: userprofile/templates/userprofile/tweet.html:84
+msgid "Anexar foto"
+msgstr "Attach photo"
+
+#: chat/templates/chat/lobby.html:32
+msgid "Enviar"
+msgstr "Send"
+
+#: chat/templates/chat/lobby.html:50
+msgid ""
+"A criptografia ponta-a-ponta ainda não está ativa com este contato. Peça "
+"para a pessoa abrir o Etewitter para publicar a chave dela."
+msgstr ""
+"End-to-end encryption is not active with this contact yet. Ask the person to "
+"open Etewitter to publish their key."
+
+#: chat/templates/chat/lobby.html:51
+msgid "A criptografia ponta-a-ponta ainda não está ativa para esta conversa."
+msgstr "End-to-end encryption is not active for this conversation yet."
+
+#: chat/templates/chat/lobby.html:52
+msgid "🔒 mensagem protegida"
+msgstr "🔒 protected message"
+
+#: chat/templates/chat/lobby.html:53
+msgid "Imagem protegida"
+msgstr "Protected image"
+
+#: chat/views.py:19 chat/views.py:21
+msgid "algo deu errado!"
+msgstr "something went wrong!"
+
+#: chat/views.py:48
+msgid "Chave pública inválida."
+msgstr "Invalid public key."
+
+#: editprofile/templates/upload/upload.html:3
+#: editprofile/templates/upload/upload.html:4
+#: main/templates/main/template.html:39
+msgid "Configurações"
+msgstr "Settings"
+
+#: editprofile/templates/upload/upload.html:7
+#: userprofile/templates/userprofile/userprofile.html:12
+msgid "Editar perfil"
+msgstr "Edit profile"
+
+#: editprofile/templates/upload/upload.html:8
+msgid "Atualize suas informações e personalize seu perfil."
+msgstr "Update your information and customize your profile."
+
+#: editprofile/templates/upload/upload.html:12 register/models.py:47
+msgid "Foto de perfil"
+msgstr "Profile photo"
+
+#: editprofile/templates/upload/upload.html:14
+msgid "Prévia da foto de perfil"
+msgstr "Profile photo preview"
+
+#: editprofile/templates/upload/upload.html:16
+msgid "Formatos: JPG, PNG, GIF e WEBP · até 20 MB"
+msgstr "Formats: JPG, PNG, GIF and WEBP · up to 20 MB"
+
+#: editprofile/templates/upload/upload.html:16
+msgid "Escolher foto"
+msgstr "Choose photo"
+
+#: editprofile/templates/upload/upload.html:18
+msgid "Remover foto"
+msgstr "Remove photo"
+
+#: editprofile/templates/upload/upload.html:25
+msgid "Imagem de capa"
+msgstr "Cover image"
+
+#: editprofile/templates/upload/upload.html:27
+msgid "Prévia da imagem de capa"
+msgstr "Cover image preview"
+
+#: editprofile/templates/upload/upload.html:29
+msgid "Formatos: JPG, PNG, GIF e WEBP · até 50 MB"
+msgstr "Formats: JPG, PNG, GIF and WEBP · up to 50 MB"
+
+#: editprofile/templates/upload/upload.html:29
+msgid "Escolher capa"
+msgstr "Choose cover"
+
+#: editprofile/templates/upload/upload.html:31
+msgid "Remover capa"
+msgstr "Remove cover"
+
+#: editprofile/templates/upload/upload.html:38 register/models.py:42
+msgid "Nome"
+msgstr "Name"
+
+#: editprofile/templates/upload/upload.html:43
+msgid "Bio"
+msgstr "Bio"
+
+#: editprofile/templates/upload/upload.html:47
+msgid "Salvar alterações"
+msgstr "Save changes"
+
+#: editprofile/templates/upload/upload.html:50
+msgid "Mudar senha"
+msgstr "Change password"
+
+#: editprofile/templates/upload/upload.html:51
+msgid "Mudar nome de usuário"
+msgstr "Change username"
+
+#: editprofile/templates/upload/upload.html:60
+msgid "Formato não suportado. Use JPG, PNG, GIF ou WEBP."
+msgstr "Unsupported format. Use JPG, PNG, GIF or WEBP."
+
+#: editprofile/templates/upload/upload.html:61
+#, python-brace-format
+msgid "A imagem é grande demais. O limite é de {limit} MB."
+msgstr "The image is too large. The limit is {limit} MB."
+
+#: etewitter/settings.py:148
+msgid "Português (Brasil)"
+msgstr "Português (Brasil)"
+
+#: etewitter/settings.py:149
+msgid "English (United States)"
+msgstr "English (United States)"
+
+#: login/forms.py:6
+msgid "Usuário"
+msgstr "Username"
+
+#: login/forms.py:7 register/forms.py:8
+msgid "Senha"
+msgstr "Password"
+
+#: login/templates/login/forgotpass.html:8
+msgid "Recuperar senha"
+msgstr "Recover password"
+
+#: login/templates/login/forgotpass.html:25
+msgid "Encontre sua conta"
+msgstr "Find your account"
+
+#: login/templates/login/forgotpass.html:26
+msgid "Informe o email cadastrado e enviaremos as instruções de recuperação."
+msgstr "Enter your registered email and we will send recovery instructions."
+
+#: login/templates/login/forgotpass.html:29
+msgid "Email"
+msgstr "Email"
+
+#: login/templates/login/forgotpass.html:31
+msgid "Enviar instruções"
+msgstr "Send instructions"
+
+#: login/templates/login/forgotpass.html:34
+msgid "Voltar para o login"
+msgstr "Back to login"
+
+#: login/templates/login/login.html:8 login/templates/login/login.html:28
+#: main/templates/main/index.html:30
+#: register/templates/register/register.html:32
+msgid "Entrar"
+msgstr "Log in"
+
+#: login/templates/login/login.html:25
+msgid "Entre na sua conta"
+msgstr "Log in to your account"
+
+#: login/templates/login/login.html:31 main/templates/main/index.html:28
+#: register/templates/register/register.html:8
+#: register/templates/register/register.html:28
+msgid "Criar conta"
+msgstr "Sign up"
+
+#: login/templates/login/login.html:31
+msgid "Esqueci minha senha"
+msgstr "Forgot my password"
+
+#: login/views.py:28
+msgid "Nome de usuário e/ou senha invalidos."
+msgstr "Invalid username and/or password."
+
+#: login/views.py:30
+msgid "Digite informações validas."
+msgstr "Enter valid information."
+
+#: login/views.py:40
+msgid "Se o email estiver cadastrado, enviaremos instruções para recuperação."
+msgstr "If the email is registered, we will send recovery instructions."
+
+#: main/forms.py:16 main/templates/main/homepage.html:9
+#: userprofile/templates/userprofile/userprofile.html:43
+msgid "O que está acontecendo?"
+msgstr "What's happening?"
+
+#: main/forms.py:29
+msgid "Tweete sua resposta"
+msgstr "Tweet your reply"
+
+#: main/image_utils.py:42
+#, python-format
+msgid "%(what)s é muito grande (%(size).1f MB). O limite é %(max)s MB."
+msgstr "%(what)s is too large (%(size).1f MB). The limit is %(max)s MB."
+
+#: main/image_utils.py:51
+msgid "A imagem"
+msgstr "The image"
+
+#: main/image_utils.py:59
+msgid "A foto de perfil"
+msgstr "The profile photo"
+
+#: main/image_utils.py:67
+msgid "A foto de capa"
+msgstr "The cover photo"
+
+#: main/image_utils.py:91
+msgid "Arquivo de imagem inválido."
+msgstr "Invalid image file."
+
+#: main/templates/main/back_button.html:1
+msgid "Voltar"
+msgstr "Back"
+
+#: main/templates/main/conversation.html:20 main/templates/main/message.html:24
+msgid "Nenhuma conversa"
+msgstr "No conversations"
+
+#: main/templates/main/conversation.html:20 main/templates/main/message.html:24
+msgid "Visite um perfil para enviar uma mensagem."
+msgstr "Visit a profile to send a message."
+
+#: main/templates/main/homepage.html:3 main/templates/main/template.html:28
+#: main/templates/main/template.html:62
+msgid "Página inicial"
+msgstr "Home"
+
+#: main/templates/main/homepage.html:6 main/templates/main/homepage.html:29
+#: main/templates/main/profile_avatar.html:1
+#: main/templates/main/reply_card.html:3 main/templates/main/saveditems.html:13
+#: main/templates/main/searchresult.html:13
+#: main/templates/main/searchresult.html:20
+#: main/templates/main/searchresult.html:27
+#: main/templates/main/searchresult.html:45
+#: main/templates/main/template.html:45
+#: userprofile/templates/userprofile/tweet.html:11
+#: userprofile/templates/userprofile/tweet.html:27
+#: userprofile/templates/userprofile/tweet.html:46
+#: userprofile/templates/userprofile/tweet.html:62
+#: userprofile/templates/userprofile/userprofile.html:9
+#: userprofile/templates/userprofile/userprofile.html:40
+#: userprofile/templates/userprofile/userprofile.html:66
+#, python-format
+msgid "Foto de %(name)s"
+msgstr "Photo of %(name)s"
+
+#: main/templates/main/homepage.html:15 main/templates/main/message.html:6
+#: userprofile/templates/userprofile/userprofile.html:50
+msgid "Foto"
+msgstr "Photo"
+
+#: main/templates/main/homepage.html:17
+#: userprofile/templates/userprofile/userprofile.html:52
+msgid "280 caracteres"
+msgstr "280 characters"
+
+#: main/templates/main/homepage.html:18
+#: userprofile/templates/userprofile/userprofile.html:53
+msgid "Tweetar"
+msgstr "Tweet"
+
+#: main/templates/main/homepage.html:31 main/templates/main/reply_card.html:5
+#: userprofile/templates/userprofile/userprofile.html:68
+msgid "repostou"
+msgstr "reposted"
+
+#: main/templates/main/homepage.html:34
+#: main/templates/main/notifications.html:32
+#: main/templates/main/saveditems.html:17
+#: main/templates/main/searchresult.html:31
+#: userprofile/templates/userprofile/tweet.html:50
+#: userprofile/templates/userprofile/userprofile.html:71
+msgid "Imagem do tweet"
+msgstr "Tweet image"
+
+#: main/templates/main/homepage.html:48
+msgid "Seu feed está vazio"
+msgstr "Your feed is empty"
+
+#: main/templates/main/homepage.html:48
+msgid "Siga pessoas ou publique seu primeiro tweet para começar."
+msgstr "Follow people or post your first tweet to get started."
+
+#: main/templates/main/index.html:8
+msgid "Bem-vindo ao Etewitter"
+msgstr "Welcome to Etewitter"
+
+#: main/templates/main/index.html:26
+msgid "Acontecendo agora"
+msgstr "Happening now"
+
+#: main/templates/main/index.html:27
+msgid "Entre na conversa."
+msgstr "Join the conversation."
+
+#: main/templates/main/index.html:29
+#: register/templates/register/register.html:32
+msgid "Já tem uma conta?"
+msgstr "Already have an account?"
+
+#: main/templates/main/message.html:6
+msgid "você:"
+msgstr "you:"
+
+#: main/templates/main/message.html:6
+msgid "Você enviou uma foto"
+msgstr "You sent a photo"
+
+#: main/templates/main/message.html:6
+msgid "Enviou uma foto"
+msgstr "Sent you a photo"
+
+#: main/templates/main/message.html:19
+msgid "Diga olá 👋"
+msgstr "Say hi 👋"
+
+#: main/templates/main/notifications.html:3
+#: main/templates/main/notifications.html:4
+#: main/templates/main/template.html:34
+msgid "Notificações"
+msgstr "Notifications"
+
+#: main/templates/main/notifications.html:23
+#: main/templates/main/notifications.html:54
+msgid "curtiu sua resposta"
+msgstr "liked your reply"
+
+#: main/templates/main/notifications.html:23
+#: main/templates/main/notifications.html:54
+msgid "curtiu seu tweet"
+msgstr "liked your tweet"
+
+msgid "curtiu sua publicação"
+msgstr "liked your post"
+
+#: main/templates/main/notifications.html:23
+#: main/templates/main/notifications.html:55
+msgid "repostou sua resposta"
+msgstr "reposted your reply"
+
+#: main/templates/main/notifications.html:23
+#: main/templates/main/notifications.html:55
+msgid "repostou seu tweet"
+msgstr "reposted your tweet"
+
+msgid "repostou sua publicação"
+msgstr "reposted your post"
+
+msgid "Respondendo a"
+msgstr "Replying to"
+
+#, python-format
+msgid "%(name)s respondeu a @%(username)s"
+msgstr "%(name)s replied to @%(username)s"
+
+#: main/templates/main/notifications.html:23
+#: main/templates/main/notifications.html:56
+msgid "respondeu à sua publicação"
+msgstr "replied to your post"
+
+#: main/templates/main/notifications.html:23
+#: main/templates/main/notifications.html:57
+msgid "começou a te seguir"
+msgstr "started following you"
+
+#: main/templates/main/notifications.html:23
+#: main/templates/main/notifications.html:58
+msgid "te mencionou"
+msgstr "mentioned you"
+
+#: main/templates/main/notifications.html:27
+#: main/templates/main/reply_card.html:8
+#: main/templates/main/searchresult.html:58
+#: userprofile/templates/userprofile/tweet.html:66
+msgid "Imagem da resposta"
+msgstr "Reply image"
+
+#: main/templates/main/notifications.html:38
+msgid "Nenhuma notificação"
+msgstr "No notifications"
+
+#: main/templates/main/notifications.html:38
+msgid "Quando algo acontecer, você verá aqui."
+msgstr "When something happens, you'll see it here."
+
+#: main/templates/main/notifications.html:116
+msgid "Imagem da publicação"
+msgstr "Post image"
+
+#: main/templates/main/post_actions.html:1
+#: userprofile/templates/userprofile/tweet.html:97
+msgid "Responder"
+msgstr "Reply"
+
+#: main/templates/main/post_actions.html:4
+msgid "Curtir"
+msgstr "Like"
+
+#: main/templates/main/post_actions.html:8
+msgid "Retweetar"
+msgstr "Retweet"
+
+#: main/templates/main/post_menu.html:2 main/templates/main/template.html:49
+msgid "Mais opções"
+msgstr "More options"
+
+#: main/templates/main/post_menu.html:5
+#: main/templates/main/report_dialog.html:23
+msgid "Excluir"
+msgstr "Delete"
+
+#: main/templates/main/post_menu.html:7
+#: main/templates/main/report_dialog.html:11
+msgid "Denunciar"
+msgstr "Report"
+
+#: main/templates/main/profile_avatar.html:1
+#, python-format
+msgid "Perfil de @%(handle)s"
+msgstr "Profile of @%(handle)s"
+
+#: main/templates/main/reply_card.html:16
+msgid "Ver mais respostas"
+msgstr "See more replies"
+
+#: main/templates/main/report_dialog.html:5
+msgid "Denunciar publicação"
+msgstr "Report post"
+
+#: main/templates/main/report_dialog.html:9
+msgid "Motivo da denúncia"
+msgstr "Reason for report"
+
+#: main/templates/main/report_dialog.html:11
+#: main/templates/main/report_dialog.html:23
+msgid "Cancelar"
+msgstr "Cancel"
+
+#: main/templates/main/report_dialog.html:18
+msgid "Excluir publicação"
+msgstr "Delete post"
+
+#: main/templates/main/report_dialog.html:19
+msgid ""
+"Você realmente deseja excluir esta publicação? Esta ação não pode ser "
+"desfeita."
+msgstr "Do you really want to delete this post? This action cannot be undone."
+
+#: main/templates/main/save_button.html:8
+#: main/templates/main/save_button.html:14
+msgid "Remover dos salvos"
+msgstr "Remove from saved"
+
+#: main/templates/main/saveditems.html:3 main/templates/main/saveditems.html:4
+#: main/templates/main/template.html:36
+msgid "Itens salvos"
+msgstr "Saved items"
+
+#: main/templates/main/saveditems.html:30
+msgid "Nenhum item salvo"
+msgstr "No saved items"
+
+#: main/templates/main/saveditems.html:30
+msgid "Salve tweets para encontrá-los rapidamente."
+msgstr "Save tweets to find them quickly."
+
+#: main/templates/main/search_form.html:3
+msgid "Buscar no Etewitter"
+msgstr "Search Etewitter"
+
+#: main/templates/main/search_form.html:3
+msgid "Buscar"
+msgstr "Search"
+
+#: main/templates/main/searchresult.html:3
+#: main/templates/main/searchresult.html:5 main/templates/main/template.html:33
+msgid "Explorar"
+msgstr "Explore"
+
+#: main/templates/main/searchresult.html:9
+#, python-format
+msgid "Resultados para <strong>“%(term)s”</strong>"
+msgstr "Results for <strong>“%(term)s”</strong>"
+
+#: main/templates/main/searchresult.html:47
+msgid "Resposta"
+msgstr "Reply"
+
+#: main/templates/main/searchresult.html:49
+msgid "Em resposta a"
+msgstr "Replying to"
+
+#: main/templates/main/searchresult.html:54
+#: userprofile/templates/userprofile/tweet.html:15
+msgid "Imagem do tweet pai"
+msgstr "Parent tweet image"
+
+#: main/templates/main/searchresult.html:71
+msgid "Nada encontrado"
+msgstr "Nothing found"
+
+#: main/templates/main/searchresult.html:71
+msgid "Tente buscar por outro termo."
+msgstr "Try searching for another term."
+
+#: main/templates/main/template.html:31
+msgid "Navegação principal"
+msgstr "Main navigation"
+
+#: main/templates/main/template.html:32
+msgid "Início"
+msgstr "Home"
+
+#: main/templates/main/template.html:34
+msgid "Notificações não lidas"
+msgstr "Unread notifications"
+
+#: main/templates/main/template.html:35
+msgid "Mensagens não lidas"
+msgstr "Unread messages"
+
+#: main/templates/main/template.html:38
+#: userprofile/templates/userprofile/userprofile.html:4
+msgid "Perfil"
+msgstr "Profile"
+
+#: main/templates/main/template.html:51
+msgid "Sair"
+msgstr "Log out"
+
+#: main/templates/main/template.html:87
+msgid "O que está acontecendo"
+msgstr "What's happening"
+
+#: main/templates/main/template.html:88 main/templates/main/template.html:89
+#: main/templates/main/template.html:90
+msgid "Assuntos do momento"
+msgstr "Trending"
+
+#: main/templates/main/template.html:88
+msgid "Comunidade Etewitter"
+msgstr "Etewitter Community"
+
+#: main/templates/main/template.html:88
+msgid "1.248 posts"
+msgstr "1,248 posts"
+
+#: main/templates/main/template.html:89
+msgid "Desenvolvimento web"
+msgstr "Web development"
+
+#: main/templates/main/template.html:89
+msgid "842 posts"
+msgstr "842 posts"
+
+#: main/templates/main/template.html:90
+msgid "Brasil"
+msgstr "Brazil"
+
+#: main/templates/main/template.html:90
+msgid "3.601 posts"
+msgstr "3,601 posts"
+
+#: main/templates/main/template.html:92
+msgid "Termos · Privacidade · Cookies · © 2024 Etewitter"
+msgstr "Terms · Privacy · Cookies · © 2024 Etewitter"
+
+#: main/templates/main/template.html:96 main/templates/main/template.html:98
+msgid "Imagem ampliada"
+msgstr "Enlarged image"
+
+#: main/templates/main/template.html:97
+msgid "Fechar"
+msgstr "Close"
+
+#: main/templates/main/theme_toggle.html:1
+msgid "Alternar tema"
+msgstr "Toggle theme"
+
+#: main/views.py:109
+#, python-format
+msgid "%(name)s te mencionou em um tweet"
+msgstr "%(name)s mentioned you in a tweet"
+
+#: main/views.py:119 userprofile/views.py:52 userprofile/views.py:277
+msgid "O tweet precisa haver algum caractere ou imagem."
+msgstr "The tweet must have some text or an image."
+
+#: main/views.py:190
+msgid "Você não pode seguir a si mesmo."
+msgstr "You cannot follow yourself."
+
+#: main/views.py:210
+#, python-format
+msgid "%(name)s começou a te seguir"
+msgstr "%(name)s started following you"
+
+#: main/views.py:232
+msgid "Você não pode deletar esta resposta."
+msgstr "You cannot delete this reply."
+
+#: main/views.py:237
+msgid "Resposta deletada."
+msgstr "Reply deleted."
+
+#: main/views.py:242
+msgid "Você não pode deletar este tweet."
+msgstr "You cannot delete this tweet."
+
+#: main/views.py:245
+msgid "Tweet deletado."
+msgstr "Tweet deleted."
+
+#: main/views.py:254
+msgid "Você não pode denunciar sua própria publicação."
+msgstr "You cannot report your own post."
+
+#: main/views.py:258
+msgid "Denuncia registrada."
+msgstr "Report submitted."
+
+#: main/views.py:260
+msgid "Informe um motivo de até 100 caracteres."
+msgstr "Provide a reason of up to 100 characters."
+
+#: register/forms.py:12
+msgid "Confirme a Senha"
+msgstr "Confirm password"
+
+#: register/forms.py:27
+msgid "O nome de usuário precisa ter pelo menos 4 caracteres."
+msgstr "The username must be at least 4 characters long."
+
+#: register/forms.py:29
+msgid "O nome de usuário pode ter no máximo 25 caracteres."
+msgstr "The username can be at most 25 characters long."
+
+#: register/forms.py:31
+msgid "O nome de usuário deve conter apenas letras e números."
+msgstr "The username must contain only letters and numbers."
+
+#: register/forms.py:37
+msgid "Este e-mail já está cadastrado."
+msgstr "This email is already registered."
+
+#: register/forms.py:43
+msgid "A senha precisa ter pelo menos 5 caracteres."
+msgstr "The password must be at least 5 characters long."
+
+#: register/models.py:37
+msgid "O tamanho do nome tem que ser entre 4 e 25"
+msgstr "The name length must be between 4 and 25"
+
+#: register/models.py:39 register/models.py:40
+msgid "Nome de usuário"
+msgstr "Username"
+
+#: register/models.py:45
+msgid "Data de aniversário"
+msgstr "Birth date"
+
+#: register/models.py:48
+msgid "Foto de capa"
+msgstr "Cover photo"
+
+#: register/models.py:49
+msgid "Sobre"
+msgstr "About"
+
+#: register/templates/register/register.html:25
+msgid "Crie sua conta"
+msgstr "Create your account"
+
+#: register/templates/register/register.html:30
+msgid ""
+"Ao se inscrever, você concorda com os Termos de Serviço e a Política de "
+"Privacidade."
+msgstr "By signing up, you agree to the Terms of Service and Privacy Policy."
+
+#: register/templates/register/registersuccess.html:3
+#: register/templates/register/registersuccess.html:4
+msgid "Conta criada"
+msgstr "Account created"
+
+#: register/templates/register/registersuccess.html:6
+msgid "Conta criada com sucesso"
+msgstr "Account created successfully"
+
+#: register/templates/register/registersuccess.html:6
+msgid "Confirme seu email para ativar o acesso ao Etewitter."
+msgstr "Confirm your email to activate access to Etewitter."
+
+#: register/templates/register/registersuccess.html:6
+msgid "Ir para o login"
+msgstr "Go to login"
+
+#: userprofile/templates/userprofile/notexist.html:3
+msgid "Tweet não encontrado"
+msgstr "Tweet not found"
+
+#: userprofile/templates/userprofile/notexist.html:4
+msgid "Tweet"
+msgstr "Tweet"
+
+#: userprofile/templates/userprofile/notexist.html:6
+msgid "Esse tweet não existe"
+msgstr "This tweet doesn't exist"
+
+#: userprofile/templates/userprofile/notexist.html:6
+msgid "O link pode estar quebrado ou o tweet foi removido."
+msgstr "The link may be broken or the tweet was removed."
+
+#: userprofile/templates/userprofile/notexist.html:6
+msgid "Voltar para o início"
+msgstr "Back to home"
+
+#: userprofile/templates/userprofile/tweet.html:5
+msgid "Post"
+msgstr "Post"
+
+#: userprofile/templates/userprofile/tweet.html:31
+msgid "Imagem da resposta pai"
+msgstr "Parent reply image"
+
+#: userprofile/templates/userprofile/tweet.html:101
+msgid "Respostas"
+msgstr "Replies"
+
+#: userprofile/templates/userprofile/tweet.html:104
+msgid "Ainda não há respostas."
+msgstr "There are no replies yet."
+
+#: userprofile/templates/userprofile/userprofile.html:18
+msgid "Deixar de seguir"
+msgstr "Unfollow"
+
+#: userprofile/templates/userprofile/userprofile.html:18
+msgid "Seguir"
+msgstr "Follow"
+
+msgid "Segue você"
+msgstr "Follows you"
+
+msgid "Entrar para seguir"
+msgstr "Log in to follow"
+
+#: userprofile/templates/userprofile/userprofile.html:29
+#, python-format
+msgid "Entrou em %(date)s"
+msgstr "Joined %(date)s"
+
+#: userprofile/templates/userprofile/userprofile.html:31
+msgid "seguindo"
+msgstr "following"
+
+#: userprofile/templates/userprofile/userprofile.html:31
+#: userprofile/templates/userprofile/userprofile.html:32
+msgid "Ninguém ainda."
+msgstr "No one yet."
+
+#: userprofile/templates/userprofile/userprofile.html:32
+msgid "seguidores"
+msgstr "followers"
+
+#: userprofile/templates/userprofile/userprofile.html:33
+msgid "tweets"
+msgstr "tweets"
+
+#: userprofile/templates/userprofile/userprofile.html:84
+msgid "Nenhum tweet ainda"
+msgstr "No tweets yet"
+
+#: userprofile/templates/userprofile/userprofile.html:84
+#, python-format
+msgid "Quando %(name)s publicar, aparecerá aqui."
+msgstr "When %(name)s posts, it will appear here."
+
+#: userprofile/views.py:105
+#, python-format
+msgid "%(name)s curtiu sua resposta"
+msgstr "%(name)s liked your reply"
+
+#: userprofile/views.py:138
+#, python-format
+msgid "%(name)s curtiu seu tweet"
+msgstr "%(name)s liked your tweet"
+
+#: userprofile/views.py:168
+#, python-format
+msgid "%(name)s repostou seu tweet"
+msgstr "%(name)s reposted your tweet"
+
+#: userprofile/views.py:197
+#, python-format
+msgid "%(name)s repostou sua resposta"
+msgstr "%(name)s reposted your reply"
+
+#: userprofile/views.py:243
+#, python-format
+msgid "%(name)s respondeu à sua publicação"
+msgstr "%(name)s replied to your post"
+
+#: userprofile/views.py:265
+#, python-format
+msgid "%(name)s respondeu ao seu tweet"
+msgstr "%(name)s replied to your tweet"
+
+msgid "%(name)s te mencionou em uma resposta"
+msgstr "%(name)s mentioned you in a reply"
+
+msgid "%(name)s curtiu uma publicação em que você foi mencionado"
+msgstr "%(name)s liked a post you were mentioned in"
+
+msgid "%(name)s repostou uma publicação em que você foi mencionado"
+msgstr "%(name)s reposted a post you were mentioned in"
+
+msgid "curtiu uma publicação em que você foi mencionado"
+msgstr "liked a post you were mentioned in"
+
+msgid "repostou uma publicação em que você foi mencionado"
+msgstr "reposted a post you were mentioned in"
+
+msgid "repostou"
+msgstr "reposted"

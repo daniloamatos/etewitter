@@ -1,0 +1,5 @@
+<div class="expanded-replies" id="expanded-replies-{{ parent.pk }}">
+    {% for reply in children %}
+        {% include "main/reply_card.html" with reply=reply detail=True expand_depth=expand_depth hide_expand_buttons=hide_expand_buttons %}
+    {% endfor %}
+</div>

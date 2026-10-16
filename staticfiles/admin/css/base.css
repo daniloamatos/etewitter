@@ -9,10 +9,10 @@
   --primary: #79aec8;
   --secondary: #417690;
   --accent: #f5dd5d;
-  --primary-fg: #fff;
+  --primary-fg: #f0f0f0;
 
   --body-fg: #333;
-  --body-bg: #fff;
+  --body-bg: #f0f0f0;
   --body-quiet-color: #666;
   --body-loud-color: #000;
 
@@ -42,7 +42,7 @@
   --selected-bg: #e4e4e4; /* E.g. selected table cells */
   --selected-row: #ffc;
 
-  --button-fg: #fff;
+  --button-fg: #f0f0f0;
   --button-bg: var(--primary);
   --button-hover-bg: #609ab6;
   --default-button-bg: var(--secondary);

@@ -1,27 +1,44 @@
-{% load crispy_forms_tags %}
-{% load static %}
+{% load crispy_forms_tags static i18n %}
 <!doctype html>
-<html lang="pt-BR">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Entrar · Etewitter</title>
-    <link href="{% static 'css/styles.css' %}?v=20261017" rel="stylesheet">
-    <link href="{% static 'css/login/logincss.css' %}?v=20261015" rel="stylesheet">
+    <title>{% trans "Entrar" %} · Etewitter</title>
+    <link href="{% static 'css/styles.css' %}?v=20261061" rel="stylesheet">
+    <link href="{% static 'css/login/logincss.css' %}?v=20261050" rel="stylesheet">
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('etewitter-theme');
+                var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.dataset.theme = saved || (dark ? 'dark' : 'light');
+            } catch (error) { /* ignora */ }
+        })();
+    </script>
 </head>
 <body>
 <main class="auth-screen">
     <section class="auth-card">
         <a class="auth-brand" href="/"><span class="brand-mark">t</span><strong>etewitter</strong></a>
-        <h1>Entre na sua conta</h1>
+        <h1>{% trans "Entre na sua conta" %}</h1>
         <form method="post">
             {% csrf_token %}{{ form|crispy }}
-            <button class="tweetBtn" type="submit">Entrar</button>
+            <button class="tweetBtn" type="submit">{% trans "Entrar" %}</button>
         </form>
         {% for message in messages %}<div class="alert">{{ message }}</div>{% endfor %}
-        <div class="auth-links"><a href="/register/">Criar conta</a><a href="/forgotpass/">Esqueci minha senha</a></div>
+        <div class="auth-links"><a href="/register/">{% trans "Criar conta" %}</a><a href="/forgotpass/">{% trans "Esqueci minha senha" %}</a></div>
+        <div class="landing-controls">
+            {% include "main/theme_toggle.html" %}
+            <form class="lang-switch" method="post" action="{% url 'set_language' %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                {% include "main/lang_flags.html" %}
+            </form>
+        </div>
     </section>
 </main>
+<script src="{% static 'js/theme.js' %}?v=1" defer></script>
 </body>
 </html>

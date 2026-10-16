@@ -2,17 +2,22 @@
 
 import random
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseRedirect, JsonResponse
+from django.conf import settings
 from .forms import tweetForm
 from .image_utils import form_image_errors
 from .targets import post_target
+from .timeline import build_timeline
 from asgiref.sync import async_to_sync
 from .models import Replys, Tweet, SavedItems as SavedItemsclass, Follower, Message, Report, Notification
 from register.models import Usuario
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _, check_for_language
+from django.views.decorators.http import require_POST
 from datetime import datetime
-from django.db.models import OuterRef, Q, Subquery
+from django.db.models import Exists, OuterRef, Q
 # Create your views here.
 
 
@@ -30,7 +35,10 @@ def notifications(request):
         "reply__user",
         "reply__tweet",
         "reply__tweet__tweetAuthor",
-    ).order_by("-id")
+    ).prefetch_related(
+        'tweet__likes', 'tweet__retweets', 'reply__likes', 'reply__retweets',
+        'reply__reply__user',
+    ).order_by("-publishDate", "-id")
     Notification.objects.filter(user=user, is_read=False).update(is_read=True)
     try:
         from asgiref.sync import async_to_sync
@@ -48,71 +56,79 @@ def notifications(request):
         pass
     return render(request, 'main/notifications.html', {'user':user,'notifications':notifications_qs})
 
+
+@login_required(login_url='/login')
+def notification_card(request, notification_id):
+    notification = get_object_or_404(
+        Notification.objects.select_related('actor', 'tweet', 'reply', 'reply__tweet__tweetAuthor').prefetch_related('reply__reply__user'),
+        pk=notification_id,
+        user=request.user,
+    )
+    return render(request, 'main/notification_card.html', {'notification': notification})
+
+
+def reply_children(request, reply_id):
+    try:
+        parent_depth = min(max(int(request.GET.get('depth', 0)), 0), 1)
+    except (TypeError, ValueError):
+        parent_depth = 0
+    parent = get_object_or_404(Replys, pk=reply_id)
+    child_reply = Replys.objects.filter(reply=OuterRef('pk'))
+    children = Replys.objects.filter(reply=parent).select_related(
+        'user', 'tweet', 'tweet__tweetAuthor',
+    ).annotate(has_children=Exists(child_reply)).order_by('-publishDate')
+    return render(request, 'main/reply_children.html', {
+        'parent': parent,
+        'children': children,
+        'expand_depth': parent_depth + 1,
+        'hide_expand_buttons': parent_depth + 1 >= 2,
+    })
+
+
+@login_required(login_url='/login')
+def mention_suggestions(request):
+    """Suggest followed accounts for the handle being typed."""
+    query = request.GET.get('q', '').lstrip('@')[:25]
+    if query and not query.isascii():
+        return JsonResponse({'users': []})
+    followed = Usuario.objects.filter(
+        userFollowing__follower=request.user,
+    )
+    if query:
+        followed = followed.filter(Q(username__icontains=query) | Q(name__icontains=query))
+    users = followed.order_by('username').distinct()[:8]
+    return JsonResponse({'users': [
+        {'username': user.username, 'name': user.name,
+         'avatar': user.profilepic.url if user.profilepic and user.profilepic.name != 'default/default_profile_400x400.png' else settings.STATIC_URL + 'images/default-profile.svg'}
+        for user in users
+    ]})
+
 @login_required(login_url='/login')
 def home(request):
     users = Usuario.objects.all()
     for user in users:
         user.username = '@' + user.username
-    tweets_self = Tweet.objects.filter(tweetAuthor=request.user)
     following = Follower.objects.filter(
         follower_id=request.user.id
     ).values_list("following_id", flat=True)
-    visible_retweeters = Usuario.objects.filter(
-        retweets=OuterRef("pk"),
-        pk__in=list(following) + [request.user.id],
-    )
-    tweets = Tweet.objects.filter(
-        Q(tweetAuthor=request.user)
-        | Q(tweetAuthor_id__in=following)
-        | Q(retweets__in=list(following) + [request.user.id])
-    ).annotate(
-        retweet_by_name=Subquery(visible_retweeters.values("name")[:1]),
-        retweet_by_username=Subquery(visible_retweeters.values("username")[:1]),
-    ).distinct()
-    reply_retweeters = Usuario.objects.filter(
-        retweetsr=OuterRef("pk"), pk__in=list(following) + [request.user.id],
-    )
-    retweeted_replies = Replys.objects.filter(
-        retweets__in=list(following) + [request.user.id],
-    ).select_related("user", "tweet").annotate(
-        retweet_by_name=Subquery(reply_retweeters.values("name")[:1]),
-        retweet_by_username=Subquery(reply_retweeters.values("username")[:1]),
-    ).prefetch_related("likes", "retweets").distinct()
-    timeline = sorted(
-        [*tweets, *retweeted_replies], key=lambda post: post.publishDate, reverse=True
-    )
+    visible_users = list(following) + [request.user.id]
+    tweets, retweeted_replies, timeline = build_timeline(visible_users, visible_users)
     if request.method == "POST":
         form = tweetForm(request.POST, request.FILES)
         if form.is_valid() and (form.cleaned_data['tweet'] or form.cleaned_data['image']):
             tweet = form.save(commit=False)
             tweet.tweetAuthor = request.user
             tweet.tweetLink = generateLink(request)
-            mention = next(
-                (word[1:] for word in tweet.tweet.split() if word.startswith('@')),
-                None,
-            )
-            if mention:
-                tweet.mentionlink = mention + "/"
             tweet.save()
-            if mention:
-                mentioned_user = Usuario.objects.filter(username__iexact=mention).first()
-                if mentioned_user:
-                    from .notifications import create_notification
-                    create_notification(
-                        user=mentioned_user,
-                        actor=request.user,
-                        notification_type='mention',
-                        body=f"{request.user.name} te mencionou em um tweet",
-                        linkzaocarai=tweet.tweetLink,
-                        tweet=tweet,
-                    )
+            from .mentions import register_mentions
+            register_mentions(tweet)
             return redirect("/")
         errors = form_image_errors(form)
         if errors:
             for error in errors:
                 messages.error(request, error)
         else:
-            messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
+            messages.error(request, _('O tweet precisa haver algum caractere ou imagem.'))
     else:
         form = tweetForm()
     usuario = Usuario.objects.get(username=request.user.username)
@@ -126,6 +142,38 @@ def index(request):
         return redirect('/')
     else:
         return render(request, "main/index.html", {})
+
+
+@require_POST
+def set_language(request):
+    """Troca o idioma ativo guardando a escolha num cookie.
+
+    Feito à mão em vez de ``django.conf.urls.i18n.set_language`` porque neste
+    projeto as mesmas URLs são incluídas em vários prefixos e o
+    ``translate_url`` usado pelo Django reescrevia o destino para o lugar
+    errado (ex.: ``/index/`` virava ``/notifications/index/``).
+    """
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or '/'
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = '/'
+    response = HttpResponseRedirect(next_url)
+    lang_code = request.POST.get('language', '')
+    if lang_code and check_for_language(lang_code):
+        response.set_cookie(
+            settings.LANGUAGE_COOKIE_NAME,
+            lang_code,
+            max_age=settings.LANGUAGE_COOKIE_AGE,
+            path=settings.LANGUAGE_COOKIE_PATH,
+            domain=settings.LANGUAGE_COOKIE_DOMAIN,
+            secure=settings.LANGUAGE_COOKIE_SECURE,
+            httponly=settings.LANGUAGE_COOKIE_HTTPONLY,
+            samesite=settings.LANGUAGE_COOKIE_SAMESITE,
+        )
+    return response
 
 def generateLink(request):
     chars = '1234567890'
@@ -151,13 +199,15 @@ def follow(request):
         following = get_object_or_404(Usuario, id=request.POST.get('userP'))
         next_url = request.POST.get('next', '/')
         if following == user:
-            messages.error(request, 'Você não pode seguir a si mesmo.')
+            messages.error(request, _('Você não pode seguir a si mesmo.'))
         elif Follower.objects.filter(following_id=following.id, follower=user.id).exists():
             Follower.objects.filter(follower = user, following = following).delete()
             following.followersC -=1
             following.save()
             user.followingC -= 1
             user.save()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'following': False, 'followers': following.followersC})
             return redirect(next_url)
         else:
             Follower.objects.create(follower = user, following = following)
@@ -171,9 +221,11 @@ def follow(request):
                     user=following,
                     actor=user,
                     notification_type='follow',
-                    body=f"{user.name} começou a te seguir",
+                    body=_("%(name)s começou a te seguir") % {"name": user.name},
                     linkzaocarai=f"{user.username}/",
                 )
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'following': True, 'followers': following.followersC})
             return redirect(next_url)
     return redirect('/')
 
@@ -193,20 +245,20 @@ def delete(request):
         if request.POST.get('content_type') == 'reply':
             reply = get_object_or_404(Replys, id=request.POST.get('tweetid'))
             if reply.user_id != request.user.id:
-                messages.error(request, 'Você não pode deletar esta resposta.')
+                messages.error(request, _('Você não pode deletar esta resposta.'))
                 return redirect(next_url)
             for child in Replys.objects.filter(tweet=reply.tweet, reply=reply):
                 child.reply.remove(reply)
             reply.delete()
-            messages.success(request, 'Resposta deletada.')
+            messages.success(request, _('Resposta deletada.'))
             return redirect(next_url)
 
         tweet = get_object_or_404(Tweet, id=request.POST.get('tweetid'))
         if tweet.tweetAuthor_id != request.user.id:
-            messages.error(request, 'Você não pode deletar este tweet.')
+            messages.error(request, _('Você não pode deletar este tweet.'))
             return redirect(next_url)
         tweet.delete()
-        messages.success(request, 'Tweet deletado.')
+        messages.success(request, _('Tweet deletado.'))
         return redirect(next_url)
 
 @login_required(login_url='/login')
@@ -215,12 +267,12 @@ def report(request):
         kind, target = post_target(request)
         author_id = target.user_id if kind == 'reply' else target.tweetAuthor_id
         if author_id == request.user.id:
-            return HttpResponseForbidden('Você não pode denunciar sua própria publicação.')
+            return HttpResponseForbidden(_('Você não pode denunciar sua própria publicação.'))
         reason = request.POST.get('reason', '').strip()
         if reason and len(reason) <= 100:
             Report.objects.create(x9=request.user, reason=reason, **{kind: target})
-            messages.success(request, 'Denuncia registrada.')
+            messages.success(request, _('Denuncia registrada.'))
         else:
-            messages.error(request, 'Informe um motivo de até 100 caracteres.')
+            messages.error(request, _('Informe um motivo de até 100 caracteres.'))
         return redirect(request.POST.get('next', '/'))
     return redirect('/')

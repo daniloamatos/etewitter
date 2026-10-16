@@ -22,3 +22,26 @@ def smart_date(value):
     if value.year == now.year:
         return value.strftime('%d/%m')
     return value.strftime('%d/%m/%Y')
+
+
+@register.filter
+def render_mentions(value):
+    """Escape user content before inserting links; unknown handles stay plain text."""
+    from django.utils.html import escape, format_html
+    from django.utils.safestring import mark_safe
+    from main.mentions import MENTION_RE, mentioned_users
+
+    text = str(value or '')
+    users = mentioned_users(text)
+    parts = []
+    offset = 0
+    for match in MENTION_RE.finditer(text):
+        parts.append(str(escape(text[offset:match.start()])))
+        user = users.get(match.group(1).lower())
+        parts.append(str(format_html(
+            '<a class="profile-handle-link mention-link" href="/{}/">{}</a>',
+            user.username, match.group(),
+        )) if user else str(escape(match.group())))
+        offset = match.end()
+    parts.append(str(escape(text[offset:])))
+    return mark_safe(''.join(parts).replace('\r\n', '\n').replace('\r', '\n').replace('\n', '<br>'))

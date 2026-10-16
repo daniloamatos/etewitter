@@ -1,17 +1,18 @@
 {% extends "main/template.html" %}
-{% load static custom_filters %}
+{% load static custom_filters i18n %}
 {% block title %}Tweet · Etewitter{% endblock %}
-{% block header_title %}Tweet{% endblock %}
+{% block header_back %}{% include "main/back_button.html" %}{% endblock %}
+{% block header_title %}{% trans "Post" %}{% endblock %}
 {% block content %}
 {{ notReply|json_script:"notreply" }}
 <section class="detail-page">
 {% if notReply == False %}
     <article data-card-url="/{{ tweetObj.tweet.tweetLink }}" tabindex="0" role="link" class="tweet-card tweet-detail thread-parent thread-parent-link">
-        <a href="/{{ tweetObj.tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if tweetObj.tweet.tweetAuthor.profilepic and tweetObj.tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ tweetObj.tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ tweetObj.tweet.tweetAuthor.name }}"></a>
+        <a href="/{{ tweetObj.tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if tweetObj.tweet.tweetAuthor.profilepic and tweetObj.tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ tweetObj.tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=tweetObj.tweet.tweetAuthor.name %}Foto de {{ name }}{% endblocktrans %}"></a>
         <div class="tweet-body">
-            <div class="tweet-meta"><a href="/{{ tweetObj.tweet.tweetAuthor.username }}/"><strong>{{ tweetObj.tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ tweetObj.tweet.tweetAuthor.username }}/">@{{ tweetObj.tweet.tweetAuthor.username }}</a><span>·</span><time>{{ tweetObj.tweet.publishDate|smart_date }}</time></div>
-            <a class="tweet-content tweet-detail-content" href="/{{ tweetObj.tweet.tweetLink }}">{{ tweetObj.tweet.tweet|linebreaksbr }}</a>
-            {% if tweetObj.tweet.image %}<img class="tweet-image" src="{{ tweetObj.tweet.image.url }}" alt="Imagem do tweet pai">{% endif %}
+            <div class="tweet-meta"><a href="/{{ tweetObj.tweet.tweetAuthor.username }}/"><strong>{{ tweetObj.tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ tweetObj.tweet.tweetAuthor.username }}/">@{{ tweetObj.tweet.tweetAuthor.username }}</a><span>·</span><a href="/{{ tweetObj.tweet.tweetLink }}"><time>{{ tweetObj.tweet.publishDate|smart_date }}</time></a></div>
+            <div class="tweet-content tweet-detail-content">{{ tweetObj.tweet.tweet|render_mentions }}</div>
+            {% if tweetObj.tweet.image %}<img class="tweet-image" src="{{ tweetObj.tweet.image.url }}" alt="{% trans 'Imagem do tweet pai' %}">{% endif %}
             <div class="tweet-actions">
 {% include "main/post_actions.html" with post=tweetObj.tweet kind="tweet" post_url=tweetObj.tweet.tweetLink %}
 
@@ -23,11 +24,11 @@
     </article>
     {% for parent in parent_replies %}
     <article data-card-url="/{{ parent.replyLink }}" tabindex="0" role="link" class="tweet-card tweet-detail thread-parent thread-parent-link">
-        <a href="/{{ parent.user.username }}/"><img class="avatar avatar-image" src="{% if parent.user.profilepic and parent.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ parent.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ parent.user.name }}"></a>
+        <a href="/{{ parent.user.username }}/"><img class="avatar avatar-image" src="{% if parent.user.profilepic and parent.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ parent.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=parent.user.name %}Foto de {{ name }}{% endblocktrans %}"></a>
         <div class="tweet-body">
-            <div class="tweet-meta"><a href="/{{ parent.user.username }}/"><strong>{{ parent.user.name }}</strong></a><a class="profile-handle-link" href="/{{ parent.user.username }}/">@{{ parent.user.username }}</a><span>·</span><time>{{ parent.publishDate|smart_date }}</time></div>
-            <a class="tweet-content tweet-detail-content" href="/{{ parent.replyLink }}">{{ parent.body|linebreaksbr }}</a>
-            {% if parent.image %}<img class="tweet-image" src="{{ parent.image.url }}" alt="Imagem da resposta pai">{% endif %}
+            <div class="tweet-meta"><a href="/{{ parent.user.username }}/"><strong>{{ parent.user.name }}</strong></a><a class="profile-handle-link" href="/{{ parent.user.username }}/">@{{ parent.user.username }}</a><span>·</span><a href="/{{ parent.replyLink }}"><time>{{ parent.publishDate|smart_date }}</time></a></div>
+            <div class="tweet-content tweet-detail-content">{{ parent.body|render_mentions }}</div>
+            {% if parent.image %}<img class="tweet-image" src="{{ parent.image.url }}" alt="{% trans 'Imagem da resposta pai' %}">{% endif %}
             <div class="tweet-actions">
 {% include "main/post_actions.html" with post=parent kind="reply" post_url=parent.replyLink %}
 
@@ -42,11 +43,11 @@
 {% for item in tweet %}
     {% if notReply %}
     <article data-card-url="/{{ item.tweetLink }}" tabindex="0" role="link" class="tweet-card tweet-detail thread-current">
-        <a href="/{{ item.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if item.tweetAuthor.profilepic and item.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ item.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ item.tweetAuthor.name }}"></a>
+        <a href="/{{ item.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if item.tweetAuthor.profilepic and item.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ item.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=item.tweetAuthor.name %}Foto de {{ name }}{% endblocktrans %}"></a>
         <div class="tweet-body">
-            <div class="tweet-meta"><a href="/{{ item.tweetAuthor.username }}/"><strong>{{ item.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ item.tweetAuthor.username }}/">@{{ item.tweetAuthor.username }}</a><span>·</span><time>{{ item.publishDate|smart_date }}</time></div>
-            <a class="tweet-content tweet-detail-content" href="/{{ item.tweetLink }}">{{ item.tweet|linebreaksbr }}</a>
-            {% if item.image %}<img class="tweet-image" src="{{ item.image.url }}" alt="Imagem do tweet">{% endif %}
+            <div class="tweet-meta"><a href="/{{ item.tweetAuthor.username }}/"><strong>{{ item.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ item.tweetAuthor.username }}/">@{{ item.tweetAuthor.username }}</a><span>·</span><a href="/{{ item.tweetLink }}"><time>{{ item.publishDate|smart_date }}</time></a></div>
+            <div class="tweet-content tweet-detail-content">{{ item.tweet|render_mentions }}</div>
+            {% if item.image %}<img class="tweet-image" src="{{ item.image.url }}" alt="{% trans 'Imagem do tweet' %}">{% endif %}
             <div class="tweet-actions">
 {% include "main/post_actions.html" with post=item kind="tweet" post_url=item.tweetLink %}
 
@@ -58,11 +59,11 @@
     </article>
     {% else %}
     <article data-card-url="/{{ item.replyLink }}" tabindex="0" role="link" class="tweet-card tweet-detail thread-current">
-        <a href="/{{ item.user.username }}/"><img class="avatar avatar-image" src="{% if item.user.profilepic and item.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ item.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ item.user.name }}"></a>
+        <a href="/{{ item.user.username }}/"><img class="avatar avatar-image" src="{% if item.user.profilepic and item.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ item.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=item.user.name %}Foto de {{ name }}{% endblocktrans %}"></a>
         <div class="tweet-body">
-            <div class="tweet-meta"><a href="/{{ item.user.username }}/"><strong>{{ item.user.name }}</strong></a><a class="profile-handle-link" href="/{{ item.user.username }}/">@{{ item.user.username }}</a><span>·</span><time>{{ item.publishDate|smart_date }}</time></div>
-            <a class="tweet-content tweet-detail-content" href="/{{ item.replyLink }}">{{ item.body|linebreaksbr }}</a>
-            {% if item.image %}<img class="tweet-image" src="{{ item.image.url }}" alt="Imagem da resposta">{% endif %}
+            <div class="tweet-meta"><a href="/{{ item.user.username }}/"><strong>{{ item.user.name }}</strong></a><a class="profile-handle-link" href="/{{ item.user.username }}/">@{{ item.user.username }}</a><span>·</span><a href="/{{ item.replyLink }}"><time>{{ item.publishDate|smart_date }}</time></a></div>
+            <div class="tweet-content tweet-detail-content">{{ item.body|render_mentions }}</div>
+            {% if item.image %}<img class="tweet-image" src="{{ item.image.url }}" alt="{% trans 'Imagem da resposta' %}">{% endif %}
             <div class="tweet-actions">
 {% include "main/post_actions.html" with post=item kind="reply" post_url=item.replyLink %}
 
@@ -75,33 +76,46 @@
     {% endif %}
 {% endfor %}
 
+<div class="reply-section-divider" aria-hidden="true"></div>
 <form id="reply-form" class="reply-form" method="post" action="reply" enctype="multipart/form-data">
     {% csrf_token %}
+    {% if request.user.is_authenticated %}<a class="reply-current-avatar" href="/{{ request.user.username }}/"><img class="avatar avatar-image" src="{% if request.user.profilepic and request.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ request.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=request.user.name %}Foto de {{ name }}{% endblocktrans %}"></a>{% else %}<span class="reply-current-avatar"><img class="avatar avatar-image" src="{% static 'images/default-profile.svg' %}" alt="{% trans 'Foto de perfil padrão' %}"></span>{% endif %}
     <div class="reply-field">
-        {{ form.body }}
+        <div class="input-media">
+            {{ form.body }}
+            <label class="media-button input-media-button" for="{{ form.image.id_for_label }}" title="{% trans 'Formatos: JPG, PNG, GIF e WEBP · até 5 MB' %}" aria-label="{% trans 'Anexar foto' %}"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg></label>
+        </div>
         {% for error in form.body.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         <div class="composer-preview" hidden>
-            <img alt="Prévia da imagem selecionada">
-            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="Remover imagem">✕</button>
+            <img alt="{% trans 'Prévia da imagem selecionada' %}">
+            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="{% trans 'Remover imagem' %}">✕</button>
         </div>
     </div>
-    <label class="media-button" for="{{ form.image.id_for_label }}" title="Formatos: JPG, PNG, GIF e WEBP · até 5 MB"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>Foto</span></label>
     {{ form.image }}
     {% for error in form.image.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
     <input type="hidden" name="next" value="{{ request.path }}">
     <input type="hidden" name="content_type" value="{% if notReply %}tweet{% else %}reply{% endif %}">
     {% for item in tweet %}<input type="hidden" name="tweetid" value="{% if notReply %}{{ item.id }}{% else %}{{ item.id }}{% endif %}">{% endfor %}
-    <button class="primary-button reply-submit" type="submit"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></svg>Responder</button>
+    <button class="primary-button reply-submit" type="submit">{% trans "Responder" %}</button>
 </form>
 
+<div class="reply-section-divider" aria-hidden="true"></div>
 <section class="replies">
-    <h2>Respostas</h2>
+    <h2>{% trans "Respostas" %}</h2>
     {% for reply in qs|dictsortreversed:"publishDate" %}
-    {% include "main/reply_card.html" with detail=True %}
-    {% empty %}<p class="muted">Ainda não há respostas.</p>{% endfor %}
+    {% include "main/reply_card.html" with detail=True expand_depth=1 %}
+    {% empty %}<p class="muted">{% trans "Ainda não há respostas." %}</p>{% endfor %}
 </section>
 
 
 
 </section>
+{% endblock %}
+{% block javascript %}
+<script>
+    document.getElementById('reply-form')?.addEventListener('click', function (event) {
+        if (event.target.closest('a, button, label, input[type="file"]')) return;
+        this.querySelector('input[name="body"]')?.focus();
+    });
+</script>
 {% endblock %}

@@ -14,6 +14,7 @@ import os
 
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.utils.translation import gettext_lazy as _
 from PIL import Image, ImageOps
 
 
@@ -38,7 +39,7 @@ JPEG_QUALITY = 85
 
 def _size_error(size, max_bytes, what):
     return ValidationError(
-        '%(what)s é muito grande (%(size).1f MB). O limite é %(max)s MB.'
+        _('%(what)s é muito grande (%(size).1f MB). O limite é %(max)s MB.')
         % {'what': what, 'size': size / (1024 * 1024), 'max': max_bytes // (1024 * 1024)}
     )
 
@@ -47,7 +48,7 @@ def validate_image_size(file):
     """Recusa arquivos maiores que o limite padrão (5 MB)."""
     size = getattr(file, 'size', None)
     if size and size > MAX_IMAGE_UPLOAD_SIZE:
-        raise _size_error(size, MAX_IMAGE_UPLOAD_SIZE, 'A imagem')
+        raise _size_error(size, MAX_IMAGE_UPLOAD_SIZE, _('A imagem'))
     return file
 
 
@@ -55,7 +56,7 @@ def validate_profile_image_size(file):
     """Foto de perfil: no máximo 20 MB."""
     size = getattr(file, 'size', None)
     if size and size > MAX_PROFILE_IMAGE_UPLOAD_SIZE:
-        raise _size_error(size, MAX_PROFILE_IMAGE_UPLOAD_SIZE, 'A foto de perfil')
+        raise _size_error(size, MAX_PROFILE_IMAGE_UPLOAD_SIZE, _('A foto de perfil'))
     return file
 
 
@@ -63,7 +64,7 @@ def validate_banner_image_size(file):
     """Foto de capa: no máximo 50 MB."""
     size = getattr(file, 'size', None)
     if size and size > MAX_BANNER_IMAGE_UPLOAD_SIZE:
-        raise _size_error(size, MAX_BANNER_IMAGE_UPLOAD_SIZE, 'A foto de capa')
+        raise _size_error(size, MAX_BANNER_IMAGE_UPLOAD_SIZE, _('A foto de capa'))
     return file
 
 
@@ -76,7 +77,7 @@ def compress_image(file):
     """Redimensiona e recomprime uma imagem enviada.
 
     - Animações (GIF/WEBP animados) são mantidas como estão.
-    - As demais são achatadas num fundo branco, redimensionadas para no máximo
+    - As demais são achatadas num fundo claro (#f0f0f0), redimensionadas para no máximo
       MAX_IMAGE_DIMENSION no maior lado e salvas como JPEG (JPEG_QUALITY).
     """
     if not file:
@@ -87,7 +88,7 @@ def compress_image(file):
         image = Image.open(file)
         image.load()
     except Exception:
-        raise ValidationError('Arquivo de imagem inválido.')
+        raise ValidationError(_('Arquivo de imagem inválido.'))
 
     # Animações não podem ser recomprimidas sem perder quadros.
     if getattr(image, 'is_animated', False) and getattr(image, 'n_frames', 1) > 1:
@@ -97,7 +98,7 @@ def compress_image(file):
     image = ImageOps.exif_transpose(image)
     if image.mode in ('RGBA', 'LA') or (image.mode == 'P' and 'transparency' in image.info):
         rgba = image.convert('RGBA')
-        background = Image.new('RGB', rgba.size, (255, 255, 255))
+        background = Image.new('RGB', rgba.size, (240, 240, 240))
         background.paste(rgba, mask=rgba.split()[-1])
         image = background
     elif image.mode != 'RGB':

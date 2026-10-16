@@ -1,24 +1,25 @@
+{% load i18n %}
 <dialog id="post-report-dialog" class="post-report-dialog">
     <form method="post" action="/report/">
         {% csrf_token %}
-        <h2>Denunciar publicação</h2>
+        <h2>{% trans "Denunciar publicação" %}</h2>
         <input type="hidden" name="tweetid">
         <input type="hidden" name="content_type">
         <input type="hidden" name="next" value="{{ request.path }}">
-        <label for="post-report-reason">Motivo da denúncia</label>
+        <label for="post-report-reason">{% trans "Motivo da denúncia" %}</label>
         <textarea id="post-report-reason" name="reason" maxlength="100" required></textarea>
-        <div class="report-modal-actions"><button type="button" class="text-button" data-close-report>Cancelar</button><button type="submit" class="primary-button">Denunciar</button></div>
+        <div class="report-modal-actions"><button type="button" class="text-button" data-close-report>{% trans "Cancelar" %}</button><button type="submit" class="primary-button">{% trans "Denunciar" %}</button></div>
     </form>
 </dialog>
 
 <dialog id="post-delete-dialog" class="post-report-dialog">
     <form method="post" action="/delete/">
         {% csrf_token %}
-        <h2>Excluir publicação</h2>
-        <p>Você realmente deseja excluir esta publicação? Esta ação não pode ser desfeita.</p>
+        <h2>{% trans "Excluir publicação" %}</h2>
+        <p>{% trans "Você realmente deseja excluir esta publicação? Esta ação não pode ser desfeita." %}</p>
         <input type="hidden" name="tweetid">
         <input type="hidden" name="content_type">
         <input type="hidden" name="next" value="{{ request.path }}">
-        <div class="report-modal-actions"><button type="button" class="text-button" data-close-delete>Cancelar</button><button type="submit" class="danger-button">Excluir</button></div>
+        <div class="report-modal-actions"><button type="button" class="text-button" data-close-delete>{% trans "Cancelar" %}</button><button type="submit" class="danger-button">{% trans "Excluir" %}</button></div>
     </form>
 </dialog>

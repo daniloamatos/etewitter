@@ -91,6 +91,28 @@
 
     setupImagePreviews();
 
+    // Amplia qualquer foto ao clicar (tweets, respostas, avatares, capa, chat...).
+    function setupImageLightbox() {
+        const dialog = document.getElementById('image-lightbox');
+        if (!dialog) return;
+        const image = dialog.querySelector('img');
+        const isPlaceholder = (url) => !url || /\/(default-profile|default-banner)\.svg$/.test(url);
+        document.addEventListener('click', (event) => {
+            if (dialog.open) return;
+            const media = event.target.closest('img, [data-lightbox-bg]');
+            if (!media || media.closest('[data-no-lightbox]')) return;
+            const url = media.tagName === 'IMG' ? (media.currentSrc || media.src) : media.dataset.lightboxBg;
+            if (isPlaceholder(url)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            image.src = url;
+            image.alt = media.alt || 'Imagem ampliada';
+            dialog.showModal();
+        }, true);
+        dialog.addEventListener('click', () => dialog.close());
+    }
+    setupImageLightbox();
+
     // Helper: envia interação via AJAX e atualiza o frontend
     function handleInteraction(form, event) {
         event.preventDefault();
@@ -156,6 +178,15 @@
     }
 
     document.addEventListener('click', (event) => {
+        // Botão "voltar" do topo (página do post, explorar, busca).
+        const back = event.target.closest('[data-back]');
+        if (back) {
+            event.preventDefault();
+            if (window.history.length > 1) window.history.back();
+            else window.location.assign('/');
+            return;
+        }
+
         const form = event.target.closest('form.inline-form');
         if (form) {
             const action = formAction(form);
@@ -195,7 +226,7 @@
             return;
         }
         if (event.target.closest('[data-close-report]')) { dialog.close(); return; }
-        document.querySelectorAll('.post-options[open]').forEach((menu) => {
+        document.querySelectorAll('.options-menu[open]').forEach((menu) => {
             if (!menu.contains(event.target)) menu.removeAttribute('open');
         });
         const card = event.target.closest('[data-card-url]');
@@ -208,7 +239,7 @@
     });
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-            document.querySelectorAll('.post-options[open]').forEach((menu) => {
+            document.querySelectorAll('.options-menu[open]').forEach((menu) => {
                 menu.removeAttribute('open');
                 menu.querySelector('summary').focus();
             });

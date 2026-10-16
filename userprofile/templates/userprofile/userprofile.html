@@ -1,56 +1,60 @@
 {% extends "main/template.html" %}
-{% load static custom_filters %}
+{% load static custom_filters i18n %}
 {% block title %}{{ userP.name }} (@{{ userP.username }}) · Etewitter{% endblock %}
-{% block header_title %}Perfil{% endblock %}
+{% block header_title %}{% trans "Perfil" %}{% endblock %}
+{% block body_class %}profile-page{% endblock %}
 {% block content %}
 <section class="profile-header">
-    <div class="profile-banner" style="background-image:url('{% if userP.bannerpic and userP.bannerpic.name != "default/default.banner.jpg" %}{{ userP.bannerpic.url }}{% else %}{% static "images/default-banner.svg" %}{% endif %}')"></div>
+    <div class="profile-banner"{% if userP.bannerpic and userP.bannerpic.name != "default/default.banner.jpg" %} data-lightbox-bg="{{ userP.bannerpic.url }}"{% endif %} style="background-image:url('{% if userP.bannerpic and userP.bannerpic.name != "default/default.banner.jpg" %}{{ userP.bannerpic.url }}{% else %}{% static "images/default-banner.svg" %}{% endif %}')"></div>
     <div class="profile-summary">
-        <a href="/{{ userP.username }}/"><img class="avatar profile-avatar" src="{% if userP.profilepic and userP.profilepic.name != "default/default_profile_400x400.png" %}{{ userP.profilepic.url }}{% else %}{% static "images/default-profile.svg" %}{% endif %}" alt="Foto de {{ userP.name }}"></a>
+        <div class="profile-top">
+        <a href="/{{ userP.username }}/"><img class="avatar profile-avatar" src="{% if userP.profilepic and userP.profilepic.name != "default/default_profile_400x400.png" %}{{ userP.profilepic.url }}{% else %}{% static "images/default-profile.svg" %}{% endif %}" alt="{% blocktrans with name=userP.name %}Foto de {{ name }}{% endblocktrans %}"></a>
         <div class="profile-actions">
             {% if checkUser.username|upper == jusername|upper %}
-            <a class="outline-button profile-button" href="/editprofile/">Editar perfil</a>
+            <a class="outline-button profile-button" href="/editprofile/">{% trans "Editar perfil" %}</a>
             {% else %}
             <form method="post" action="/follow/">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">
                 <input type="hidden" value="{{ userP.id }}" name="userP">
-                <button class="primary-button" type="submit">{% if request.user in followers %}Deixar de seguir{% else %}Seguir{% endif %}</button>
+                <button class="primary-button" type="submit">{% if request.user in followers %}{% trans "Deixar de seguir" %}{% else %}{% trans "Seguir" %}{% endif %}</button>
             </form>
             <form method="post" action="/messages/{{ user.id }}-{{ userP.id }}">
                 {% csrf_token %}
-                <button class="outline-button profile-button" type="submit">Mensagem</button>
+                <button class="outline-button profile-button" type="submit">{% trans "Mensagem" %}</button>
             </form>
             {% endif %}
         </div>
+        </div>
         <h1><a href="/{{ userP.username }}/">{{ userP.name }}</a></h1>
         <p class="profile-handle"><a href="/{{ userP.username }}/">@{{ userP.username }}</a></p>
+        {% if follows_you %}<p class="profile-follows-you">{% trans "Segue você" %}</p>{% endif %}
         {% if userP.bio %}<p class="profile-bio">{{ userP.bio }}</p>{% endif %}
-        <p class="profile-joined">Entrou em {{ userP.date_joined|date:"F Y" }}</p>
+        <p class="profile-joined">{% blocktrans with date=userP.date_joined|date:"F Y" %}Entrou em {{ date }}{% endblocktrans %}</p>
         <div class="profile-stats">
-            <details><summary><strong>{{ userP.followingC }}</strong> seguindo</summary><div class="profile-list">{% for person in following %}<a href="/{{ person.username }}/">@{{ person.username }}</a>{% empty %}<span>Ninguém ainda.</span>{% endfor %}</div></details>
-            <details><summary><strong>{{ userP.followersC }}</strong> seguidores</summary><div class="profile-list">{% for person in followers %}<a href="/{{ person.username }}/">@{{ person.username }}</a>{% empty %}<span>Ninguém ainda.</span>{% endfor %}</div></details>
-            <span><strong>{{ userP.get_posts_no }}</strong> tweets</span>
+            <details><summary><strong>{{ userP.followingC }}</strong> {% trans "seguindo" %}</summary><div class="profile-list">{% for person in following %}<a href="/{{ person.username }}/">@{{ person.username }}</a>{% empty %}<span>{% trans "Ninguém ainda." %}</span>{% endfor %}</div></details>
+            <details><summary><strong>{{ userP.followersC }}</strong> {% trans "seguidores" %}</summary><div class="profile-list">{% for person in followers %}<a href="/{{ person.username }}/">@{{ person.username }}</a>{% empty %}<span>{% trans "Ninguém ainda." %}</span>{% endfor %}</div></details>
+            <span><strong>{{ userP.get_posts_no }}</strong> {% trans "tweets" %}</span>
         </div>
     </div>
 </section>
 
 {% if checkUser.username|upper == jusername|upper %}
 <section class="composer-card profile-composer">
-    <a href="/{{ request.user.username }}/"><img class="avatar avatar-image" src="{% if request.user.profilepic and request.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ request.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ request.user.name }}"></a>
+    <a href="/{{ request.user.username }}/"><img class="avatar avatar-image" src="{% if request.user.profilepic and request.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ request.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=request.user.name %}Foto de {{ name }}{% endblocktrans %}"></a>
     <form method="post" enctype="multipart/form-data" class="composer-form">
         {% csrf_token %}
-        <textarea name="tweet" id="tweetBox" maxlength="280" placeholder="O que está acontecendo?">{{ form.tweet.value|default:"" }}</textarea>
+        <textarea name="tweet" id="tweetBox" maxlength="280" placeholder="{% trans 'O que está acontecendo?' %}">{{ form.tweet.value|default:"" }}</textarea>
         {% for error in form.tweet.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         <div class="composer-preview" hidden>
-            <img alt="Prévia da imagem selecionada">
-            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="Remover imagem">✕</button>
+            <img alt="{% trans 'Prévia da imagem selecionada' %}">
+            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="{% trans 'Remover imagem' %}">✕</button>
         </div>
         <div class="composer-actions">
-            <label class="media-button" for="profile-image-input" title="Formatos: JPG, PNG, GIF e WEBP · até 5 MB"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>Foto</span></label>
+            <label class="media-button" for="profile-image-input" title="{% trans 'Formatos: JPG, PNG, GIF e WEBP · até 5 MB' %}"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>{% trans "Foto" %}</span></label>
             <input type="file" name="image" id="profile-image-input" accept="image/jpeg,image/png,image/gif,image/webp">
-            <span class="character-limit">280 caracteres</span>
-            <button class="primary-button" type="submit">Tweetar</button>
+            <span class="character-limit">{% blocktrans %}280 caracteres{% endblocktrans %}</span>
+            <button class="primary-button" type="submit">{% trans "Tweetar" %}</button>
         </div>
         {% for error in form.image.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
     </form>
@@ -63,12 +67,12 @@
 {% include "main/reply_card.html" with reply=tweet detail=False %}
 {% else %}
 <article data-card-url="/{{ tweet.tweetLink }}" tabindex="0" role="link" class="tweet-card">
-    <a href="/{{ tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if tweet.tweetAuthor.profilepic and tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ tweet.tweetAuthor.name }}"></a>
+    <a href="/{{ tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if tweet.tweetAuthor.profilepic and tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=tweet.tweetAuthor.name %}Foto de {{ name }}{% endblocktrans %}"></a>
     <div class="tweet-body">
-        {% if tweet.retweet_by_name %}<div class="retweet-label">↻ <a href="/{{ tweet.retweet_by_username }}/">{{ tweet.retweet_by_name }}</a> retweetou</div>{% endif %}
-        <div class="tweet-meta"><a href="/{{ tweet.tweetAuthor.username }}/"><strong>{{ tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ tweet.tweetAuthor.username }}/">@{{ tweet.tweetAuthor.username }}</a><span>·</span><time>{{ tweet.publishDate|smart_date }}</time></div>
-        <a class="tweet-content" href="/{{ tweet.tweetLink }}">{{ tweet.tweet|linebreaksbr }}</a>
-        {% if tweet.image %}<img class="tweet-image" src="{{ tweet.image.url }}" alt="Imagem do tweet">{% endif %}
+        {% if tweet.retweet_by_name %}{% include "main/repost_label.html" with username=tweet.retweet_by_username %}{% endif %}
+        <div class="tweet-meta"><a href="/{{ tweet.tweetAuthor.username }}/"><strong>{{ tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ tweet.tweetAuthor.username }}/">@{{ tweet.tweetAuthor.username }}</a><span>·</span><a href="/{{ tweet.tweetLink }}"><time>{{ tweet.publishDate|smart_date }}</time></a></div>
+        <div class="tweet-content">{{ tweet.tweet|render_mentions }}</div>
+        {% if tweet.image %}<img class="tweet-image" src="{{ tweet.image.url }}" alt="{% trans 'Imagem do tweet' %}">{% endif %}
         <div class="tweet-actions">
 {% include "main/post_actions.html" with post=tweet kind="tweet" post_url=tweet.tweetLink %}
 
@@ -81,7 +85,7 @@
 
 {% endif %}
 {% empty %}
-<div class="empty-state"><div class="empty-icon">t</div><h2>Nenhum tweet ainda</h2><p>Quando {{ userP.name }} publicar, aparecerá aqui.</p></div>
+<div class="empty-state"><div class="empty-icon">t</div><h2>{% trans "Nenhum tweet ainda" %}</h2><p>{% blocktrans with name=userP.name %}Quando {{ name }} publicar, aparecerá aqui.{% endblocktrans %}</p></div>
 {% endfor %}
 </section>
 {% endblock %}

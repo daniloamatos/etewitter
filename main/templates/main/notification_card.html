@@ -1,0 +1,60 @@
+{% load i18n custom_filters static %}
+{% with post=notification.reply|default:notification.tweet %}
+<article class="notification-item{% if notification.notification_type == 'like' or notification.notification_type == 'retweet' %} notification-activity{% endif %}" data-card-url="/{{ notification.linkzaocarai }}" data-notification-at="{{ notification.publishDate|date:'U' }}{{ notification.publishDate|date:'u' }}" data-notification-id="{{ notification.id }}" tabindex="0" role="link">
+    {% if notification.notification_type == 'like' or notification.notification_type == 'retweet' %}
+    <div class="notification-body">
+        <div class="notification-activity-top">
+            <span class="notification-icon notification-icon-{{ notification.notification_type }}" aria-hidden="true">
+                {% if notification.notification_type == 'like' %}<svg viewBox="0 0 24 24"><path d="M20.8 8.8C20.8 14 12 20 12 20S3.2 14 3.2 8.8A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 8.8 2.8Z"/></svg>
+                {% else %}<svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M21 6H7a4 4 0 0 0-4 4v2m4 10-4-4 4-4M3 18h14a4 4 0 0 0 4-4v-2"/></svg>{% endif %}
+            </span>
+            {% if notification.actor %}<a class="profile-avatar-link notification-activity-avatar-link" href="/{{ notification.actor.username }}/" data-no-lightbox><img class="notification-activity-avatar" src="{% if notification.actor.profilepic and notification.actor.profilepic.name != 'default/default_profile_400x400.png' %}{{ notification.actor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=notification.actor.name %}Foto de {{ name }}{% endblocktrans %}"></a>{% endif %}
+        </div>
+        <div class="notification-activity-row">
+            <div class="notification-activity-copy">
+                <p class="notification-activity-summary">
+                    {% if notification.actor %}<a href="/{{ notification.actor.username }}/"><strong>{{ notification.actor.name|default:notification.actor.username }}</strong></a>{% endif %}
+                    {% if notification.user_id == post.user_id or notification.user_id == post.tweetAuthor_id %}
+                    {% if notification.notification_type == 'like' %}{% if notification.reply %}{% trans "curtiu sua resposta" %}{% else %}{% trans "curtiu sua publicação" %}{% endif %}{% else %}{% if notification.reply %}{% trans "repostou sua resposta" %}{% else %}{% trans "repostou sua publicação" %}{% endif %}{% endif %}
+                    {% else %}
+                    {% if notification.notification_type == 'like' %}{% trans "curtiu uma publicação em que você foi mencionado" %}{% else %}{% trans "repostou uma publicação em que você foi mencionado" %}{% endif %}
+                    {% endif %}
+                    <span class="notification-activity-separator" aria-hidden="true">·</span>
+                    <time datetime="{{ notification.publishDate|date:'c' }}">{{ notification.publishDate|smart_date }}</time>
+                </p>
+                {% if post %}{% if notification.reply %}{% if post.body %}<p class="notification-post-text">{{ post.body|render_mentions }}</p>{% endif %}{% else %}{% if post.tweet %}<p class="notification-post-text">{{ post.tweet|render_mentions }}</p>{% endif %}{% endif %}{% endif %}
+            </div>
+            {% if post.image %}<img class="notification-activity-thumbnail" src="{{ post.image.url }}" alt="{% trans 'Imagem da publicação' %}">{% endif %}
+        </div>
+    {% else %}
+    {% if notification.notification_type != 'reply' and notification.notification_type != 'follow' and notification.notification_type != 'mention' %}<span class="notification-icon notification-icon-{{ notification.notification_type }}" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></svg>
+    </span>{% endif %}
+    {% if notification.actor %}{% include "main/profile_avatar.html" with person=notification.actor %}{% endif %}
+    <div class="notification-body">
+        {% if notification.notification_type == 'mention' or notification.notification_type == 'reply' %}<div class="notification-heading">
+            {% if notification.actor %}<div class="tweet-meta"><a href="/{{ notification.actor.username }}/"><strong>{{ notification.actor.name }}</strong></a><a class="profile-handle-link" href="/{{ notification.actor.username }}/">@{{ notification.actor.username }}</a>{% if notification.notification_type == 'mention' %}<span class="notification-date-separator" aria-hidden="true">·</span><time class="notification-item-time" datetime="{{ notification.publishDate|date:'c' }}">{{ notification.publishDate|smart_date }}</time>{% endif %}</div>{% endif %}
+            {% if post %}{% if notification.reply %}{% include "main/post_menu.html" with post=post kind="reply" %}{% else %}{% include "main/post_menu.html" with post=post kind="tweet" %}{% endif %}{% endif %}
+        </div>{% elif notification.actor %}<div class="tweet-meta"><a href="/{{ notification.actor.username }}/"><strong>{{ notification.actor.name }}</strong></a><a class="profile-handle-link" href="/{{ notification.actor.username }}/">@{{ notification.actor.username }}</a></div>{% endif %}
+        {% if notification.notification_type == 'reply' %}
+            {% with target=notification.reply_target_user %}
+            <p class="notification-reply-context">{% if target %}{% trans "Respondendo a" %} <a href="/{{ target.username }}/">@{{ target.username }}</a><span class="notification-date-separator" aria-hidden="true">·</span>{% endif %}<time datetime="{{ notification.publishDate|date:'c' }}">{{ notification.publishDate|smart_date }}</time></p>
+            {% endwith %}
+        {% elif notification.notification_type != 'mention' %}<p class="notification-text">{% if notification.notification_type == 'follow' %}{% trans "começou a te seguir" %}{% else %}{{ notification.body }}{% endif %}<span class="notification-date-separator" aria-hidden="true">·</span><time class="notification-item-time" datetime="{{ notification.publishDate|date:'c' }}">{{ notification.publishDate|smart_date }}</time></p>{% endif %}
+        {% if post %}
+            {% if notification.reply %}{% if post.body %}<p class="notification-post-text">{{ post.body|render_mentions }}</p>{% endif %}{% else %}{% if post.tweet %}<p class="notification-post-text">{{ post.tweet|render_mentions }}</p>{% endif %}{% endif %}
+            {% if post.image %}<img class="notification-target-image" src="{{ post.image.url }}" alt="{% trans 'Imagem da publicação' %}">{% endif %}
+        {% endif %}
+    {% endif %}
+        {% if post and notification.notification_type != 'like' and notification.notification_type != 'retweet' %}<div class="tweet-actions notification-actions">
+            {% if notification.reply %}
+                {% include "main/post_actions.html" with post=post kind="reply" post_url=post.replyLink %}
+                {% include "main/save_button.html" with saved_tweet=post content_type="reply" %}
+            {% else %}
+                {% include "main/post_actions.html" with post=post kind="tweet" post_url=post.tweetLink %}
+                {% include "main/save_button.html" with saved_tweet=post content_type="tweet" %}
+            {% endif %}
+        </div>{% endif %}
+    </div>
+</article>
+{% endwith %}

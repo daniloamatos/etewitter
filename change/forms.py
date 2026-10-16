@@ -1,5 +1,6 @@
 from django import forms
 from django.core.validators import RegexValidator
+from django.utils.translation import gettext_lazy as _
 
 from register.models import Usuario
 
@@ -14,7 +15,7 @@ class ChangePass(forms.Form):
     senha = forms.CharField(
         widget=forms.PasswordInput(
             attrs={
-                'placeholder': 'Coloque a nova senha',
+                'placeholder': _('Coloque a nova senha'),
                 'class': 'form-controlss',
                 'id': 'inputPassword1',
                 'type': 'password',
@@ -25,7 +26,7 @@ class ChangePass(forms.Form):
     confirme_sua_senha = forms.CharField(
         widget=forms.PasswordInput(
             attrs={
-                'placeholder': 'Confirme sua senha',
+                'placeholder': _('Confirme sua senha'),
                 'class': 'form-controlss',
                 'id': 'inputPassword2',
                 'type': 'password',
@@ -42,7 +43,7 @@ class ChangeUsername(forms.Form):
         validators=[
             RegexValidator(
                 regex=r'^[a-zA-Z0-9]+$',
-                message='Somente caracteres alfanuméricos são permitidos.',
+                message=_('Somente caracteres alfanuméricos são permitidos.'),
             )
         ],
     )

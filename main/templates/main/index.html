@@ -1,24 +1,42 @@
-{% load static %}
+{% load static i18n %}
 <!doctype html>
-<html lang="pt-BR">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bem-vindo ao Etewitter</title>
-    <link href="{% static 'css/styles.css' %}?v=20261017" rel="stylesheet">
+    <title>{% trans "Bem-vindo ao Etewitter" %}</title>
+    <link href="{% static 'css/styles.css' %}?v=20261061" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('etewitter-theme');
+                var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.dataset.theme = saved || (dark ? 'dark' : 'light');
+            } catch (error) { /* ignora */ }
+        })();
+    </script>
 </head>
 <body class="landing-page">
     <div class="landing-art"><div class="landing-mark">t</div></div>
     <main class="landing-content">
         <div class="brand landing-brand"><span class="brand-mark">t</span><span class="brand-name">etewitter</span></div>
-        <h1>Acontecendo agora</h1>
-        <h2>Entre na conversa.</h2>
-        <a class="landing-button primary-button" href="/register/">Criar conta</a>
-        <p>Já tem uma conta?</p>
-        <a class="landing-button outline-button" href="/login/">Entrar</a>
+        <h1>{% trans "Acontecendo agora" %}</h1>
+        <h2>{% trans "Entre na conversa." %}</h2>
+        <a class="landing-button primary-button" href="/register/">{% trans "Criar conta" %}</a>
+        <p>{% trans "Já tem uma conta?" %}</p>
+        <a class="landing-button outline-button" href="/login/">{% trans "Entrar" %}</a>
+        <div class="landing-controls">
+            {% include "main/theme_toggle.html" %}
+            <form class="lang-switch" method="post" action="{% url 'set_language' %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                {% include "main/lang_flags.html" %}
+            </form>
+        </div>
     </main>
+    <script src="{% static 'js/theme.js' %}?v=1" defer></script>
 </body>
 </html>

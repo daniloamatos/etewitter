@@ -4,10 +4,11 @@ from register.models import Usuario
 
 def search(request, **query):
     query = request.GET.get('query', '').strip()
+    lookup = query[1:] if query.startswith('@') else query
     if request.method == 'GET':
-        result1 = Usuario.objects.filter(username__icontains=query)
+        result1 = Usuario.objects.filter(username__icontains=lookup)
         result2 = Tweet.objects.filter(tweet__icontains=query)
-        result3 = Usuario.objects.filter(name__icontains=query)
+        result3 = Usuario.objects.filter(name__icontains=lookup)
         result4 = []
         for reply in Replys.objects.filter(body__icontains=query).select_related(
             'user', 'tweet', 'tweet__tweetAuthor'

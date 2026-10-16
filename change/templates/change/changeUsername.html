@@ -1,5 +1,5 @@
 {% extends "main/template.html" %}
-{% load crispy_forms_tags %}
-{% block title %}Alterar usuário · Etewitter{% endblock %}
-{% block header_title %}Alterar usuário{% endblock %}
-{% block content %}<section class="settings-page"><h1>Alterar nome de usuário</h1><p class="settings-help">Seu novo usuário será usado no endereço do seu perfil.</p><form method="post" class="settings-form">{% csrf_token %}{{ form|crispy }}<button class="primary-button" type="submit">Salvar</button></form></section>{% endblock %}
+{% load crispy_forms_tags i18n %}
+{% block title %}{% trans "Alterar usuário" %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Alterar usuário" %}{% endblock %}
+{% block content %}<section class="settings-page"><h1>{% trans "Alterar nome de usuário" %}</h1><p class="settings-help">{% trans "Seu novo usuário será usado no endereço do seu perfil." %}</p><form method="post" class="settings-form">{% csrf_token %}{{ form|crispy }}<button class="primary-button" type="submit">{% trans "Salvar" %}</button></form></section>{% endblock %}

@@ -1,6 +1,7 @@
 {% extends "main/template.html" %}
-{% block title %}Tweet não encontrado · Etewitter{% endblock %}
-{% block header_title %}Tweet{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Tweet não encontrado" %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Tweet" %}{% endblock %}
 {% block content %}
-<div class="empty-state"><div class="empty-icon">?</div><h2>Esse tweet não existe</h2><p>O link pode estar quebrado ou o tweet foi removido.</p><a class="primary-button empty-button" href="/">Voltar para o início</a></div>
+<div class="empty-state"><div class="empty-icon">?</div><h2>{% trans "Esse tweet não existe" %}</h2><p>{% trans "O link pode estar quebrado ou o tweet foi removido." %}</p><a class="primary-button empty-button" href="/">{% trans "Voltar para o início" %}</a></div>
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "main/template.html" %}
-{% load static custom_filters %}
-{% block title %}Itens salvos · Etewitter{% endblock %}
-{% block header_title %}Itens salvos{% endblock %}
+{% load static custom_filters i18n %}
+{% block title %}{% trans "Itens salvos" %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Itens salvos" %}{% endblock %}
 {% block content %}
 <section class="timeline">
     {% for saved in tweet %}
@@ -10,11 +10,11 @@
 {% else %}
 {% with item=saved.tweet remove_saved=True %}
     <article data-card-url="/{{ item.tweetLink }}" tabindex="0" role="link" class="tweet-card">
-        <a href="/{{ item.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if item.tweetAuthor.profilepic and item.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ item.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ item.tweetAuthor.name }}"></a>
+        <a href="/{{ item.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if item.tweetAuthor.profilepic and item.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ item.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=item.tweetAuthor.name %}Foto de {{ name }}{% endblocktrans %}"></a>
         <div class="tweet-body">
-            <div class="tweet-meta"><a href="/{{ item.tweetAuthor.username }}/"><strong>{{ item.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ item.tweetAuthor.username }}/">@{{ item.tweetAuthor.username }}</a><span>·</span><time>{{ item.publishDate|smart_date }}</time></div>
-            <a class="tweet-content" href="/{{ item.tweetLink }}">{{ item.tweet|linebreaksbr }}</a>
-            {% if item.image %}<img class="tweet-image" src="{{ item.image.url }}" alt="Imagem do tweet">{% endif %}
+            <div class="tweet-meta"><a href="/{{ item.tweetAuthor.username }}/"><strong>{{ item.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ item.tweetAuthor.username }}/">@{{ item.tweetAuthor.username }}</a><span>·</span><a href="/{{ item.tweetLink }}"><time>{{ item.publishDate|smart_date }}</time></a></div>
+            <div class="tweet-content">{{ item.tweet|render_mentions }}</div>
+            {% if item.image %}<img class="tweet-image" src="{{ item.image.url }}" alt="{% trans 'Imagem do tweet' %}">{% endif %}
             <div class="tweet-actions">
 {% include "main/post_actions.html" with post=item kind="tweet" post_url=item.tweetLink %}
 
@@ -27,7 +27,7 @@
     {% endwith %}
 {% endif %}
     {% empty %}
-    <div class="empty-state"><div class="empty-icon">▱</div><h2>Nenhum item salvo</h2><p>Salve tweets para encontrá-los rapidamente.</p></div>
+    <div class="empty-state"><div class="empty-icon">▱</div><h2>{% trans "Nenhum item salvo" %}</h2><p>{% trans "Salve tweets para encontrá-los rapidamente." %}</p></div>
     {% endfor %}
 </section>
 {% endblock %}

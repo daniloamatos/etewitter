@@ -6,6 +6,6 @@
     </linearGradient>
   </defs>
   <rect width="900" height="260" fill="url(#banner)"/>
-  <circle cx="760" cy="55" r="150" fill="#fff" opacity=".24"/>
-  <circle cx="110" cy="230" r="180" fill="#fff" opacity=".18"/>
+  <circle cx="760" cy="55" r="150" fill="#f0f0f0" opacity=".24"/>
+  <circle cx="110" cy="230" r="180" fill="#f0f0f0" opacity=".18"/>
 </svg>

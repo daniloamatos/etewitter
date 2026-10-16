@@ -1,9 +1,9 @@
-<a class="tweet-action" href="/{{ post_url }}#reply-form" aria-label="Responder"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 5H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3v3l4-3h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"/></svg><span>{{ post.replysC }}</span></a>
-<form method="post" action="{% if kind == 'reply' %}/likereply/{% else %}/like/{% endif %}" class="inline-form">
-    {% csrf_token %}<input type="hidden" name="{% if kind == 'reply' %}replyid{% else %}tweetid{% endif %}" value="{{ post.id }}"><input type="hidden" name="next" value="{{ request.path }}">
-    <button class="tweet-action {% if request.user in post.likes.all %}is-liked{% endif %}" type="submit" aria-label="Curtir"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8C20.8 14 12 20 12 20S3.2 14 3.2 8.8A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 8.8 2.8Z"/></svg><span>{{ post.likec }}</span></button>
-</form>
+{% load i18n %}<a class="tweet-action" href="/{{ post_url }}#reply-form" aria-label="{% trans 'Responder' %}"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 5H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3v3l4-3h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"/></svg><span>{{ post.replysC }}</span></a>
 <form method="post" action="/{{ request.user.username }}/retweet{% if kind == 'reply' %}-reply{% endif %}/" class="inline-form">
     {% csrf_token %}<input type="hidden" name="{% if kind == 'reply' %}replyid{% else %}tweetid{% endif %}" value="{{ post.id }}"><input type="hidden" name="next" value="{{ request.path }}">
-    <button class="tweet-action {% if request.user in post.retweets.all %}is-retweeted{% endif %}" type="submit" aria-label="Retweetar"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2 4 4-4 4M21 6H7a4 4 0 0 0-4 4v2m4 10-4-4 4-4M3 18h14a4 4 0 0 0 4-4v-2"/></svg><span>{{ post.retweets.count }}</span></button>
+    <button class="tweet-action {% if request.user in post.retweets.all %}is-retweeted{% endif %}" type="submit" aria-label="{% trans 'Retweetar' %}"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m17 2 4 4-4 4M21 6H7a4 4 0 0 0-4 4v2m4 10-4-4 4-4M3 18h14a4 4 0 0 0 4-4v-2"/></svg><span>{{ post.retweets.count }}</span></button>
+</form>
+<form method="post" action="{% if kind == 'reply' %}/likereply/{% else %}/like/{% endif %}" class="inline-form">
+    {% csrf_token %}<input type="hidden" name="{% if kind == 'reply' %}replyid{% else %}tweetid{% endif %}" value="{{ post.id }}"><input type="hidden" name="next" value="{{ request.path }}">
+    <button class="tweet-action {% if request.user in post.likes.all %}is-liked{% endif %}" type="submit" aria-label="{% trans 'Curtir' %}"><svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8C20.8 14 12 20 12 20S3.2 14 3.2 8.8A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 8.8 2.8Z"/></svg><span>{{ post.likec }}</span></button>
 </form>

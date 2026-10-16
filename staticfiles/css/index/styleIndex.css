@@ -5,7 +5,7 @@ body
 .tweetBtn
 {
 
-    color:white;
+    color:#f0f0f0;
     border: none;
     border-radius: 30px;
     width: 150px;
@@ -28,7 +28,7 @@ body
 #loginTxt
 {
     margin-right: -45px;
-    color:white;
+    color:#f0f0f0;
     font-family: 'Kanit', sans-serif;
 }
 .form-controlss
@@ -39,7 +39,7 @@ body
     font-size:1rem;
     font-weight:400;
     line-height:1.5;
-    color:white;
+    color:#f0f0f0;
     background-color: Transparent;
     border:1px solid gray;
     border-radius:.25rem;
@@ -80,7 +80,7 @@ body
 }
 #signUpTxt
 {
-    color:white;
+    color:#f0f0f0;
     font-family: 'Kanit', sans-serif;
 }
 

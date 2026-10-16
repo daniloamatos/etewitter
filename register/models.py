@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator, FileExtensionValidator
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from main.image_utils import (
     ALLOWED_IMAGE_EXTENSIONS,
     compress_image,
@@ -12,6 +13,7 @@ from main.image_utils import (
 )
 import random
 import os
+import uuid
 
 
 def image_path(instance, filename):
@@ -31,19 +33,23 @@ class MyPBKDF2PasswordHasher(PBKDF2PasswordHasher):
     iterations = PBKDF2PasswordHasher.iterations * 1
 
 class Usuario(AbstractUser):
-    validateSize = RegexValidator(regex='^.{4,25}$', message='O tamanho do nome tem que ser entre 4 e 25',  code='invalid_size')
-    validateCharacters = RegexValidator(regex='^[a-zA-Z0-9]*$', message='Somente caracteres alfanuméricos são permitidos.', code='invalid_characters')
-    username = models.CharField(validators=[validateSize, validateCharacters], max_length=25, unique=True, verbose_name="Nome de usuário")
-    usernameinsensitive = models.CharField(max_length=25, verbose_name="Nome de usuário")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    validateSize = RegexValidator(regex='^.{4,25}$', message=_('O tamanho do nome tem que ser entre 4 e 25'),  code='invalid_size')
+    validateCharacters = RegexValidator(regex='^[a-zA-Z0-9]*$', message=_('Somente caracteres alfanuméricos são permitidos.'), code='invalid_characters')
+    username = models.CharField(validators=[validateSize, validateCharacters], max_length=25, unique=True, verbose_name=_("Nome de usuário"))
+    usernameinsensitive = models.CharField(max_length=25, verbose_name=_("Nome de usuário"))
     email = models.EmailField(unique=True)
-    name = models.CharField(validators=[validateSize], max_length=25, verbose_name="Nome")
+    name = models.CharField(validators=[validateSize], max_length=25, verbose_name=_("Nome"))
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'password']
-    date_of_birth = models.DateTimeField(null=True,blank=True, verbose_name='Data de aniversário')
+    date_of_birth = models.DateTimeField(null=True,blank=True, verbose_name=_('Data de aniversário'))
     date_of_creation = models.DateTimeField(default=timezone.now, blank=True)
-    profilepic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name="Foto de perfil", validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_profile_image_size])
-    bannerpic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name="Foto de capa", validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_banner_image_size])
-    bio = models.CharField(blank=True, max_length=50, verbose_name="Sobre")
+    profilepic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name=_("Foto de perfil"), validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_profile_image_size])
+    bannerpic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name=_("Foto de capa"), validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_banner_image_size])
+    bio = models.CharField(blank=True, max_length=50, verbose_name=_("Sobre"))
+    # Chave pública (JWK) do par ECDH gerado no navegador do usuário. A chave
+    # privada nunca sai do dispositivo; o servidor usa isso só para troca de chaves.
+    public_key = models.TextField(blank=True, default="")
     followersC = models.IntegerField(default=0)
     followingC = models.IntegerField(default=0)
     tweetsNumber = models.IntegerField(default=0)

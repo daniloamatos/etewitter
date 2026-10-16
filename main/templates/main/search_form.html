@@ -1,0 +1,4 @@
+{% load i18n %}<form class="{{ form_class|default:'search-form' }}" action="/search/" method="get" role="search">
+    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+    <input name="query" placeholder="{% trans 'Buscar no Etewitter' %}" aria-label="{% trans 'Buscar' %}" autocomplete="off">
+</form>

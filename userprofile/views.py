@@ -1,18 +1,46 @@
+from main.mentions import register_mentions
+from main.notifications import notify_post_interaction
 
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
+from django.utils.translation import gettext as _
 from register.models import Usuario
 from check.views import checkIfUsernameExists
-from main.models import Tweet,Replys,SavedItems, Follower, Chat
+from main.models import Tweet,Replys,SavedItems, Follower, Chat, Message
 from main.forms import replyForm,tweetForm
 from main.image_utils import form_image_errors
 from main.views import generateLink
 from main.targets import post_target
+from main.timeline import build_timeline
 from django.db.models import Q
-from django.db.models import Exists, OuterRef, Subquery
+from django.db.models import Exists, OuterRef
 from django.core import serializers
+from django.templatetags.static import static
+
+
+def profile_preview(request, username):
+    person = get_object_or_404(Usuario, username__iexact=username)
+    viewer = request.user
+    authenticated = viewer.is_authenticated
+    following = authenticated and Follower.objects.filter(
+        follower=viewer, following=person
+    ).exists()
+    follows_you = authenticated and Follower.objects.filter(
+        follower=person, following=viewer
+    ).exists()
+    picture = (person.profilepic.url if person.profilepic and
+               person.profilepic.name != 'default/default_profile_400x400.png'
+               else static('images/default-profile.svg'))
+    return JsonResponse({
+        'id': str(person.pk), 'name': person.name, 'username': person.username,
+        'bio': person.bio, 'picture': picture,
+        'followers': person.followersC, 'following': person.followingC,
+        'is_self': authenticated and person.pk == viewer.pk,
+        'is_following': following, 'follows_you': follows_you,
+        'authenticated': authenticated,
+    })
 
 def userprofile(request,username):
     followers = None
@@ -42,41 +70,24 @@ def userprofile(request,username):
                 simpanIp.tweetAuthor = request.user
                 simpanIp.tweetLink = generateLink(request)
                 simpanIp.save()
+                register_mentions(simpanIp)
             else:
                 errors = form_image_errors(form)
                 if errors:
                     for error in errors:
                         messages.error(request, error)
                 else:
-                    messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
+                    messages.error(request, _('O tweet precisa haver algum caractere ou imagem.'))
         else:
             form = tweetForm()
         jname = Usuario.objects.filter(username__iexact=username).values_list('name').first()
         user = Usuario.objects.get(username__iexact=username)
         checkUser = request.user
-        retweeting_user = Usuario.objects.filter(
-            retweets=OuterRef("pk"),
-            pk=user.id,
-        )
-        tweets = Tweet.objects.filter(
-            Q(tweetAuthor=user) | Q(retweets=user)
-        ).annotate(
-            retweet_by_name=Subquery(retweeting_user.values("name")[:1]),
-            retweet_by_username=Subquery(retweeting_user.values("username")[:1]),
-        ).distinct()
-        reply_retweeters = Usuario.objects.filter(
-            retweetsr=OuterRef("pk"), pk=user.id,
-        )
-        retweeted_replies = Replys.objects.filter(
-            retweets=user,
-        ).select_related("user", "tweet").annotate(
-            retweet_by_name=Subquery(reply_retweeters.values("name")[:1]),
-            retweet_by_username=Subquery(reply_retweeters.values("username")[:1]),
-        ).prefetch_related("likes", "retweets").distinct()
-        timeline = sorted(
-            [*tweets, *retweeted_replies], key=lambda post: post.publishDate, reverse=True
-        )
-        return render(request, "userprofile/userprofile.html", {"followers":followers,"following":following, "form":form,"jusername":username, "jname":jname[0], "userP":user, "tweets":tweets, "retweeted_replies":retweeted_replies, "timeline": timeline, 'checkUser':checkUser, 'usuario':checkUser})
+        tweets, retweeted_replies, timeline = build_timeline([user.id], [user.id])
+        follows_you = request.user.is_authenticated and Follower.objects.filter(
+            follower=user, following=request.user
+        ).exists()
+        return render(request, "userprofile/userprofile.html", {"followers":followers,"following":following, "follows_you": follows_you, "form":form,"jusername":username, "jname":jname[0], "userP":user, "tweets":tweets, "retweeted_replies":retweeted_replies, "timeline": timeline, 'checkUser':checkUser, 'usuario':checkUser})
     else:
         return render(request, "userprofile/notexist.html")
 
@@ -95,17 +106,7 @@ def likereply(request,**username):
             reply_obj.likec += 1
             reply_obj.save()
             liked = True
-            if reply_obj.user != user:
-                from main.notifications import create_notification
-                create_notification(
-                    user=reply_obj.user,
-                    actor=user,
-                    notification_type='like',
-                    body=f"{user.name} curtiu sua resposta",
-                    linkzaocarai=reply_obj.replyLink,
-                    reply=reply_obj,
-                    tweet=reply_obj.tweet,
-                )
+            notify_post_interaction(reply_obj, request.user, 'like')
         else:
             reply_obj.likes.remove(usuario)
             reply_obj.likec -= 1
@@ -128,16 +129,7 @@ def like (request, **username):
             tweet_obj.likec += 1
             tweet_obj.save()
             liked = True
-            if tweet_obj.tweetAuthor != user:
-                from main.notifications import create_notification
-                create_notification(
-                    user=tweet_obj.tweetAuthor,
-                    actor=user,
-                    notification_type='like',
-                    body=f"{user.name} curtiu seu tweet",
-                    linkzaocarai=tweet_obj.tweetLink,
-                    tweet=tweet_obj,
-                )
+            notify_post_interaction(tweet_obj, request.user, 'like')
         else:
             tweet_obj.likes.remove(usuario)
             tweet_obj.likec -= 1
@@ -158,16 +150,7 @@ def retweet(request, **username):
         else:
             tweet_obj.retweets.add(request.user)
             retweeted = True
-            if tweet_obj.tweetAuthor != request.user:
-                from main.notifications import create_notification
-                create_notification(
-                    user=tweet_obj.tweetAuthor,
-                    actor=request.user,
-                    notification_type='retweet',
-                    body=f"{request.user.name} retweetou seu tweet",
-                    linkzaocarai=tweet_obj.tweetLink,
-                    tweet=tweet_obj,
-                )
+            notify_post_interaction(tweet_obj, request.user, 'retweet')
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'status': 'ok', 'retweeted': retweeted,
@@ -187,17 +170,7 @@ def retweetreply(request, **username):
         else:
             reply_obj.retweets.add(request.user)
             retweeted = True
-            if reply_obj.user != request.user:
-                from main.notifications import create_notification
-                create_notification(
-                    user=reply_obj.user,
-                    actor=request.user,
-                    notification_type='retweet',
-                    body=f"{request.user.name} retweetou sua resposta",
-                    linkzaocarai=reply_obj.replyLink,
-                    reply=reply_obj,
-                    tweet=reply_obj.tweet,
-                )
+            notify_post_interaction(reply_obj, request.user, 'retweet')
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'status': 'ok', 'retweeted': retweeted,
@@ -233,17 +206,9 @@ def reply (request, **username):
                 test.reply.add(tweet_obj)
                 tweet_obj.replysC += 1
                 tweet_obj.save(update_fields=['replysC'])
-                if tweet_obj.user != user:
-                    from main.notifications import create_notification
-                    create_notification(
-                        user=tweet_obj.user,
-                        actor=user,
-                        notification_type='reply',
-                        body=f"{user.name} respondeu à sua publicação",
-                        linkzaocarai=test.replyLink,
-                        reply=test,
-                        tweet=tweet_obj.tweet,
-                    )
+                from main.notifications import notify_reply_thread
+                register_mentions(test)
+                notify_reply_thread(test, tweet_obj)
                 return redirect(request.POST.get('next', '/'))
             else:
                 instance = form.save(commit=False)
@@ -255,17 +220,9 @@ def reply (request, **username):
                 instance.body = request.POST['body']
                 instance.replyLink = generateLink(request)
                 instance.save()
-                if tweet_obj.tweetAuthor != user:
-                    from main.notifications import create_notification
-                    create_notification(
-                        user=tweet_obj.tweetAuthor,
-                        actor=user,
-                        notification_type='reply',
-                        body=f"{user.name} respondeu ao seu tweet",
-                        linkzaocarai=instance.replyLink,
-                        reply=instance,
-                        tweet=tweet_obj,
-                    )
+                from main.notifications import notify_reply_thread
+                register_mentions(instance)
+                notify_reply_thread(instance, tweet_obj)
                 return redirect(request.POST.get('next', '/'))
         else:
             errors = form_image_errors(form)
@@ -273,7 +230,7 @@ def reply (request, **username):
                 for error in errors:
                     messages.error(request, error)
             else:
-                messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
+                messages.error(request, _('O tweet precisa haver algum caractere ou imagem.'))
     return redirect(request.POST.get('next', '/'))
 
 
@@ -356,5 +313,22 @@ def save(request):
 @login_required(login_url='/login')
 def message(request):
     user = request.user
-    conversation = Chat.objects.filter(Q(sender=user) | Q(receiver=user))
-    return render(request, 'main/message.html', {'chats':conversation})
+    chats = Chat.objects.filter(Q(sender=user) | Q(receiver=user)).select_related(
+        'sender', 'receiver'
+    ).order_by('-publishDate')
+    conversations = []
+    seen = set()
+    for chat in chats:
+        peer = chat.receiver if chat.sender_id == user.id else chat.sender
+        if peer.id in seen:
+            continue
+        seen.add(peer.id)
+        last = Message.objects.filter(
+            Q(sender=user, receiver=peer) | Q(sender=peer, receiver=user)
+        ).order_by('-publishDate', '-id').first()
+        conversations.append({
+            'peer': peer,
+            'last': last,
+            'mine': bool(last and last.sender_id == user.id),
+        })
+    return render(request, 'main/message.html', {'conversations': conversations})

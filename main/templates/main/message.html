@@ -1,22 +1,62 @@
 {% extends "main/template.html" %}
-{% block title %}Mensagens · Etewitter{% endblock %}
-{% block header_title %}Mensagens{% endblock %}
+{% load static custom_filters i18n %}
+{% block title %}{% trans "Mensagens" %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Mensagens" %}{% endblock %}
 {% block content %}
-<section class="conversation-list">
-    {% for chat in chats %}
-    {% if chat.sender_id == request.user.id %}
-    <article class="conversation-item" data-card-url="/messages/{{ request.user.id }}-{{ chat.receiver.id }}" tabindex="0" role="link">
-        {% include "main/profile_avatar.html" with person=chat.receiver %}
-        <div><a href="/{{ chat.receiver.username }}/"><strong>{{ chat.receiver.name }}</strong></a><br><a href="/{{ chat.receiver.username }}/">@{{ chat.receiver.username }}</a><br><a href="/messages/{{ request.user.id }}-{{ chat.receiver.id }}"></a></div>
+<section class="conversation-list" id="conversation-list" data-you="{% trans 'você:' %}" data-photo-mine="{% trans 'Você enviou uma foto' %}" data-photo-peer="{% trans 'Enviou uma foto' %}">
+    {% for conversation in conversations %}
+    <article class="conversation-item" data-card-url="/messages/{{ request.user.id }}-{{ conversation.peer.id }}" tabindex="0" role="link" data-peer="{{ conversation.peer.id }}" data-peer-key="{{ conversation.peer.public_key|default:'' }}">
+        {% include "main/profile_avatar.html" with person=conversation.peer %}
+        <div class="conversation-body">
+            <div class="conversation-head">
+                <a href="/{{ conversation.peer.username }}/"><strong>{{ conversation.peer.name|default:conversation.peer.username }}</strong></a>
+                <a class="profile-handle-link" href="/{{ conversation.peer.username }}/">@{{ conversation.peer.username }}</a>
+                {% if conversation.last %}<time class="conversation-time">{{ conversation.last.publishDate|smart_date }}</time>{% endif %}
+            </div>
+            {% if conversation.last %}
+            <p class="conversation-preview" data-mine="{% if conversation.mine %}true{% else %}false{% endif %}"{% if not conversation.last.body and conversation.last.image %} data-photo="true"{% endif %}{% if conversation.last.body|slice:':3' == 'e1:' %} data-cipher="{{ conversation.last.body }}"{% endif %}>{% if conversation.last.body|slice:':3' != 'e1:' %}{{ conversation.last.body }}{% endif %}</p>
+            {% else %}
+            <p class="conversation-preview conversation-preview-empty">{% trans "Diga olá 👋" %}</p>
+            {% endif %}
+        </div>
     </article>
-    {% else %}
-    <article class="conversation-item" data-card-url="/messages/{{ request.user.id }}-{{ chat.sender.id }}" tabindex="0" role="link">
-        {% include "main/profile_avatar.html" with person=chat.sender %}
-        <div><a href="/{{ chat.sender.username }}/"><strong>{{ chat.sender.name }}</strong></a><br><a href="/{{ chat.sender.username }}/">@{{ chat.sender.username }}</a><br><a href="/messages/{{ request.user.id }}-{{ chat.sender.id }}"></a></div>
-    </article>
-    {% endif %}
     {% empty %}
-    <div class="empty-state"><div class="empty-icon">✉</div><h2>Nenhuma conversa</h2><p>Visite um perfil para enviar uma mensagem.</p></div>
+    <div class="empty-state"><div class="empty-icon">✉</div><h2>{% trans "Nenhuma conversa" %}</h2><p>{% trans "Visite um perfil para enviar uma mensagem." %}</p></div>
     {% endfor %}
 </section>
+{% endblock %}
+{% block javascript %}
+<script>
+    // As mensagens são cifradas ponta-a-ponta: o servidor só tem o ciphertext,
+    // então o preview da última mensagem é decifrado aqui no navegador.
+    window.addEventListener('DOMContentLoaded', async () => {
+        const list = document.getElementById('conversation-list');
+        if (!list || !window.E2E) return;
+        const youPrefix = list.dataset.you || '';
+        const photoMine = list.dataset.photoMine || '';
+        const photoPeer = list.dataset.photoPeer || '';
+        const items = [...list.querySelectorAll('.conversation-item')];
+        for (const item of items) {
+            const preview = item.querySelector('.conversation-preview');
+            if (!preview || preview.classList.contains('conversation-preview-empty')) continue;
+            const peerId = item.dataset.peer;
+            let peerKey = item.dataset.peerKey;
+            if (!peerKey) {
+                try {
+                    const response = await fetch(`/messages/keys/${peerId}/`, {credentials: 'same-origin'});
+                    if (response.ok) peerKey = (await response.json()).public_key;
+                } catch (err) { /* sem chave ainda */ }
+            }
+            if (!peerKey) continue;
+            const key = await window.E2E.sessionKeyFor(peerKey);
+            const original = preview.dataset.cipher || preview.textContent || '';
+            let plain = await window.E2E.decryptText(key, original);
+            if (plain === null) { plain = ''; }
+            const mine = preview.dataset.mine === 'true';
+            const isPhoto = preview.dataset.photo === 'true';
+            if (!plain && isPhoto) plain = mine ? photoMine : photoPeer;
+            preview.textContent = (mine && plain && !isPhoto ? youPrefix + ' ' : '') + plain;
+        }
+    });
+</script>
 {% endblock %}

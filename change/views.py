@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from django.utils.translation import gettext as _
 
 from logout.views import logout
 from register.models import Usuario
@@ -25,7 +26,7 @@ def changeName(request, *args):
                 if Usuario.objects.filter(username__iexact=value).exclude(
                     pk=request.user.pk
                 ).exists():
-                    form.add_error('username', 'Este nome de usuário já existe.')
+                    form.add_error('username', _('Este nome de usuário já existe.'))
                 else:
                     request.user.username = value
                     request.user.usernameinsensitive = value.upper()
@@ -36,7 +37,7 @@ def changeName(request, *args):
                 request.user.save(update_fields=['name'])
                 return redirect('/')
         else:
-            messages.error(request, 'Verifique os dados informados.')
+            messages.error(request, _('Verifique os dados informados.'))
     else:
         form = ChangeUsername() if args else ChangeName()
     template = 'change/changeUsername.html' if args else 'change/changeName.html'
@@ -64,9 +65,9 @@ def changePass(request):
         form = ChangePass(request.POST)
         if form.is_valid():
             if form.cleaned_data['senha'] != form.cleaned_data['confirme_sua_senha']:
-                form.add_error('confirme_sua_senha', 'As senhas não são identicas.')
+                form.add_error('confirme_sua_senha', _('As senhas não são identicas.'))
             elif len(form.cleaned_data['senha']) < 5:
-                form.add_error('senha', 'A senha precisa ter no minimo 5 caracteres.')
+                form.add_error('senha', _('A senha precisa ter no minimo 5 caracteres.'))
             else:
                 user.password = make_password(form.cleaned_data['senha'])
                 user.save(update_fields=['password'])
@@ -94,10 +95,10 @@ def email(request, *args):
         'token': account_activation_token.make_token(user),
     })
     EmailMessage(
-        'Trocar senha do ETEWITTER.',
+        _('Trocar senha do ETEWITTER.'),
         message,
         to=[user.email],
     ).send()
     return HttpResponse(
-        'Por favor, clique no link enviado em seu email para mudar de senha'
+        _('Por favor, clique no link enviado em seu email para mudar de senha')
     )

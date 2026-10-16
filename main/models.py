@@ -5,6 +5,7 @@ from datetime import datetime
 from django.utils import timezone
 import random
 import os
+import uuid
 from .image_utils import ALLOWED_IMAGE_EXTENSIONS, compress_image, validate_image_size
 
 
@@ -38,14 +39,16 @@ def message_image_path(instance, filename):
 
     return 'messages/{sender}/{day}/{month}/{year}/{randomstring}/{randomstring2}{ext}'.format(
         instance = instance, sender=instance.sender_id, randomstring=randomstr, randomstring2=randomstr2,
-        ext=file_extension[1], day=_now.strftime('%d'), month=_now.strftime('%m'), year=_now.strftime('%Y'))
+        ext=file_extension[1] or '.enc', day=_now.strftime('%d'), month=_now.strftime('%m'), year=_now.strftime('%Y'))
 
 class Tweet(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tweet = models.CharField(blank=True, max_length=280)
     tweetAuthor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="posts")
     image = models.ImageField(upload_to=image_path, validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_image_size], blank=True)
     likes = models.ManyToManyField(Usuario, blank=True, related_name="likes")
-    retweets = models.ManyToManyField(Usuario, blank=True, related_name="retweets")
+    retweets = models.ManyToManyField(Usuario, blank=True, related_name="retweets", through='TweetRetweet')
+    mentions = models.ManyToManyField(Usuario, blank=True, related_name="mentioned_%(class)s_posts")
     likec = models.IntegerField(default=0)
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
     tweetLink = models.CharField(blank=True, max_length=999)
@@ -64,6 +67,7 @@ class Tweet(models.Model):
         super().save(*args, **kwargs)
 
 class SavedItems(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, null=True, blank=True)
     reply = models.ForeignKey('Replys', on_delete=models.CASCADE, null=True, blank=True)
@@ -81,6 +85,7 @@ class SavedItems(models.Model):
 
 
 class Replys(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
     reply = models.ManyToManyField('self', blank=True, symmetrical=False)
@@ -88,7 +93,8 @@ class Replys(models.Model):
     image = models.ImageField(upload_to=image_path2, validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_image_size], blank=True)
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
     likes = models.ManyToManyField(Usuario, blank=True, related_name="likesr")
-    retweets = models.ManyToManyField(Usuario, blank=True, related_name="retweetsr")
+    retweets = models.ManyToManyField(Usuario, blank=True, related_name="retweetsr", through='ReplyRetweet')
+    mentions = models.ManyToManyField(Usuario, blank=True, related_name="mentioned_%(class)s_posts")
     likec = models.IntegerField(default=0)
     replyLink = models.CharField(blank=True, max_length=999)
     replysC = models.IntegerField(default=0)
@@ -105,35 +111,55 @@ class Replys(models.Model):
 
 
 class Like(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.user}--{self.tweet}'
 
+
+class TweetRetweet(models.Model):
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, related_name='retweet_events')
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['tweet', 'user'], name='unique_tweet_retweet')]
+
+
+class ReplyRetweet(models.Model):
+    reply = models.ForeignKey(Replys, on_delete=models.CASCADE, related_name='retweet_events')
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['reply', 'user'], name='unique_reply_retweet')]
+
 class Follower(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     follower = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="userToBeFollowed")
     following = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="userFollowing")
 
 class Message(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     is_read = models.BooleanField(default=False, db_index=True)
     sender = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="sender")
     receiver = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="receiver")
-    body = models.CharField(blank=True, max_length=250)
-    image = models.ImageField(upload_to=message_image_path, validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_image_size], blank=True)
+    # O servidor guarda apenas conteúdo cifrado (E2E): o texto é um blob e a
+    # imagem são bytes cifrados com a chave da conversa. Nada é legível aqui.
+    body = models.TextField(blank=True)
+    image = models.FileField(upload_to=message_image_path, blank=True)
     publishDate = models.DateTimeField(auto_now_add=True)
 
-    def save(self, *args, **kwargs):
-        if self.image and not getattr(self.image, '_committed', True):
-            self.image = compress_image(self.image)
-        super().save(*args, **kwargs)
-
 class Chat(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sender = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="senderC")
     receiver = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="receiverC")
     publishDate = models.DateTimeField(auto_now_add=True)
 
 class Report(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, null=True, blank=True)
     reply = models.ForeignKey(Replys, on_delete=models.CASCADE, null=True, blank=True)
     reason = models.CharField(blank=False, max_length=100)
@@ -149,6 +175,7 @@ class Report(models.Model):
         ]
 
 class Notification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     actor = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notified")
     body = models.CharField(blank=False, max_length=250)
@@ -158,3 +185,10 @@ class Notification(models.Model):
     reply = models.ForeignKey('Replys', on_delete=models.CASCADE, null=True, blank=True)
     is_read = models.BooleanField(default=False, db_index=True)
     publishDate = models.DateTimeField(default=timezone.now, blank=True)
+
+    @property
+    def reply_target_user(self):
+        if self.notification_type != 'reply' or not self.reply_id:
+            return None
+        parent = max(self.reply.reply.all(), key=lambda item: item.publishDate, default=None)
+        return parent.user if parent else self.reply.tweet.tweetAuthor

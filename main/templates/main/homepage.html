@@ -1,21 +1,21 @@
 {% extends "main/template.html" %}
-{% load static custom_filters %}
-{% block title %}Página inicial · Etewitter{% endblock %}
+{% load static custom_filters i18n %}
+{% block title %}{% trans "Página inicial" %} · Etewitter{% endblock %}
 {% block content %}
 <section class="composer-card">
-    <a href="/{{ request.user.username }}/"><img class="avatar avatar-image" src="{% if request.user.profilepic and request.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ request.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ request.user.name }}"></a>
+    <a href="/{{ request.user.username }}/"><img class="avatar avatar-image" src="{% if request.user.profilepic and request.user.profilepic.name != 'default/default_profile_400x400.png' %}{{ request.user.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=request.user.name %}Foto de {{ name }}{% endblocktrans %}"></a>
     <form method="post" enctype="multipart/form-data" class="composer-form">
         {% csrf_token %}
-        <textarea name="tweet" id="tweetBox" maxlength="280" placeholder="O que está acontecendo?"></textarea>
+        <textarea name="tweet" id="tweetBox" maxlength="280" placeholder="{% trans 'O que está acontecendo?' %}"></textarea>
         <div class="composer-preview" hidden>
-            <img alt="Prévia da imagem selecionada">
-            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="Remover imagem">✕</button>
+            <img alt="{% trans 'Prévia da imagem selecionada' %}">
+            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="{% trans 'Remover imagem' %}">✕</button>
         </div>
         <div class="composer-actions">
-            <label class="media-button" for="id_image" title="Formatos: JPG, PNG, GIF e WEBP · até 5 MB"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>Foto</span></label>
+            <label class="media-button" for="id_image" title="{% trans 'Formatos: JPG, PNG, GIF e WEBP · até 5 MB' %}"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>{% trans "Foto" %}</span></label>
             <input type="file" name="image" id="id_image" accept="image/jpeg,image/png,image/gif,image/webp">
-            <span class="character-limit">280 caracteres</span>
-            <button class="primary-button" type="submit">Tweetar</button>
+            <span class="character-limit">{% blocktrans %}280 caracteres{% endblocktrans %}</span>
+            <button class="primary-button" type="submit">{% trans "Tweetar" %}</button>
         </div>
     </form>
 </section>
@@ -26,12 +26,12 @@
 {% include "main/reply_card.html" with reply=Tweet detail=False %}
 {% else %}
 <article data-card-url="/{{ Tweet.tweetLink }}" tabindex="0" role="link" class="tweet-card">
-    <a href="/{{ Tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if Tweet.tweetAuthor.profilepic and Tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ Tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="Foto de {{ Tweet.tweetAuthor.name }}"></a>
+    <a href="/{{ Tweet.tweetAuthor.username }}/"><img class="avatar avatar-image" src="{% if Tweet.tweetAuthor.profilepic and Tweet.tweetAuthor.profilepic.name != 'default/default_profile_400x400.png' %}{{ Tweet.tweetAuthor.profilepic.url }}{% else %}{% static 'images/default-profile.svg' %}{% endif %}" alt="{% blocktrans with name=Tweet.tweetAuthor.name %}Foto de {{ name }}{% endblocktrans %}"></a>
     <div class="tweet-body">
-        {% if Tweet.retweet_by_name %}<div class="retweet-label">↻ <a href="/{{ Tweet.retweet_by_username }}/">{{ Tweet.retweet_by_name }}</a> retweetou</div>{% endif %}
-        <div class="tweet-meta"><a href="/{{ Tweet.tweetAuthor.username }}/"><strong>{{ Tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ Tweet.tweetAuthor.username }}/">@{{ Tweet.tweetAuthor.username }}</a><span>·</span><time>{{ Tweet.publishDate|smart_date }}</time></div>
-        <a class="tweet-content" href="/{{ Tweet.tweetLink }}">{{ Tweet.tweet|linebreaksbr }}</a>
-        {% if Tweet.image %}<img class="tweet-image" src="{{ Tweet.image.url }}" alt="Imagem do tweet">{% endif %}
+        {% if Tweet.retweet_by_name %}{% include "main/repost_label.html" with username=Tweet.retweet_by_username %}{% endif %}
+        <div class="tweet-meta"><a href="/{{ Tweet.tweetAuthor.username }}/"><strong>{{ Tweet.tweetAuthor.name }}</strong></a><a class="profile-handle-link" href="/{{ Tweet.tweetAuthor.username }}/">@{{ Tweet.tweetAuthor.username }}</a><span>·</span><a href="/{{ Tweet.tweetLink }}"><time>{{ Tweet.publishDate|smart_date }}</time></a></div>
+        <div class="tweet-content">{{ Tweet.tweet|render_mentions }}</div>
+        {% if Tweet.image %}<img class="tweet-image" src="{{ Tweet.image.url }}" alt="{% trans 'Imagem do tweet' %}">{% endif %}
         <div class="tweet-actions">
 {% include "main/post_actions.html" with post=Tweet kind="tweet" post_url=Tweet.tweetLink %}
 
@@ -45,7 +45,7 @@
 
 {% endif %}
 {% empty %}
-<div class="empty-state"><div class="empty-icon">t</div><h2>Seu feed está vazio</h2><p>Siga pessoas ou publique seu primeiro tweet para começar.</p></div>
+<div class="empty-state"><div class="empty-icon">t</div><h2>{% trans "Seu feed está vazio" %}</h2><p>{% trans "Siga pessoas ou publique seu primeiro tweet para começar." %}</p></div>
 {% endfor %}
 </div>
 {% endblock %}

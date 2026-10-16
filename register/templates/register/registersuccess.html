@@ -1,6 +1,7 @@
 {% extends "main/template.html" %}
-{% block title %}Conta criada · Etewitter{% endblock %}
-{% block header_title %}Conta criada{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Conta criada" %} · Etewitter{% endblock %}
+{% block header_title %}{% trans "Conta criada" %}{% endblock %}
 {% block content %}
-<div class="empty-state"><div class="empty-icon">✓</div><h2>Conta criada com sucesso</h2><p>Confirme seu email para ativar o acesso ao Etewitter.</p><a class="primary-button empty-button" href="/login/">Ir para o login</a></div>
+<div class="empty-state"><div class="empty-icon">✓</div><h2>{% trans "Conta criada com sucesso" %}</h2><p>{% trans "Confirme seu email para ativar o acesso ao Etewitter." %}</p><a class="primary-button empty-button" href="/login/">{% trans "Ir para o login" %}</a></div>
 {% endblock %}

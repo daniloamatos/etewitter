@@ -1,30 +1,47 @@
-{% load crispy_forms_tags %}
-{% load static %}
+{% load static i18n %}
 <!doctype html>
-<html lang="pt-BR">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Recuperar senha · Etewitter</title>
-    <link href="{% static 'css/styles.css' %}?v=20261017" rel="stylesheet">
-    <link href="{% static 'css/login/logincss.css' %}?v=20261015" rel="stylesheet">
+    <title>{% trans "Recuperar senha" %} · Etewitter</title>
+    <link href="{% static 'css/styles.css' %}?v=20261061" rel="stylesheet">
+    <link href="{% static 'css/login/logincss.css' %}?v=20261050" rel="stylesheet">
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('etewitter-theme');
+                var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.dataset.theme = saved || (dark ? 'dark' : 'light');
+            } catch (error) { /* ignora */ }
+        })();
+    </script>
 </head>
 <body>
 <main class="auth-screen">
     <section class="auth-card">
         <a class="auth-brand" href="/"><span class="brand-mark">t</span><strong>etewitter</strong></a>
-        <h1>Encontre sua conta</h1>
-        <p class="auth-help">Informe o email cadastrado e enviaremos as instruções de recuperação.</p>
+        <h1>{% trans "Encontre sua conta" %}</h1>
+        <p class="auth-help">{% trans "Informe o email cadastrado e enviaremos as instruções de recuperação." %}</p>
         <form method="post">
             {% csrf_token %}
-            <label for="email">Email</label>
+            <label for="email">{% trans "Email" %}</label>
             <input class="auth-input" id="email" name="email" type="email" placeholder="seu@email.com" required>
-            <button class="tweetBtn" type="submit">Enviar instruções</button>
+            <button class="tweetBtn" type="submit">{% trans "Enviar instruções" %}</button>
         </form>
         {% for message in messages %}<div class="alert">{{ message }}</div>{% endfor %}
-        <div class="auth-links"><a href="/login/">Voltar para o login</a></div>
+        <div class="auth-links"><a href="/login/">{% trans "Voltar para o login" %}</a></div>
+        <div class="landing-controls">
+            {% include "main/theme_toggle.html" %}
+            <form class="lang-switch" method="post" action="{% url 'set_language' %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                {% include "main/lang_flags.html" %}
+            </form>
+        </div>
     </section>
 </main>
+<script src="{% static 'js/theme.js' %}?v=1" defer></script>
 </body>
 </html>
