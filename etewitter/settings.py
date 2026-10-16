@@ -42,6 +42,7 @@ ASGI_APPLICATION = 'etewitter.asgi.application'
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.contenttypes',
     'channels',
     'django.contrib.admin',
@@ -72,7 +73,7 @@ AUTHENTICATION_BACKENDS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.environ.get('SQLITE_PATH', BASE_DIR / 'db.sqlite3'),
     }
 }
 
@@ -191,10 +192,12 @@ EMAIL_BACKEND = os.environ.get(
 
 MEDIA_URL = '/uploads/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'uploads'))
 
 # HTTPS-only protections are enabled whenever debug mode is disabled.
 SECURE_SSL_REDIRECT = not DEBUG
+if os.environ.get('TRUST_PROXY_HEADERS', 'False').lower() == 'true':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False

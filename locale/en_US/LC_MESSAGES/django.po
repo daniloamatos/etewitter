@@ -1000,6 +1000,3 @@ msgstr "liked a post you were mentioned in"
 
 msgid "repostou uma publicação em que você foi mencionado"
 msgstr "reposted a post you were mentioned in"
-
-msgid "repostou"
-msgstr "reposted"

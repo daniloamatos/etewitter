@@ -23,7 +23,7 @@ Direct conversations use an authenticated WebSocket connection for live delivery
 
 ## Run locally
 
-Python 3.10 or newer is recommended. From the repository root:
+Python 3.12 or newer is recommended. From the repository root:
 
 ```sh
 python -m venv .venv
@@ -72,7 +72,7 @@ python manage.py collectstatic
 
 Run the ASGI application with an ASGI-capable server for WebSocket support. Replace the in-memory channel layer with a shared backend before running multiple workers. The default database is SQLite, so select and configure a production database explicitly if the deployment requires concurrent write capacity or horizontal scaling. User uploads are stored separately from static assets and need persistent storage and appropriate serving rules.
 
-The dependency file pins Django 4.0.4. The Django 4.0 release series is end-of-life; upgrade to a supported Django release and validate compatibility with the pinned Channels and related dependencies before exposing a deployment to the internet.
+The app uses Django 5.2 LTS and Channels 4 for maintained framework and WebSocket support. Keep these dependencies updated to their latest patch releases.
 
 ## Checks
 
@@ -80,3 +80,17 @@ The dependency file pins Django 4.0.4. The Django 4.0 release series is end-of-l
 python manage.py check
 python manage.py test
 ```
+
+## Deploy to Cloudflare Workers
+
+The Cloudflare configuration runs Django in a Linux Container behind a Worker. This keeps the existing Django, Channels, and image-processing dependencies in their normal Python environment. It requires Cloudflare Containers to be enabled for the account and a Docker-compatible build environment.
+
+In **Workers Builds**, use the repository root as the root directory, leave **Build command** empty, and set **Deploy command** to `npx wrangler deploy`. Disable preview builds for this Worker: Cloudflare Worker Previews do not support Workers that use Durable Objects/Containers. Configure a separate staging Worker if you need a preview environment.
+
+Set `DJANGO_ALLOWED_HOSTS` to the public Worker hostname (and any custom domains) in the Worker's environment. Add `DJANGO_SECRET_KEY` as a Worker secret; do not put it in `wrangler.jsonc` or commit it. The container starts with `DJANGO_DEBUG=False`, runs migrations, and serves the ASGI app through Daphne.
+
+The current Django settings use a local SQLite database and local upload directory. Container disk is ephemeral, so this starter configuration is suitable for bringing the app up for evaluation, but user data and uploaded files need persistent storage before treating it as a production deployment. The Worker is limited to one container instance because the configured SQLite database and in-memory Channels layer are not shared across instances.
+
+## Deploy to AWS EC2
+
+For a traditional VM deployment that keeps Django, Channels, SQLite, and uploads together, see [`deploy/aws/README.md`](deploy/aws/README.md). It uses Docker Compose, persistent instance storage, and Nginx for HTTPS and WebSocket proxying.

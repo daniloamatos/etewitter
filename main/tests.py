@@ -573,7 +573,7 @@ class CoreFlowTests(TestCase):
         self.assertEqual(content.count('>3<'), 1)
         self.assertNotIn('>4<', content)
         self.assertNotIn('>5<', content)
-        self.assertContains(response, 'Ver mais respostas', count=2)
+        self.assertEqual(content.count('class="thread-more"'), 2)
 
     def test_clearing_profile_photos_removes_uploaded_files_without_invalid_default_paths(self):
         self.user.profilepic.save(
@@ -814,10 +814,13 @@ class CoreFlowTests(TestCase):
                 html = response.content.decode()
                 self.assertIn(content, html)
                 self.assertNotIn('notification-target"', html)
-                self.assertLess(html.index('aria-label="Responder"'), html.index('aria-label="Retweetar"'))
-                self.assertLess(html.index('aria-label="Retweetar"'), html.index('aria-label="Curtir"'))
-                self.assertLess(html.index('aria-label="Curtir"'), html.index('aria-label="Salvar"'))
-                self.assertIn(f'name="content_type" value="{kind}"', html)
+                if notice.notification_type in ('like', 'retweet'):
+                    self.assertNotIn('notification-actions', html)
+                else:
+                    self.assertIn(f'name="content_type" value="{kind}"', html)
+                    self.assertLess(html.index('aria-label="Responder"'), html.index('aria-label="Retweetar"'))
+                    self.assertLess(html.index('aria-label="Retweetar"'), html.index('aria-label="Curtir"'))
+                    self.assertLess(html.index('aria-label="Curtir"'), html.index('aria-label="Salvar"'))
 
         self.assertContains(self.client.get('/notifications/'), 'notification-post-text')
         self.client.force_login(self.third)
@@ -845,6 +848,7 @@ class CoreFlowTests(TestCase):
 
         like_html = self.client.get(f'/notifications/{like_notice.pk}/').content.decode()
         self.assertIn('liked your post', like_html)
+        self.assertNotIn('notification-actions', like_html)
         self.assertIn('notification-activity-avatar', like_html)
         self.assertIn('profile-avatar-link notification-activity-avatar-link', like_html)
         self.assertIn('notification-post-text', like_html)
@@ -852,7 +856,8 @@ class CoreFlowTests(TestCase):
         self.assertIn('<time datetime=', like_html)
 
         retweet_html = self.client.get(f'/notifications/{retweet_notice.pk}/').content.decode()
-        self.assertIn('retweeted your reply', retweet_html)
+        self.assertIn('reposted your reply', retweet_html)
+        self.assertNotIn('notification-actions', retweet_html)
         self.assertIn('notification-activity-thumbnail', retweet_html)
         self.assertIn('/uploads/notifications/reply.jpg', retweet_html)
         self.assertNotIn('notification-target-image', retweet_html)

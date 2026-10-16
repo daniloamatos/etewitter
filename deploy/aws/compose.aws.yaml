@@ -1,0 +1,18 @@
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      SQLITE_PATH: /data/db.sqlite3
+      MEDIA_ROOT: /data/uploads
+      DJANGO_DEBUG: "False"
+      TRUST_PROXY_HEADERS: "True"
+    volumes:
+      - ./data:/data
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    init: true
