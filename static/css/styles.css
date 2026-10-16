@@ -230,3 +230,7 @@ html[data-theme="dark"] .alert{background:#3a1c28;color:#ff9db8}
 .thread-more:hover{text-decoration:underline}
 .thread-more:disabled{opacity:.65;cursor:wait}
 .expanded-replies{margin-left:24px;border-left:2px solid var(--line)}
+.search-form input{color:var(--text);caret-color:var(--blue)}
+.search-form input::selection{background:var(--text);color:var(--bg)}
+.search-form:focus-within{box-shadow:0 0 0 2px var(--blue)}
+.search-form:focus-within .search-icon{color:var(--blue)}

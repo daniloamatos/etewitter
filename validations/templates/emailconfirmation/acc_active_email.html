@@ -1,3 +1,3 @@
 
 Olá, {{ user.username }},
-Por favor, conclua seu registro em :,http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+Por favor, conclua seu registro em: {{ protocol }}://{{ domain }}{% url 'activate' uidb64=uid token=token %}

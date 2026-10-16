@@ -1,3 +1,40 @@
-etewitterenv/
-.env/
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+
+# Local environments and secrets
+.env
+.env.*
+!.env.example
 .venv/
+etewitterenv/
+venv/
+
+# Local databases and SQLite sidecars
+db.sqlite3
+db.sqlite3-*
+*.sqlite3
+*.sqlite3-*
+
+# Uploaded user content and generated static output
+uploads/
+media/
+staticfiles/
+
+# Test, coverage, and build output
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+build/
+dist/
+*.egg-info/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+*.log

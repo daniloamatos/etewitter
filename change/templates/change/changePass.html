@@ -2,4 +2,4 @@
 {% load crispy_forms_tags i18n %}
 {% block title %}{% trans "Alterar senha" %} · Etewitter{% endblock %}
 {% block header_title %}{% trans "Alterar senha" %}{% endblock %}
-{% block content %}<section class="settings-page"><h1>{% trans "Crie uma nova senha" %}</h1><p class="settings-help">{% trans "Use pelo menos 8 caracteres." %}</p><form method="post" class="settings-form">{% csrf_token %}{{ form|crispy }}<button class="primary-button" type="submit">{% trans "Salvar nova senha" %}</button></form></section>{% endblock %}
+{% block content %}<section class="settings-page"><h1>{% trans "Crie uma nova senha" %}</h1><p class="settings-help">{% trans "Use pelo menos 10 caracteres." %}</p><form method="post" class="settings-form">{% csrf_token %}{{ form|crispy }}<button class="primary-button" type="submit">{% trans "Salvar nova senha" %}</button></form></section>{% endblock %}

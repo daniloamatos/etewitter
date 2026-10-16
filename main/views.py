@@ -105,9 +105,6 @@ def mention_suggestions(request):
 
 @login_required(login_url='/login')
 def home(request):
-    users = Usuario.objects.all()
-    for user in users:
-        user.username = '@' + user.username
     following = Follower.objects.filter(
         follower_id=request.user.id
     ).values_list("following_id", flat=True)
@@ -131,10 +128,9 @@ def home(request):
             messages.error(request, _('O tweet precisa haver algum caractere ou imagem.'))
     else:
         form = tweetForm()
-    usuario = Usuario.objects.get(username=request.user.username)
     return render(request, "main/homepage.html", {
         "form": form, "tweets": tweets, "retweeted_replies": retweeted_replies, "timeline": timeline,
-        'usuario': usuario, "users": users
+        'usuario': request.user
     })
 
 def index(request):

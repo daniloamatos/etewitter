@@ -22,8 +22,6 @@ def login(request):
             )
             if user is not None and user.is_active:
                 authLogin(request, user)
-                user.isAuthenticated = True
-                user.save(update_fields=['isAuthenticated'])
                 return redirect('/')
             messages.error(request, _('Nome de usuário e/ou senha invalidos.'))
         else:

@@ -52,14 +52,9 @@ class Usuario(AbstractUser):
     public_key = models.TextField(blank=True, default="")
     followersC = models.IntegerField(default=0)
     followingC = models.IntegerField(default=0)
-    tweetsNumber = models.IntegerField(default=0)
-    isAuthenticated = models.BooleanField(default=False)
 
     def get_posts_no(self):
         return self.posts.all().count()
-
-    def get_all_authors_posts(self):
-        return self.posts.all()
 
     def save(self, *args, **kwargs):
         for field_name in ('profilepic', 'bannerpic'):

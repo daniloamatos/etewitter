@@ -1,6 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.password_validation import validate_password
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -66,13 +69,16 @@ def changePass(request):
         if form.is_valid():
             if form.cleaned_data['senha'] != form.cleaned_data['confirme_sua_senha']:
                 form.add_error('confirme_sua_senha', _('As senhas não são identicas.'))
-            elif len(form.cleaned_data['senha']) < 5:
-                form.add_error('senha', _('A senha precisa ter no minimo 5 caracteres.'))
             else:
-                user.password = make_password(form.cleaned_data['senha'])
-                user.save(update_fields=['password'])
-                request.session.pop('password_reset_user_id', None)
-                return logout(request)
+                try:
+                    validate_password(form.cleaned_data['senha'], user)
+                except ValidationError as error:
+                    form.add_error('senha', error)
+                else:
+                    user.password = make_password(form.cleaned_data['senha'])
+                    user.save(update_fields=['password'])
+                    request.session.pop('password_reset_user_id', None)
+                    return logout(request)
     else:
         form = ChangePass()
     return render(request, 'change/changePass.html', {'form': form})
@@ -91,6 +97,7 @@ def email(request, *args):
     message = render_to_string('emailconfirmation/changepassword.html', {
         'user': user,
         'domain': current_site.domain,
+        'protocol': 'https' if not settings.DEBUG or request.is_secure() else 'http',
         'uid': urlsafe_base64_encode(force_bytes(user.pk)),
         'token': account_activation_token.make_token(user),
     })

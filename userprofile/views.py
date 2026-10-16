@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.utils.translation import gettext as _
 from register.models import Usuario
-from check.views import checkIfUsernameExists
+from register.lookups import username_exists
 from main.models import Tweet,Replys,SavedItems, Follower, Chat, Message
 from main.forms import replyForm,tweetForm
 from main.image_utils import form_image_errors
@@ -59,7 +59,7 @@ def userprofile(request,username):
     except:
         pass
     username = username
-    if  checkIfUsernameExists(request, username):
+    if username_exists(username):
         if request.method == "POST":
             if request.user.is_anonymous:
                 return redirect('/login')

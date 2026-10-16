@@ -36,9 +36,3 @@ class RegisterForm(UserCreationForm):
         if Usuario.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError(_('Este e-mail já está cadastrado.'))
         return email
-
-    def clean_password1(self):
-        password = self.cleaned_data.get('password1', '')
-        if len(password) < 5:
-            raise forms.ValidationError(_('A senha precisa ter pelo menos 5 caracteres.'))
-        return password

@@ -58,9 +58,6 @@ class Tweet(models.Model):
     def __str__(self):
         return str(self.tweet[:20])
 
-    def num_likes(self):
-        return self.likes.all().count()
-
     def save(self, *args, **kwargs):
         if self.image and not getattr(self.image, '_committed', True):
             self.image = compress_image(self.image)
@@ -108,15 +105,6 @@ class Replys(models.Model):
             self.image = compress_image(self.image)
         super().save(*args, **kwargs)
 
-
-
-class Like(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.user}--{self.tweet}'
 
 
 class TweetRetweet(models.Model):
