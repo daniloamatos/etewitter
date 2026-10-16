@@ -12,11 +12,12 @@
             <div class="image-picker">
                 <img class="profile-image-preview" id="profilepic-preview" src="{% if form.instance.profilepic and form.instance.profilepic.name != 'default/default_profile_400x400.png' %}{{ form.instance.profilepic.url }}{% else %}{{ default_profile_url }}{% endif %}" alt="Prévia da foto de perfil">
                 <div class="image-picker-controls">
-                    <label class="outline-button file-button" for="{{ form.profilepic.id_for_label }}">Escolher foto</label>
-                    <input class="visually-hidden-file" type="file" name="profilepic" id="{{ form.profilepic.id_for_label }}" accept="image/*" data-preview-target="profilepic-preview">
+                    <label class="outline-button file-button" for="{{ form.profilepic.id_for_label }}" title="Formatos: JPG, PNG, GIF e WEBP · até 20 MB">Escolher foto</label>
+                    <input class="visually-hidden-file" type="file" name="profilepic" id="{{ form.profilepic.id_for_label }}" accept="image/jpeg,image/png,image/gif,image/webp" data-preview-target="profilepic-preview" data-max-size-mb="20">
                     <label class="clear-choice"><input type="checkbox" name="profilepic-clear" id="profilepic-clear"> Remover foto</label>
                 </div>
             </div>
+            <small class="field-error image-picker-error" hidden></small>
             {% for error in form.profilepic.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         </div>
         <div class="settings-field">
@@ -24,11 +25,12 @@
             <div class="image-picker">
                 <img class="banner-image-preview" id="bannerpic-preview" src="{% if form.instance.bannerpic and form.instance.bannerpic.name != 'default/default.banner.jpg' %}{{ form.instance.bannerpic.url }}{% else %}{{ default_banner_url }}{% endif %}" alt="Prévia da imagem de capa">
                 <div class="image-picker-controls">
-                    <label class="outline-button file-button" for="{{ form.bannerpic.id_for_label }}">Escolher capa</label>
-                    <input class="visually-hidden-file" type="file" name="bannerpic" id="{{ form.bannerpic.id_for_label }}" accept="image/*" data-preview-target="bannerpic-preview">
+                    <label class="outline-button file-button" for="{{ form.bannerpic.id_for_label }}" title="Formatos: JPG, PNG, GIF e WEBP · até 50 MB">Escolher capa</label>
+                    <input class="visually-hidden-file" type="file" name="bannerpic" id="{{ form.bannerpic.id_for_label }}" accept="image/jpeg,image/png,image/gif,image/webp" data-preview-target="bannerpic-preview" data-max-size-mb="50">
                     <label class="clear-choice"><input type="checkbox" name="bannerpic-clear" id="bannerpic-clear"> Remover capa</label>
                 </div>
             </div>
+            <small class="field-error image-picker-error" hidden></small>
             {% for error in form.bannerpic.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
         </div>
         <div class="settings-field">
@@ -51,11 +53,35 @@
 {% endblock %}
 {% block javascript %}
 <script>
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 document.querySelectorAll(".visually-hidden-file[data-preview-target]").forEach((input) => {
+    const field = input.closest('.settings-field');
+    const errorBox = field ? field.querySelector('.image-picker-error') : null;
     input.addEventListener("change", () => {
         const file = input.files[0];
         const target = document.getElementById(input.dataset.previewTarget);
-        if (file && target) target.src = URL.createObjectURL(file);
+        let error = '';
+        if (file) {
+            const ext = (file.name.split('.').pop() || '').toLowerCase();
+            if (!ALLOWED_IMAGE_TYPES.includes(file.type) && !ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
+                error = 'Formato não suportado. Use JPG, PNG, GIF ou WEBP.';
+            } else {
+                const maxMb = parseInt(input.dataset.maxSizeMb, 10) || 0;
+                if (file.size > maxMb * 1024 * 1024) {
+                    error = `A imagem tem ${(file.size / 1048576).toFixed(1)} MB. O limite é ${maxMb} MB.`;
+                }
+            }
+        }
+        if (error) {
+            input.value = '';
+        } else if (file && target) {
+            target.src = URL.createObjectURL(file);
+        }
+        if (errorBox) {
+            errorBox.textContent = error;
+            errorBox.hidden = !error;
+        }
     });
 });
 </script>

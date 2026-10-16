@@ -7,6 +7,7 @@ from register.models import Usuario
 from check.views import checkIfUsernameExists
 from main.models import Tweet,Replys,SavedItems, Follower, Chat
 from main.forms import replyForm,tweetForm
+from main.image_utils import form_image_errors
 from main.views import generateLink
 from main.targets import post_target
 from django.db.models import Q
@@ -42,7 +43,12 @@ def userprofile(request,username):
                 simpanIp.tweetLink = generateLink(request)
                 simpanIp.save()
             else:
-                messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
+                errors = form_image_errors(form)
+                if errors:
+                    for error in errors:
+                        messages.error(request, error)
+                else:
+                    messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
         else:
             form = tweetForm()
         jname = Usuario.objects.filter(username__iexact=username).values_list('name').first()
@@ -262,7 +268,12 @@ def reply (request, **username):
                     )
                 return redirect(request.POST.get('next', '/'))
         else:
-            messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
+            errors = form_image_errors(form)
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+            else:
+                messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
     return redirect(request.POST.get('next', '/'))
 
 

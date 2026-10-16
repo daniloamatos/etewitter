@@ -42,9 +42,13 @@
         {% csrf_token %}
         <textarea name="tweet" id="tweetBox" maxlength="280" placeholder="O que está acontecendo?">{{ form.tweet.value|default:"" }}</textarea>
         {% for error in form.tweet.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+        <div class="composer-preview" hidden>
+            <img alt="Prévia da imagem selecionada">
+            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="Remover imagem">✕</button>
+        </div>
         <div class="composer-actions">
-            <label class="media-button" for="profile-image-input"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>Foto</span></label>
-            <input type="file" name="image" id="profile-image-input" accept="image/*">
+            <label class="media-button" for="profile-image-input" title="Formatos: JPG, PNG, GIF e WEBP · até 5 MB"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>Foto</span></label>
+            <input type="file" name="image" id="profile-image-input" accept="image/jpeg,image/png,image/gif,image/webp">
             <span class="character-limit">280 caracteres</span>
             <button class="primary-button" type="submit">Tweetar</button>
         </div>

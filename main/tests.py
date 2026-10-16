@@ -1,6 +1,16 @@
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+import io
+import tempfile
 
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
+from PIL import Image
+
+from main.image_utils import (
+    validate_banner_image_size,
+    validate_image_size,
+    validate_profile_image_size,
+)
 from main.models import Follower, Replys, SavedItems, Tweet
 from register.models import Usuario
 
@@ -91,12 +101,12 @@ class CoreFlowTests(TestCase):
             'next': '/',
         })
 
-        self.assertRedirects(response, '/')
+        self.assertEqual(response.status_code, 204)
         self.assertTrue(
             SavedItems.objects.filter(user=self.user, tweet=tweet).exists()
         )
 
-    def test_liking_a_tweet_redirects_back_and_toggles(self):
+    def test_liking_a_tweet_toggles_without_redirect(self):
         tweet = Tweet.objects.create(tweetAuthor=self.other, tweet='Curtível')
         self.client.force_login(self.user)
 
@@ -105,7 +115,7 @@ class CoreFlowTests(TestCase):
             'next': '/demo1234/',
         })
 
-        self.assertRedirects(response, '/demo1234/')
+        self.assertEqual(response.status_code, 204)
         tweet.refresh_from_db()
         self.assertEqual(tweet.likec, 1)
         self.assertTrue(tweet.likes.filter(pk=self.user.pk).exists())
@@ -115,7 +125,7 @@ class CoreFlowTests(TestCase):
             'next': '/demo1234/',
         })
 
-        self.assertRedirects(response, '/demo1234/')
+        self.assertEqual(response.status_code, 204)
         tweet.refresh_from_db()
         self.assertEqual(tweet.likec, 0)
         self.assertFalse(tweet.likes.filter(pk=self.user.pk).exists())
@@ -134,14 +144,14 @@ class CoreFlowTests(TestCase):
             'tweetid': tweet.pk,
             'next': '/',
         })
-        self.assertRedirects(response, '/')
+        self.assertEqual(response.status_code, 204)
         self.assertTrue(tweet.retweets.filter(pk=self.user.pk).exists())
 
         response = self.client.post('/tester/retweet-reply/', {
             'replyid': reply.pk,
             'next': '/',
         })
-        self.assertRedirects(response, '/')
+        self.assertEqual(response.status_code, 204)
         self.assertTrue(reply.retweets.filter(pk=self.user.pk).exists())
 
     def test_retweeted_tweet_appears_on_retweeter_profile(self):
@@ -175,7 +185,7 @@ class CoreFlowTests(TestCase):
         self.assertContains(response, 'Tweet distribuído pelo retweet')
         self.assertContains(response, '<a href="/other/">Other</a> retweetou')
 
-    def test_reply_like_redirects_and_toggles(self):
+    def test_reply_like_toggles_without_redirect(self):
         tweet = Tweet.objects.create(tweetAuthor=self.other, tweet='Pai')
         reply = Replys.objects.create(
             user=self.other,
@@ -188,7 +198,7 @@ class CoreFlowTests(TestCase):
             'replyid': reply.pk,
             'next': '/',
         })
-        self.assertRedirects(response, '/')
+        self.assertEqual(response.status_code, 204)
         reply.refresh_from_db()
         self.assertEqual(reply.likec, 1)
         self.assertTrue(reply.likes.filter(pk=self.user.pk).exists())
@@ -609,3 +619,74 @@ class CoreFlowTests(TestCase):
                 response = self.client.post('/report/', {'tweetid': post.pk, 'content_type': kind, 'reason': 'Motivo'})
                 self.assertEqual(response.status_code, 302)
         self.assertEqual(Report.objects.count(), 2)
+
+
+def _image_bytes(width, height, fmt='PNG'):
+    buffer = io.BytesIO()
+    Image.new('RGB', (width, height), (30, 140, 90)).save(buffer, format=fmt)
+    return buffer.getvalue()
+
+
+class _SizedFile:
+    def __init__(self, size):
+        self.size = size
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class ImageUploadTests(TestCase):
+    def setUp(self):
+        self.user = Usuario.objects.create_user(
+            username='imageuser',
+            email='image@example.com',
+            password='Test@123456',
+            name='Image User',
+            usernameinsensitive='IMAGEUSER',
+            is_active=True,
+        )
+
+    def test_size_validators_enforce_each_limit(self):
+        validate_image_size(_SizedFile(5 * 1024 * 1024))
+        with self.assertRaises(ValidationError):
+            validate_image_size(_SizedFile(5 * 1024 * 1024 + 1))
+
+        validate_profile_image_size(_SizedFile(20 * 1024 * 1024))
+        with self.assertRaises(ValidationError):
+            validate_profile_image_size(_SizedFile(20 * 1024 * 1024 + 1))
+
+        validate_banner_image_size(_SizedFile(50 * 1024 * 1024))
+        with self.assertRaises(ValidationError):
+            validate_banner_image_size(_SizedFile(50 * 1024 * 1024 + 1))
+
+    def test_tweet_image_is_compressed_to_jpeg_and_resized(self):
+        tweet = Tweet.objects.create(
+            tweetAuthor=self.user,
+            tweet='Com imagem',
+            image=SimpleUploadedFile('wide.png', _image_bytes(3000, 2000), content_type='image/png'),
+        )
+        tweet.refresh_from_db()
+        self.assertTrue(tweet.image.name.endswith('.jpg'))
+        with Image.open(tweet.image.path) as saved:
+            self.assertEqual(saved.format, 'JPEG')
+            self.assertLessEqual(max(saved.size), 1600)
+
+    def test_profile_and_banner_images_are_compressed(self):
+        self.user.profilepic = SimpleUploadedFile('p.png', _image_bytes(3000, 3000), content_type='image/png')
+        self.user.bannerpic = SimpleUploadedFile('b.png', _image_bytes(4000, 1500), content_type='image/png')
+        self.user.save()
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.profilepic.name.endswith('.jpg'))
+        self.assertTrue(self.user.bannerpic.name.endswith('.jpg'))
+        with Image.open(self.user.profilepic.path) as profile, Image.open(self.user.bannerpic.path) as banner:
+            self.assertEqual(profile.format, 'JPEG')
+            self.assertEqual(banner.format, 'JPEG')
+            self.assertLessEqual(max(profile.size), 1600)
+            self.assertLessEqual(max(banner.size), 1600)
+
+    def test_unsupported_format_is_rejected(self):
+        from main.forms import tweetForm
+        form = tweetForm(
+            data={'tweet': 'oi'},
+            files={'image': SimpleUploadedFile('x.bmp', _image_bytes(50, 50, 'BMP'), content_type='image/bmp')},
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('image', form.errors)

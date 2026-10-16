@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="{% static 'css/styles.css' %}?v=20261041" rel="stylesheet">
+    <link href="{% static 'css/styles.css' %}?v=20261044" rel="stylesheet">
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -65,7 +65,7 @@
         </aside>
     </div>
     {% include "main/report_dialog.html" %}
-    <script src="{% static 'js/post-interactions.js' %}?v=8" defer></script>
+    <script src="{% static 'js/post-interactions.js' %}?v=10" defer></script>
     {% if request.user.is_authenticated %}<script src="{% static 'js/message-badge.js' %}" defer></script>{% endif %}
     {% block javascript %}{% endblock %}
 </body>

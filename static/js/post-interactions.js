@@ -8,6 +8,89 @@
         return form.getAttribute('action') || '';
     }
 
+    // Limite e formatos de imagem aceitos (mesmos valores de main/image_utils.py).
+    // 5 MB é o limite padrão do X/Twitter para fotos.
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+    const MAX_IMAGE_SIZE_MB = 5;
+    const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+    // Pré-visualização da imagem anexada em qualquer compositor (tweet,
+    // resposta, chat, etc.). O compositor deve conter um elemento ".composer-preview".
+    function setupImagePreviews() {
+        document.querySelectorAll('form input[type="file"]').forEach((input) => {
+            const form = input.closest('form');
+            if (!form) return;
+            const box = form.querySelector('.composer-preview');
+            if (!box) return;
+            const img = box.querySelector('img');
+            const removeBtn = box.querySelector('[data-remove-preview]');
+
+            // Caixa de erro logo abaixo da pré-visualização.
+            let errorBox = form.querySelector('.composer-image-error');
+            if (!errorBox) {
+                errorBox = document.createElement('p');
+                errorBox.className = 'composer-image-error';
+                errorBox.hidden = true;
+                box.parentNode.insertBefore(errorBox, box.nextSibling);
+            }
+
+            const imageError = (file) => {
+                if (!file) return '';
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                const typeOk = ALLOWED_IMAGE_TYPES.includes(file.type)
+                    || ALLOWED_IMAGE_EXTENSIONS.includes(ext);
+                if (!typeOk) {
+                    return 'Formato não suportado. Use JPG, PNG, GIF ou WEBP.';
+                }
+                if (file.size > MAX_IMAGE_SIZE) {
+                    return `A imagem tem ${(file.size / 1048576).toFixed(1)} MB. O limite é ${MAX_IMAGE_SIZE_MB} MB.`;
+                }
+                return '';
+            };
+
+            const update = () => {
+                let file = input.files && input.files[0];
+                const error = imageError(file);
+                if (error) {
+                    input.value = '';
+                    file = null;
+                    errorBox.textContent = error;
+                    errorBox.hidden = false;
+                } else {
+                    errorBox.hidden = true;
+                    errorBox.textContent = '';
+                }
+                if (img) {
+                    if (file) {
+                        if (img.dataset.objectUrl) URL.revokeObjectURL(img.dataset.objectUrl);
+                        const url = URL.createObjectURL(file);
+                        img.dataset.objectUrl = url;
+                        img.src = url;
+                    } else {
+                        if (img.dataset.objectUrl) {
+                            URL.revokeObjectURL(img.dataset.objectUrl);
+                            delete img.dataset.objectUrl;
+                        }
+                        img.removeAttribute('src');
+                    }
+                }
+                box.hidden = !file;
+            };
+
+            input.addEventListener('change', update);
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => {
+                    input.value = '';
+                    update();
+                });
+            }
+            update();
+        });
+    }
+
+    setupImagePreviews();
+
     // Helper: envia interação via AJAX e atualiza o frontend
     function handleInteraction(form, event) {
         event.preventDefault();

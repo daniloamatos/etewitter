@@ -4,6 +4,7 @@ import random
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden
 from .forms import tweetForm
+from .image_utils import form_image_errors
 from .targets import post_target
 from asgiref.sync import async_to_sync
 from .models import Replys, Tweet, SavedItems as SavedItemsclass, Follower, Message, Report, Notification
@@ -106,7 +107,12 @@ def home(request):
                         tweet=tweet,
                     )
             return redirect("/")
-        messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
+        errors = form_image_errors(form)
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            messages.error(request, 'O tweet precisa haver algum caractere ou imagem.')
     else:
         form = tweetForm()
     usuario = Usuario.objects.get(username=request.user.username)

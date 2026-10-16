@@ -10,14 +10,22 @@
     <div class="tweet-meta">{% include "main/profile_avatar.html" with person=receiver %}<a href="/{{ receiver.username }}/"><strong>{{ receiver.name|default:receiver.username }}</strong></a></div>
     <div id="messages" class="chat-messages">
         {% for message in chat_messages %}
-        <div class="chat-bubble {% if message.sender_id == user.id %}mine{% endif %}"><span class="chat-bubble-text">{{ message.body }}</span><time class="chat-bubble-time">{{ message.publishDate|date:"H:i" }}</time></div>
+        <div class="chat-bubble {% if message.sender_id == user.id %}mine{% endif %}">{% if message.image %}<img class="chat-bubble-image" src="{{ message.image.url }}" alt="Imagem da mensagem">{% endif %}{% if message.body %}<span class="chat-bubble-text">{{ message.body }}</span>{% endif %}<time class="chat-bubble-time">{{ message.publishDate|date:"H:i" }}</time></div>
         {% empty %}
         <div class="empty-state"><div class="empty-icon">✉</div><h2>Comece a conversa</h2><p>Envie uma mensagem para @{{ receiver.username }}.</p></div>
         {% endfor %}
     </div>
-    <form id="form" class="chat-form">
-        <input type="text" name="message" aria-label="Mensagem" maxlength="250" placeholder="Escreva uma mensagem..." autocomplete="off" required>
-        <button class="primary-button" type="submit">Enviar</button>
+    <form id="form" class="chat-form" enctype="multipart/form-data">
+        <div class="composer-preview" hidden>
+            <img alt="Prévia da imagem selecionada">
+            <button type="button" class="composer-preview-remove" data-remove-preview aria-label="Remover imagem">✕</button>
+        </div>
+        <div class="chat-form-row">
+            <label class="media-button" for="chat-image" title="Formatos: JPG, PNG, GIF e WEBP · até 5 MB"><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 2-2 6 6"/></svg><span>Foto</span></label>
+            <input type="file" id="chat-image" name="image" accept="image/jpeg,image/png,image/gif,image/webp">
+            <input type="text" name="message" aria-label="Mensagem" maxlength="250" placeholder="Escreva uma mensagem..." autocomplete="off">
+            <button class="primary-button" type="submit">Enviar</button>
+        </div>
     </form>
 </section>
 {% endblock %}
@@ -29,6 +37,8 @@
     const receiverid = JSON.parse(document.getElementById('receiverid').textContent);
     const chatSocket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/messages/${userid}-${receiverid}/`);
     const messages = document.getElementById('messages');
+    const form = document.getElementById('form');
+    const imageInput = document.getElementById('chat-image');
     let lastReceivedId = 0;
     function acknowledgeMessages() {
         if (lastReceivedId && document.visibilityState === 'visible' && chatSocket.readyState === WebSocket.OPEN) {
@@ -37,6 +47,30 @@
     }
     document.addEventListener('visibilitychange', acknowledgeMessages);
     window.addEventListener('focus', acknowledgeMessages);
+    function appendBubble(username, text, time, imageUrl) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${username === user ? 'mine' : ''}`;
+        if (imageUrl) {
+            const img = document.createElement('img');
+            img.className = 'chat-bubble-image';
+            img.src = imageUrl;
+            img.alt = 'Imagem da mensagem';
+            bubble.appendChild(img);
+        }
+        if (text) {
+            const textSpan = document.createElement('span');
+            textSpan.className = 'chat-bubble-text';
+            textSpan.textContent = text;
+            bubble.appendChild(textSpan);
+        }
+        const timeEl = document.createElement('time');
+        timeEl.className = 'chat-bubble-time';
+        timeEl.textContent = time || new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        bubble.appendChild(timeEl);
+        messages.querySelector('.empty-state')?.remove();
+        messages.appendChild(bubble);
+        messages.scrollTop = messages.scrollHeight;
+    }
     chatSocket.onmessage = function (event) {
         const data = JSON.parse(event.data);
         if (data.type === 'chat') {
@@ -44,27 +78,44 @@
                 lastReceivedId = data.message_id;
                 acknowledgeMessages();
             }
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble ${data.username === user ? 'mine' : ''}`;
-            const textSpan = document.createElement('span');
-            textSpan.className = 'chat-bubble-text';
-            textSpan.textContent = data.message;
-            const timeEl = document.createElement('time');
-            timeEl.className = 'chat-bubble-time';
-            timeEl.textContent = data.time || new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-            bubble.append(textSpan, timeEl);
-            messages.querySelector('.empty-state')?.remove();
-            messages.appendChild(bubble);
-            messages.scrollTop = messages.scrollHeight;
+            appendBubble(data.username, data.message, data.time, data.image);
+        } else if (data.type === 'error') {
+            showChatError(data.error);
         }
     };
+    function showChatError(message) {
+        let box = form.querySelector('.composer-image-error');
+        if (!box) {
+            box = document.createElement('p');
+            box.className = 'composer-image-error';
+            form.appendChild(box);
+        }
+        box.textContent = message;
+        box.hidden = false;
+    }
     messages.scrollTop = messages.scrollHeight;
-    document.getElementById('form').addEventListener('submit', function (event) {
+    form.addEventListener('submit', function (event) {
         event.preventDefault();
-        const input = event.target.message;
-        if (!input.value.trim()) return;
-        chatSocket.send(JSON.stringify({message: input.value.trim(), username: user, receiver}));
-        input.value = '';
+        const input = form.message;
+        const text = input.value.trim();
+        const file = imageInput && imageInput.files && imageInput.files[0];
+        if (!text && !file) return;
+        const reset = () => {
+            input.value = '';
+            imageInput.value = '';
+            imageInput.dispatchEvent(new Event('change'));
+        };
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                chatSocket.send(JSON.stringify({message: text, image: reader.result, username: user, receiver}));
+                reset();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            chatSocket.send(JSON.stringify({message: text, username: user, receiver}));
+            reset();
+        }
     });
 </script>
 {% endblock %}

@@ -1,9 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, FileExtensionValidator
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from main.image_utils import (
+    ALLOWED_IMAGE_EXTENSIONS,
+    compress_image,
+    validate_profile_image_size,
+    validate_banner_image_size,
+)
 import random
 import os
 
@@ -25,21 +31,6 @@ class MyPBKDF2PasswordHasher(PBKDF2PasswordHasher):
     iterations = PBKDF2PasswordHasher.iterations * 1
 
 class Usuario(AbstractUser):
-    '''def validate_profilepic_size(value):
-        filesize= value.size
-        if filesize > 50*1024*1024:
-            raise ValidationError("O tamanho máximo da foto de perfil é 50MB")
-        else:
-            return value
-
-
-    def validate_banner_size(value):
-        filesize= value.size
-        if filesize > 50*1024*1024:
-            raise ValidationError("O tamanho máximo da foto de capa é 50MB")
-        else:
-            return value'''
-
     validateSize = RegexValidator(regex='^.{4,25}$', message='O tamanho do nome tem que ser entre 4 e 25',  code='invalid_size')
     validateCharacters = RegexValidator(regex='^[a-zA-Z0-9]*$', message='Somente caracteres alfanuméricos são permitidos.', code='invalid_characters')
     username = models.CharField(validators=[validateSize, validateCharacters], max_length=25, unique=True, verbose_name="Nome de usuário")
@@ -50,8 +41,8 @@ class Usuario(AbstractUser):
     REQUIRED_FIELDS = ['email', 'password']
     date_of_birth = models.DateTimeField(null=True,blank=True, verbose_name='Data de aniversário')
     date_of_creation = models.DateTimeField(default=timezone.now, blank=True)
-    profilepic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name="Foto de perfil")
-    bannerpic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name="Foto de capa")
+    profilepic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name="Foto de perfil", validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_profile_image_size])
+    bannerpic = models.ImageField(default="", blank=True, upload_to=image_path, verbose_name="Foto de capa", validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_banner_image_size])
     bio = models.CharField(blank=True, max_length=50, verbose_name="Sobre")
     followersC = models.IntegerField(default=0)
     followingC = models.IntegerField(default=0)
@@ -63,6 +54,13 @@ class Usuario(AbstractUser):
 
     def get_all_authors_posts(self):
         return self.posts.all()
+
+    def save(self, *args, **kwargs):
+        for field_name in ('profilepic', 'bannerpic'):
+            image = getattr(self, field_name)
+            if image and not getattr(image, '_committed', True):
+                setattr(self, field_name, compress_image(image))
+        super().save(*args, **kwargs)
 
 
 

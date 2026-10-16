@@ -5,6 +5,7 @@ from datetime import datetime
 from django.utils import timezone
 import random
 import os
+from .image_utils import ALLOWED_IMAGE_EXTENSIONS, compress_image, validate_image_size
 
 
 def image_path(instance, filename):
@@ -28,10 +29,21 @@ def image_path2(instance, filename):
         instance = instance, randomstring=randomstr, randomstring2=randomstr2,ext=file_extension[1],
         day=_now.strftime('%d'), month=_now.strftime('%m'), year=_now.strftime('%Y'))
 
+def message_image_path(instance, filename):
+    file_extension = os.path.splitext(filename)
+    chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890'
+    randomstr = ''.join((random.choice(chars)) for x in range(10))
+    randomstr2 = ''.join((random.choice(chars)) for x in range(20))
+    _now = timezone.now()
+
+    return 'messages/{sender}/{day}/{month}/{year}/{randomstring}/{randomstring2}{ext}'.format(
+        instance = instance, sender=instance.sender_id, randomstring=randomstr, randomstring2=randomstr2,
+        ext=file_extension[1], day=_now.strftime('%d'), month=_now.strftime('%m'), year=_now.strftime('%Y'))
+
 class Tweet(models.Model):
     tweet = models.CharField(blank=True, max_length=280)
     tweetAuthor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="posts")
-    image = models.ImageField(upload_to=image_path, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank=True)
+    image = models.ImageField(upload_to=image_path, validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_image_size], blank=True)
     likes = models.ManyToManyField(Usuario, blank=True, related_name="likes")
     retweets = models.ManyToManyField(Usuario, blank=True, related_name="retweets")
     likec = models.IntegerField(default=0)
@@ -45,6 +57,11 @@ class Tweet(models.Model):
 
     def num_likes(self):
         return self.likes.all().count()
+
+    def save(self, *args, **kwargs):
+        if self.image and not getattr(self.image, '_committed', True):
+            self.image = compress_image(self.image)
+        super().save(*args, **kwargs)
 
 class SavedItems(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
@@ -68,7 +85,7 @@ class Replys(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
     reply = models.ManyToManyField('self', blank=True, symmetrical=False)
     body = models.CharField(blank=True, max_length=280)
-    image = models.ImageField(upload_to=image_path2, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'gif'])], blank=True)
+    image = models.ImageField(upload_to=image_path2, validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_image_size], blank=True)
     publishDate = models.DateTimeField(auto_now_add=True, blank=True)
     likes = models.ManyToManyField(Usuario, blank=True, related_name="likesr")
     retweets = models.ManyToManyField(Usuario, blank=True, related_name="retweetsr")
@@ -79,6 +96,11 @@ class Replys(models.Model):
 
     def __str__(self):
         return str(self.pk)
+
+    def save(self, *args, **kwargs):
+        if self.image and not getattr(self.image, '_committed', True):
+            self.image = compress_image(self.image)
+        super().save(*args, **kwargs)
 
 
 
@@ -98,7 +120,13 @@ class Message(models.Model):
     sender = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="sender")
     receiver = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="receiver")
     body = models.CharField(blank=True, max_length=250)
+    image = models.ImageField(upload_to=message_image_path, validators=[FileExtensionValidator(ALLOWED_IMAGE_EXTENSIONS), validate_image_size], blank=True)
     publishDate = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.image and not getattr(self.image, '_committed', True):
+            self.image = compress_image(self.image)
+        super().save(*args, **kwargs)
 
 class Chat(models.Model):
     sender = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="senderC")
